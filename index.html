@@ -6,6 +6,7 @@
 <title>Remeco – Gestión</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCfazpbJrCmanf7yNvFo9e68l2DvdNX7lg&libraries=places,directions"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#0d1520;color:#ddd8ce;height:100vh;display:flex;flex-direction:column;overflow:hidden}
@@ -660,58 +661,41 @@ async function verEnMapa(id){
     fLayers.push(L.marker([v.lat,v.lng],{icon:ic}).addTo(mapF).bindPopup(`<b>${v.cliente}</b><br>${v.localidad||''}`));
   });
   const pts=[[FLT,FLN],...sel.map(v=>[v.lat,v.lng])];
-  const prov=L.polyline(pts,{color:'#f0c84066',weight:2,dashArray:'6,6'}).addTo(mapF);
-  fLayers.push(prov);
   mapF.fitBounds(L.latLngBounds(pts),{padding:[50,50]});
   toast('Calculando ruta...');
-  // Usar JSONP con Google Directions (evita CORS)
   try{
-    const waypts=sel.map(v=>`${v.lat},${v.lng}`);
-    const origin=`${FLT},${FLN}`;
-    const destination=waypts[waypts.length-1];
-    const waypoints=waypts.slice(0,-1).join('|');
-    // Intentar con fetch directo primero
-    let url=`https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${GMAPS_KEY}&language=es`;
-    if(waypoints)url+=`&waypoints=${encodeURIComponent(waypoints)}`;
-    let d=null;
-    // Intentar múltiples proxies CORS
-    const proxies=[
-      `https://corsproxy.io/?${encodeURIComponent(url)}`,
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-      `https://cors-anywhere.herokuapp.com/${url}`
-    ];
-    for(const proxy of proxies){
-      try{
-        const r=await fetch(proxy,{signal:AbortSignal.timeout(8000)});
-        const text=await r.text();
-        d=JSON.parse(text);
-        if(d.status==='OK')break;
-      }catch(e){continue}
-    }
-    if(d&&d.status==='OK'&&d.routes?.length){
-      prov.remove();
-      const points=decodePolyline(d.routes[0].overview_polyline.points);
-      const kmReal=Math.round(d.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
+    const directionsService=new google.maps.DirectionsService();
+    const waypoints=sel.slice(0,-1).map(v=>({location:new google.maps.LatLng(v.lat,v.lng),stopover:true}));
+    const last=sel[sel.length-1];
+    const result=await directionsService.route({
+      origin:new google.maps.LatLng(FLT,FLN),
+      destination:new google.maps.LatLng(last.lat,last.lng),
+      waypoints,
+      travelMode:google.maps.TravelMode.DRIVING,
+      optimizeWaypoints:false
+    });
+    if(result.status==='OK'){
+      const points=result.routes[0].overview_path.map(p=>[p.lat(),p.lng()]);
+      const kmReal=Math.round(result.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
       const rl=L.polyline(points,{color:'#f0c840',weight:4,opacity:.95}).addTo(mapF);
       fLayers.push(rl);mapF.fitBounds(rl.getBounds(),{padding:[50,50]});
       vj._kmReal=kmReal;saveViajes();renderViajes();
       toast(`Google Maps: ${kmReal.toLocaleString('es-AR')} km ✔`);
-    }else{
-      // Fallback OSRM
-      prov.remove();
-      const coords=pts.map(p=>p[1]+','+p[0]).join(';');
-      const r2=await fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`,{signal:AbortSignal.timeout(8000)});
-      const d2=await r2.json();
-      if(d2.code==='Ok'){
-        const rl=L.geoJSON(d2.routes[0].geometry,{style:{color:'#f0c840',weight:4,opacity:.95}}).addTo(mapF);
-        fLayers.push(rl);mapF.fitBounds(rl.getBounds(),{padding:[50,50]});
-        const km=Math.round(d2.routes[0].distance/1000);
-        vj._kmReal=km;saveViajes();renderViajes();
-        toast(`Ruta OSRM: ${km.toLocaleString('es-AR')} km`);
-      }
     }
   }catch(e){
-    toast('Error calculando ruta: '+e.message);
+    // Fallback OSRM
+    try{
+      const coords=pts.map(p=>p[1]+','+p[0]).join(';');
+      const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`);
+      const d=await r.json();
+      if(d.code==='Ok'){
+        const rl=L.geoJSON(d.routes[0].geometry,{style:{color:'#f0c840',weight:4,opacity:.95}}).addTo(mapF);
+        fLayers.push(rl);mapF.fitBounds(rl.getBounds(),{padding:[50,50]});
+        const km=Math.round(d.routes[0].distance/1000);
+        vj._kmReal=km;saveViajes();renderViajes();
+        toast(`Ruta calculada: ${km.toLocaleString('es-AR')} km`);
+      }
+    }catch(e2){toast('Error calculando ruta')}
   }
 }
 
