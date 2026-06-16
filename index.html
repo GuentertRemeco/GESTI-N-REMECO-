@@ -481,7 +481,7 @@ function renderViajes(){
       <div class="viaje-header" onclick="toggleViaje('${vj.id}')">
         <div>
           <div class="viaje-nombre">🚛 ${vj.nombre}</div>
-          <div class="viaje-meta">${pedidos.length} parada${pedidos.length!==1?'s':''} · <span class="viaje-km">${km} km est.</span></div>
+          <div class="viaje-meta">${pedidos.length} parada${pedidos.length!==1?'s':''} · <span class="viaje-km">${vj._kmReal?vj._kmReal.toLocaleString('es-AR')+' km reales':Math.round(calcKmLista(pedidos))+' km est.'}</span></div>
         </div>
         <div style="display:flex;gap:5px;align-items:center">
           <button onclick="event.stopPropagation();verEnMapa('${vj.id}')" style="background:#1a2c40;border:1px solid #2e4a65;color:#7a9ab8;padding:3px 7px;font-size:.68rem;border-radius:4px">🗺️</button>
@@ -576,6 +576,9 @@ async function verEnMapa(id){
       fLayers.push(rl);
       mapF.fitBounds(rl.getBounds(),{padding:[50,50]});
       const kmReal=Math.round(d.routes[0].distance/1000);
+      // Actualizar km en la tarjeta del viaje
+      const vj2=viajes.find(x=>x.id===id);
+      if(vj2){vj2._kmReal=kmReal;saveViajes();renderViajes()}
       toast(`Ruta real: ${kmReal.toLocaleString('es-AR')} km`);
     }
   }catch(e){/* queda la línea punteada */}
