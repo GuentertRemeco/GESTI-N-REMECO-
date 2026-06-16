@@ -49,30 +49,59 @@ tr:hover td{background:#1a2c40}
 .fp-title{font-size:.67rem;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:#c9a840}
 .fp-body{flex:1;overflow-y:auto;padding:8px}
 .viaje-card{background:#111820;border:1px solid #1e3245;border-radius:9px;margin-bottom:10px;overflow:hidden}
-.viaje-header{padding:9px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s}
-.viaje-header:hover{background:#1a2c40}
+.viaje-header{padding:9px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #1e3245}
+.viaje-collapse{background:none;border:none;color:#7a9ab8;cursor:pointer;font-size:1rem;padding:2px 5px;border-radius:4px;transition:all .15s;flex-shrink:0}
+.viaje-collapse:hover{background:#1a2c40;color:#c9a840}
+.viaje-info{flex:1;min-width:0}
 .viaje-nombre{font-weight:800;font-size:.85rem;color:#c9a840}
-.viaje-meta{font-size:.68rem;color:#5a7a9a;margin-top:2px}
-.viaje-km{font-size:.75rem;font-weight:700;color:#3a8a5a}
-.viaje-pedidos{padding:0 8px 8px}
+.viaje-meta{font-size:.68rem;color:#5a7a9a;margin-top:1px;display:flex;gap:8px;flex-wrap:wrap}
+.viaje-km{color:#3a8a5a;font-weight:700}
+.viaje-fecha{color:#7a9ab8}
+.viaje-btns{display:flex;gap:4px;flex-shrink:0}
+.vbtn{background:#1a2c40;border:1px solid #2e4a65;color:#7a9ab8;padding:3px 7px;font-size:.68rem;border-radius:4px;cursor:pointer;transition:all .15s}
+.vbtn:hover{color:#ddd8ce;border-color:#c9a840}
+.vbtn.del{background:#2a1010;border-color:#5a2020;color:#fcc}
+.vbtn.del:hover{background:#3a1515}
+.viaje-body{padding:8px}
 .vp-item{background:#1a2c40;border:1px solid #1e3a55;border-radius:6px;padding:6px 9px;margin-bottom:4px;display:flex;align-items:center;gap:7px}
 .vp-num{width:20px;height:20px;border-radius:50%;background:#c9a840;color:#111820;font-size:.62rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .vp-info{flex:1;min-width:0}
 .vp-cli{font-weight:700;font-size:.78rem}
 .vp-sub{font-size:.65rem;color:#6a8aaa;margin-top:1px}
 .vp-del{background:none;border:none;color:#3a5a7a;cursor:pointer;font-size:.85rem;padding:2px 4px;border-radius:3px}
-.vp-del:hover{color:#ff6060;background:#2a1010}
-.viaje-add{padding:6px 8px 8px}
-.pedidos-disponibles{max-height:180px;overflow-y:auto;background:#0d1520;border:1px solid #1e3245;border-radius:6px;margin-bottom:6px}
+.vp-del:hover{color:#ff6060}
+.agregar-section{margin-top:6px}
+.agregar-title{font-size:.65rem;color:#5a7a9a;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;padding:0 2px}
+.pedidos-disponibles{max-height:160px;overflow-y:auto;background:#0d1520;border:1px solid #1e3245;border-radius:6px}
 .pd-item{padding:6px 10px;display:flex;align-items:center;gap:7px;cursor:pointer;transition:background .15s;border-bottom:1px solid #1a2a3a}
 .pd-item:last-child{border-bottom:none}
 .pd-item:hover{background:#1a2c40}
-.pd-cb{width:14px;height:14px;accent-color:#c9a840;flex-shrink:0}
 .pd-info{flex:1;min-width:0}
 .pd-cli{font-weight:700;font-size:.77rem}
 .pd-sub{font-size:.65rem;color:#6a8aaa}
-.viaje-actions{padding:8px;border-top:1px solid #1e3245;display:flex;gap:6px}
-.fp-footer{padding:8px 14px;border-top:1px solid #1e3245;background:#0a1018;flex-shrink:0}
+.viaje-actions{margin-top:8px;display:flex;gap:6px}
+.fp-footer{padding:10px 14px;border-top:1px solid #1e3245;background:#0a1018;flex-shrink:0;display:flex;flex-direction:column;gap:6px}
+
+/* SIMULAR */
+.simular-wrap{flex:1;display:flex;overflow:hidden}
+#mapSimular{flex:1;min-width:0}
+.sim-panel{width:320px;min-width:280px;background:#0d1520;border-left:1px solid #1e3245;display:flex;flex-direction:column;overflow:hidden}
+.sim-header{padding:10px 14px;border-bottom:1px solid #1e3245;flex-shrink:0}
+.sim-title{font-size:.67rem;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:#c9a840;margin-bottom:8px}
+.sim-input-row{display:flex;gap:6px}
+.sim-input{flex:1;background:#1a2c40;border:1px solid #1e3a55;color:#ddd8ce;border-radius:6px;padding:7px 10px;font-size:.8rem;font-family:inherit}
+.sim-input:focus{outline:none;border-color:#c9a840}
+.sim-body{flex:1;overflow-y:auto;padding:8px}
+.sim-parada{background:#1a2c40;border:1px solid #1e3a55;border-radius:7px;padding:7px 10px;margin-bottom:5px;display:flex;align-items:center;gap:8px}
+.sim-num{width:22px;height:22px;border-radius:50%;background:#c9a840;color:#111820;font-size:.65rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sim-info{flex:1;min-width:0}
+.sim-lugar{font-weight:700;font-size:.8rem}
+.sim-km{font-size:.68rem;color:#3a8a5a;margin-top:1px}
+.sim-del{background:none;border:none;color:#3a5a7a;cursor:pointer;font-size:.85rem;padding:2px}
+.sim-del:hover{color:#ff6060}
+.sim-footer{padding:10px 14px;border-top:1px solid #1e3245;background:#0a1018;flex-shrink:0}
+.sim-total{font-size:1.4rem;font-weight:900;color:#c9a840;line-height:1}
+.sim-label{font-size:.67rem;color:#5a7a9a;margin-bottom:8px}
 
 /* CLIENTES */
 .cli-wrap{display:flex;flex:1;overflow:hidden}
@@ -104,9 +133,7 @@ tr:hover td{background:#1a2c40}
 .mmap{height:185px;border-radius:8px;overflow:hidden;border:1px solid #1e3a55;margin-bottom:4px}
 .mmhint{font-size:.71rem;color:#5a7a9a;margin-bottom:9px}
 .mact{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
-
-/* Modal nuevo viaje */
-.modal-sm{background:#15202e;border:1px solid #c9a840;border-radius:10px;padding:18px;width:90%;max-width:340px;box-shadow:0 12px 36px rgba(0,0,0,.7)}
+.modal-sm{background:#15202e;border:1px solid #c9a840;border-radius:10px;padding:18px;width:90%;max-width:360px;box-shadow:0 12px 36px rgba(0,0,0,.7)}
 
 button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:600;padding:7px 14px;transition:all .15s;font-family:inherit}
 .bg{background:#c9a840;color:#111820}.bg:hover{background:#dfc060}
@@ -114,10 +141,14 @@ button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:
 .bv{background:#1a5230;color:#9fe;border:1px solid #2a8c50}.bv:hover{background:#236840}
 .br{background:#4a1515;color:#fcc;border:1px solid #8a2020}.br:hover{background:#6a2020}
 .bo{background:#4a2c0a;color:#fdb;border:1px solid #8a5010}.bo:hover{background:#6a3c10}
+.bsim{background:#2a1a40;color:#c0a0ff;border:1px solid #4a3a60}.bsim:hover{background:#3a2a50}
 
 .sugs-box{position:absolute;z-index:9999;background:#1a2c40;border:1px solid #c9a840;border-radius:6px;width:100%;max-height:140px;overflow-y:auto}
 .sugs-box div{padding:7px 10px;cursor:pointer;font-size:.8rem;color:#ddd8ce}
 .sugs-box div:hover{background:#243d56}
+.sugs-inline{position:absolute;z-index:999;background:#1a2c40;border:1px solid #c9a840;border-radius:6px;width:100%;max-height:160px;overflow-y:auto;left:0;top:100%;margin-top:2px}
+.sugs-inline div{padding:7px 10px;cursor:pointer;font-size:.8rem;color:#ddd8ce}
+.sugs-inline div:hover{background:#243d56}
 
 #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#15202e;border:1px solid #c9a840;color:#c9a840;padding:8px 18px;border-radius:20px;font-size:.78rem;z-index:9999;font-weight:600;transition:opacity .3s;pointer-events:none;opacity:0}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#0d1520}::-webkit-scrollbar-thumb{background:#1e3a55;border-radius:3px}
@@ -130,6 +161,7 @@ button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:
   <button class="ntab on" onclick="ir('ventas')">📋 Ventas</button>
   <button class="ntab" onclick="ir('mapa')">🗺️ Mapa</button>
   <button class="ntab" onclick="ir('flete')">🚛 Flete</button>
+  <button class="ntab" onclick="ir('simular')">🧮 Simular</button>
   <button class="ntab" onclick="ir('clientes')">👤 Clientes</button>
   <div class="nav-right">
     <button class="bg" onclick="abrirNueva()">+ Nueva venta</button>
@@ -154,7 +186,7 @@ button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:
   <div class="vtable-wrap">
     <table>
       <thead><tr>
-        <th>Cliente</th><th>Producto</th><th>Localidad / Zona</th>
+        <th>Cliente / CUIT</th><th>Producto</th><th>Localidad / Zona</th>
         <th>Precio</th><th>Estado</th><th>Entrega</th><th></th>
       </tr></thead>
       <tbody id="vtbody"></tbody>
@@ -175,12 +207,46 @@ button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:
         <button class="bg" style="padding:4px 10px;font-size:.75rem" onclick="abrirNuevoViaje()">+ Nuevo viaje</button>
       </div>
       <div class="fp-body" id="fpBody">
-        <div style="text-align:center;padding:30px 12px;color:#3a5a7a;font-size:.8rem">
-          Creá un viaje y agregá los pedidos que querés combinar
-        </div>
+        <div style="text-align:center;padding:30px 12px;color:#3a5a7a;font-size:.8rem">Creá un viaje y agregá los pedidos</div>
       </div>
       <div class="fp-footer">
-        <button class="bg" style="width:100%;padding:8px" onclick="exportarViajes()">📋 Exportar viajes seleccionados</button>
+        <button class="bg" style="width:100%;padding:8px" onclick="exportarViajes()">📋 Exportar viajes para WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SIMULAR -->
+<div class="page" id="page-simular">
+  <div class="simular-wrap">
+    <div id="mapSimular"></div>
+    <div class="sim-panel">
+      <div class="sim-header">
+        <div class="sim-title">🧮 Simulador de flete</div>
+        <div style="position:relative">
+          <div class="sim-input-row">
+            <input class="sim-input" id="simInput" placeholder="Agregar localidad..." autocomplete="off" oninput="sugerirSim(this.value)"/>
+            <button class="bg" style="padding:6px 10px" onclick="agregarParadaSim()">+</button>
+          </div>
+          <div id="simSugs" style="position:relative"></div>
+        </div>
+      </div>
+      <div class="sim-body" id="simBody">
+        <div style="text-align:center;padding:24px 12px;color:#3a5a7a;font-size:.8rem">
+          Agregá localidades para simular el recorrido del flete
+        </div>
+      </div>
+      <div class="sim-footer">
+        <div class="sim-total" id="simKm">0</div>
+        <div class="sim-label">km estimados del recorrido</div>
+        <div style="display:flex;gap:6px">
+          <button class="bv" style="flex:1;padding:7px" onclick="calcularRutaSim()">🗺️ Ver ruta real</button>
+          <button class="bd" style="padding:7px" onclick="limpiarSim()">Limpiar</button>
+        </div>
+        <div style="margin-top:6px;padding:10px;background:#1a2c40;border-radius:8px;border:1px solid #2e4a65;text-align:center">
+          <div style="font-size:.7rem;color:#5a7a9a;margin-bottom:4px">PRÓXIMAMENTE</div>
+          <button class="bsim" style="width:100%;padding:8px;font-size:.8rem" disabled>💰 Calcular costo por cliente</button>
+        </div>
       </div>
     </div>
   </div>
@@ -203,6 +269,10 @@ button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:
       <div class="fg"><label>Teléfono</label><input id="fTel" placeholder="Ej: 3584123456"/></div>
     </div>
     <div class="frow">
+      <div class="fg"><label>CUIT</label><input id="fCuit" placeholder="Ej: 20-12345678-9"/></div>
+      <div class="fg"><label>Zona de flete</label><input id="fZona" placeholder="Ej: Rosario, BA Norte..."/></div>
+    </div>
+    <div class="frow">
       <div class="fg"><label>Producto *</label>
         <select id="fProd" onchange="cargarTons('')">
           <option value="a">Silo Aéreo</option><option value="c">Autoconsumo</option>
@@ -221,12 +291,11 @@ button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:
     </div>
     <div class="frow">
       <div class="fg"><label>Fecha de entrega</label><input id="fFecha" type="date"/></div>
-      <div class="fg"><label>Zona de flete</label><input id="fZona" placeholder="Ej: Rosario, BA Norte..."/></div>
-    </div>
-    <div class="fg" style="position:relative">
-      <label>Localidad</label>
-      <input id="fLoc" placeholder="Ej: Casilda, Santa Fe" autocomplete="off" oninput="sugerirLoc(this.value)"/>
-      <div id="locSugs" style="position:relative"></div>
+      <div class="fg" style="position:relative">
+        <label>Localidad</label>
+        <input id="fLoc" placeholder="Ej: Casilda, Santa Fe" autocomplete="off" oninput="sugerirLoc(this.value)"/>
+        <div id="locSugs" style="position:relative"></div>
+      </div>
     </div>
     <div class="fg"><label>Notas</label><textarea id="fNot" placeholder="Información adicional..."></textarea></div>
     <p class="mmhint">📍 Tocá el mapa para marcar la ubicación exacta</p>
@@ -242,10 +311,8 @@ button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:
 <div class="overlay" id="overlayViaje">
   <div class="modal-sm">
     <h2 style="font-size:.9rem;color:#c9a840;margin-bottom:12px">Nuevo viaje</h2>
-    <div class="fg">
-      <label>Nombre del viaje</label>
-      <input id="viajeNombre" placeholder="Ej: Rosario 20 jun, BA Norte..."/>
-    </div>
+    <div class="fg"><label>Nombre del viaje</label><input id="viajeNombre" placeholder="Ej: Rosario 20 jun..."/></div>
+    <div class="fg"><label>Fecha de salida</label><input id="viajeFecha" type="date"/></div>
     <div class="mact">
       <button class="bd" onclick="cerrarNuevoViaje()">Cancelar</button>
       <button class="bg" onclick="crearViaje()">Crear</button>
@@ -256,8 +323,10 @@ button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:
 <div id="toast"></div>
 
 <script>
+const GMAPS_KEY='AIzaSyCfazpbJrCmanf7yNvFo9e68l2DvdNX7lg';
 const SB_URL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SB_KEY='sb_publishable__iKag8gJWXztsMIkEBhdcQ_W9dB1oTV';
+
 async function sbFetch(path,method='GET',body=null){
   const opts={method,headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=representation'}};
   if(body)opts.body=JSON.stringify(body);
@@ -266,36 +335,66 @@ async function sbFetch(path,method='GET',body=null){
   const t=await r.text();return t?JSON.parse(t):[];
 }
 
-const TONS={
-  a:['6TN','10TN','16TN','22TN','28TN','30TN','40TN','50TN','60TN','62TN','72TN','80TN','100TN','120TN','140TN','150TN','175TN','200TN'],
-  c:['2TN','4TN','7TN','12TN','18TN']
-};
-function cargarTons(val){
-  const p=document.getElementById('fProd').value;
-  const s=document.getElementById('fMod');
-  s.innerHTML='<option value="">-- Seleccioná --</option>'+TONS[p].map(t=>`<option${t===val?' selected':''}>${t}</option>`).join('');
-}
+const TONS={a:['6TN','10TN','16TN','22TN','28TN','30TN','40TN','50TN','60TN','62TN','72TN','80TN','100TN','120TN','140TN','150TN','175TN','200TN'],c:['2TN','4TN','7TN','12TN','18TN']};
+function cargarTons(val){const p=document.getElementById('fProd').value;const s=document.getElementById('fMod');s.innerHTML='<option value="">-- Seleccioná --</option>'+TONS[p].map(t=>`<option${t===val?' selected':''}>${t}</option>`).join('')}
 
-const CIU={"cordoba":[-31.4135,-64.1811],"general deheza":[-33.0372,-63.7626],"rio cuarto":[-33.1307,-64.3499],"villa maria":[-32.4072,-63.2398],"san francisco":[-31.4278,-62.0847],"bell ville":[-32.6275,-62.6878],"marcos juarez":[-32.6987,-62.1039],"laboulaye":[-34.1278,-63.3918],"rio tercero":[-32.1730,-64.1085],"la carlota":[-33.4189,-63.2969],"monte maiz":[-33.2447,-62.5997],"general cabrera":[-32.8122,-63.8701],"hernando":[-32.4269,-63.7351],"oncativo":[-31.9131,-63.6878],"leones":[-32.6597,-62.2997],"arias":[-33.6358,-62.3997],"corral de bustos":[-33.2833,-62.1833],"noetinger":[-32.3797,-62.3147],"monte buey":[-32.9153,-62.4597],"adelia maria":[-33.6356,-64.0356],"vicuna mackenna":[-33.9128,-64.3856],"jovita":[-34.5714,-63.9531],"general levalle":[-34.0189,-63.9297],"elena":[-33.5689,-63.7314],"alta gracia":[-31.6561,-64.4292],"villa carlos paz":[-31.4219,-64.4978],"dean funes":[-30.4219,-64.3499],"arroyito":[-31.4278,-63.0439],"rosario":[-32.9468,-60.6393],"santa fe":[-31.6333,-60.7000],"rafaela":[-31.2500,-61.4833],"casilda":[-33.0461,-61.1667],"venado tuerto":[-33.7457,-61.9681],"canada de gomez":[-32.8195,-61.3928],"rufino":[-34.2694,-62.7167],"firmat":[-33.4574,-61.4872],"armstrong":[-32.7833,-61.6000],"las rosas":[-32.4770,-61.5802],"sunchales":[-30.9447,-61.5606],"esperanza":[-31.4481,-60.9314],"reconquista":[-29.1456,-59.6436],"buenos aires":[-34.6037,-58.3816],"la plata":[-34.9205,-57.9536],"mar del plata":[-38.0023,-57.5575],"bahia blanca":[-38.7183,-62.2663],"tandil":[-37.3213,-59.1335],"pergamino":[-33.8930,-60.5618],"junin":[-34.5928,-60.9456],"olavarria":[-36.8924,-60.3226],"nueve de julio":[-35.4451,-60.8824],"trenque lauquen":[-35.9724,-62.7279],"san nicolas":[-33.3281,-60.2086],"zarate":[-34.0983,-59.0267],"lujan":[-34.5669,-59.1150],"tres arroyos":[-38.3756,-60.2758],"santa rosa":[-36.6233,-64.2847],"general pico":[-35.6561,-63.7575],"general acha":[-37.3756,-64.6014],"mendoza":[-32.8908,-68.8272],"san rafael":[-34.6175,-68.3302],"san luis":[-33.2950,-66.3356],"parana":[-31.7322,-60.5244],"concordia":[-31.3928,-58.0200],"gualeguaychu":[-33.0117,-58.5119],"tucuman":[-26.8253,-65.2227],"salta":[-24.7859,-65.4117],"neuquen":[-38.9516,-68.0591],"bariloche":[-41.1456,-71.3081],"san martin de los andes":[-40.1572,-71.3536],"corrientes":[-27.4806,-58.8341],"resistencia":[-27.4514,-58.9870],"posadas":[-27.3667,-55.8961]};
+const CIU={"cordoba":[-31.4135,-64.1811],"general deheza":[-33.0372,-63.7626],"rio cuarto":[-33.1307,-64.3499],"villa maria":[-32.4072,-63.2398],"san francisco":[-31.4278,-62.0847],"bell ville":[-32.6275,-62.6878],"marcos juarez":[-32.6987,-62.1039],"laboulaye":[-34.1278,-63.3918],"rio tercero":[-32.1730,-64.1085],"la carlota":[-33.4189,-63.2969],"monte maiz":[-33.2447,-62.5997],"general cabrera":[-32.8122,-63.8701],"hernando":[-32.4269,-63.7351],"oncativo":[-31.9131,-63.6878],"leones":[-32.6597,-62.2997],"arias":[-33.6358,-62.3997],"corral de bustos":[-33.2833,-62.1833],"noetinger":[-32.3797,-62.3147],"monte buey":[-32.9153,-62.4597],"adelia maria":[-33.6356,-64.0356],"vicuna mackenna":[-33.9128,-64.3856],"jovita":[-34.5714,-63.9531],"general levalle":[-34.0189,-63.9297],"elena":[-33.5689,-63.7314],"alta gracia":[-31.6561,-64.4292],"villa carlos paz":[-31.4219,-64.4978],"dean funes":[-30.4219,-64.3499],"arroyito":[-31.4278,-63.0439],"rosario":[-32.9468,-60.6393],"santa fe":[-31.6333,-60.7000],"rafaela":[-31.2500,-61.4833],"casilda":[-33.0461,-61.1667],"venado tuerto":[-33.7457,-61.9681],"canada de gomez":[-32.8195,-61.3928],"rufino":[-34.2694,-62.7167],"firmat":[-33.4574,-61.4872],"armstrong":[-32.7833,-61.6000],"las rosas":[-32.4770,-61.5802],"sunchales":[-30.9447,-61.5606],"esperanza":[-31.4481,-60.9314],"reconquista":[-29.1456,-59.6436],"buenos aires":[-34.6037,-58.3816],"la plata":[-34.9205,-57.9536],"mar del plata":[-38.0023,-57.5575],"bahia blanca":[-38.7183,-62.2663],"tandil":[-37.3213,-59.1335],"pergamino":[-33.8930,-60.5618],"junin":[-34.5928,-60.9456],"olavarria":[-36.8924,-60.3226],"nueve de julio":[-35.4451,-60.8824],"trenque lauquen":[-35.9724,-62.7279],"san nicolas":[-33.3281,-60.2086],"zarate":[-34.0983,-59.0267],"lujan":[-34.5669,-59.1150],"tres arroyos":[-38.3756,-60.2758],"santa rosa":[-36.6233,-64.2847],"general pico":[-35.6561,-63.7575],"general acha":[-37.3756,-64.6014],"mendoza":[-32.8908,-68.8272],"san rafael":[-34.6175,-68.3302],"san luis":[-33.2950,-66.3356],"parana":[-31.7322,-60.5244],"concordia":[-31.3928,-58.0200],"gualeguaychu":[-33.0117,-58.5119],"tucuman":[-26.8253,-65.2227],"salta":[-24.7859,-65.4117],"neuquen":[-38.9516,-68.0591],"bariloche":[-41.1456,-71.3081],"san martin de los andes":[-40.1572,-71.3536],"corrientes":[-27.4806,-58.8341],"resistencia":[-27.4514,-58.9870]};
 const norm=s=>(s||'').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');
 function geoLocal(q){const n=norm(q);for(const[k,v]of Object.entries(CIU))if(norm(k)===n)return v;for(const[k,v]of Object.entries(CIU))if(norm(k).startsWith(n)||n.startsWith(norm(k)))return v;for(const[k,v]of Object.entries(CIU))if(norm(k).includes(n))return v;return null}
-function sugerirLoc(val){
-  const box=document.getElementById('locSugs');
-  if(!val||val.length<2){box.innerHTML='';return}
-  const q=norm(val),hits=Object.keys(CIU).filter(k=>norm(k).includes(q)).slice(0,6);
-  if(!hits.length){box.innerHTML='';return}
-  const d=document.createElement('div');d.className='sugs-box';
-  d.innerHTML=hits.map(k=>`<div onclick="elegirLoc('${k}')">${k.charAt(0).toUpperCase()+k.slice(1)}</div>`).join('');
-  box.innerHTML='';box.appendChild(d);
+
+// Autocomplete Google Places
+let autoTimer=null;
+async function buscarLugarGoogle(val,callbackSelect,boxEl){
+  if(!val||val.length<2){boxEl.innerHTML='';return}
+  clearTimeout(autoTimer);
+  autoTimer=setTimeout(async()=>{
+    try{
+      const url=`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(val)}&components=country:ar&language=es&key=${GMAPS_KEY}`;
+      const r=await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+      const d=await r.json();
+      if(d.predictions?.length){
+        const div=document.createElement('div');div.className='sugs-box';
+        d.predictions.slice(0,6).forEach(p=>{
+          const item=document.createElement('div');
+          item.textContent=p.description;
+          item.onclick=()=>callbackSelect(p.place_id,p.description);
+          div.appendChild(item);
+        });
+        boxEl.innerHTML='';boxEl.appendChild(div);
+      }else fallbackLocal(val,callbackSelect,boxEl);
+    }catch(e){fallbackLocal(val,callbackSelect,boxEl)}
+  },350);
 }
-function elegirLoc(k){
-  document.getElementById('fLoc').value=k.charAt(0).toUpperCase()+k.slice(1);
-  document.getElementById('locSugs').innerHTML='';
-  const c=CIU[k];if(!c||!modalMap)return;
-  modalMap.setView(c,11);
-  if(modalPin)modalPin.setLatLng(c);
-  else{modalPin=L.marker(c,{draggable:true}).addTo(modalMap);modalPin.on('dragend',e=>{const l=e.target.getLatLng();modalLat=l.lat;modalLng=l.lng})}
-  modalLat=c[0];modalLng=c[1];
+function fallbackLocal(val,callbackSelect,boxEl){
+  const q=norm(val),hits=Object.keys(CIU).filter(k=>norm(k).includes(q)).slice(0,6);
+  if(!hits.length){boxEl.innerHTML='';return}
+  const div=document.createElement('div');div.className='sugs-box';
+  hits.forEach(k=>{const item=document.createElement('div');item.textContent=k.charAt(0).toUpperCase()+k.slice(1);item.onclick=()=>{const c=CIU[k];callbackSelect(null,k.charAt(0).toUpperCase()+k.slice(1),c?c[0]:null,c?c[1]:null)};div.appendChild(item)});
+  boxEl.innerHTML='';boxEl.appendChild(div);
+}
+async function resolverPlaceId(placeId){
+  try{
+    const url=`https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=geometry&key=${GMAPS_KEY}`;
+    const r=await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+    const d=await r.json();
+    const loc=d.result?.geometry?.location;
+    return loc?[loc.lat,loc.lng]:null;
+  }catch(e){return null}
+}
+
+function sugerirLoc(val){
+  buscarLugarGoogle(val,async(pid,desc,lat,lng)=>{
+    document.getElementById('fLoc').value=desc;
+    document.getElementById('locSugs').innerHTML='';
+    let coords=lat&&lng?[lat,lng]:null;
+    if(pid&&!coords)coords=await resolverPlaceId(pid);
+    if(coords&&modalMap){
+      modalLat=coords[0];modalLng=coords[1];
+      modalMap.setView(coords,12);
+      if(modalPin)modalPin.setLatLng(coords);
+      else{modalPin=L.marker(coords,{draggable:true}).addTo(modalMap);modalPin.on('dragend',e=>{const l=e.target.getLatLng();modalLat=l.lat;modalLng=l.lng})}
+    }
+  },document.getElementById('locSugs'));
 }
 
 const ESTADOS=['Confirmado','En producción','Listo para entregar','En camino','Entregado'];
@@ -307,6 +406,9 @@ let ventas=[],editId=null;
 let modalMap=null,modalPin=null,modalLat=null,modalLng=null;
 let mapV=null,vMarkers=[];
 let mapF=null,fLayers=[];
+let mapSim=null,simLayers=[],simPin=null;
+let simParadas=[];
+let simLatPend=null,simLngPend=null;
 let viajes=JSON.parse(localStorage.getItem('remeco_viajes')||'[]');
 let cliSel=null;
 
@@ -314,15 +416,16 @@ function ir(pg){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
   document.getElementById('page-'+pg).classList.add('on');
-  document.querySelectorAll('.ntab').forEach(t=>{if(t.textContent.toLowerCase().includes(pg.slice(0,4)))t.classList.add('on')});
+  document.querySelectorAll('.ntab').forEach(t=>{if(t.textContent.toLowerCase().includes(pg==='simular'?'sim':pg.slice(0,4)))t.classList.add('on')});
   if(pg==='mapa'){initMapV();actualizarMapV()}
   if(pg==='flete'){initMapF();renderViajes()}
+  if(pg==='simular')initMapSim();
   if(pg==='clientes')renderClientes();
 }
 
 async function cargarVentas(){
   try{ventas=await sbFetch('/rest/v1/ventas?select=*&order=created_at.desc');renderVentas();renderClientes();actualizarMapV()}
-  catch(e){toast('Error cargando datos: '+e.message)}
+  catch(e){toast('Error: '+e.message)}
 }
 
 async function guardarVenta(){
@@ -331,7 +434,18 @@ async function guardarVenta(){
   const loc=document.getElementById('fLoc').value.trim();
   let lat=modalLat,lng=modalLng;
   if(!lat&&loc){const c=geoLocal(loc);if(c){lat=c[0];lng=c[1]}}
-  const data={cliente:cli,telefono:document.getElementById('fTel').value.trim()||null,producto:document.getElementById('fProd').value,modelo:document.getElementById('fMod').value||null,precio:parseFloat(document.getElementById('fPrecio').value)||null,moneda:'ARS',estado:document.getElementById('fEstado').value,fecha_entrega:document.getElementById('fFecha').value||null,localidad:loc||null,zona:document.getElementById('fZona').value.trim()||null,notas:document.getElementById('fNot').value.trim()||null,lat:lat||null,lng:lng||null};
+  const data={
+    cliente:cli,telefono:document.getElementById('fTel').value.trim()||null,
+    cuit:document.getElementById('fCuit').value.trim()||null,
+    producto:document.getElementById('fProd').value,
+    modelo:document.getElementById('fMod').value||null,
+    precio:parseFloat(document.getElementById('fPrecio').value)||null,
+    moneda:'ARS',estado:document.getElementById('fEstado').value,
+    fecha_entrega:document.getElementById('fFecha').value||null,
+    localidad:loc||null,zona:document.getElementById('fZona').value.trim()||null,
+    notas:document.getElementById('fNot').value.trim()||null,
+    lat:lat||null,lng:lng||null
+  };
   try{
     if(editId)await sbFetch('/rest/v1/ventas?id=eq.'+editId,'PATCH',data);
     else await sbFetch('/rest/v1/ventas','POST',data);
@@ -347,7 +461,7 @@ function renderVentas(){
   const est=document.getElementById('filtroE').value;
   const prod=document.getElementById('filtroP').value;
   const f=ventas.filter(v=>{
-    if(q&&!norm(v.cliente).includes(q)&&!norm(v.localidad||'').includes(q)&&!norm(v.zona||'').includes(q))return false;
+    if(q&&!norm(v.cliente).includes(q)&&!norm(v.localidad||'').includes(q)&&!norm(v.zona||'').includes(q)&&!norm(v.cuit||'').includes(q))return false;
     if(est&&v.estado!==est)return false;
     if(prod&&v.producto!==prod)return false;
     return true;
@@ -359,7 +473,10 @@ function renderVentas(){
     const ei=Math.max(0,ESTADOS.indexOf(v.estado));
     const fecha=v.fecha_entrega?new Date(v.fecha_entrega+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'—';
     return `<tr>
-      <td><div style="font-weight:700">${v.cliente}</div>${v.telefono?`<div style="color:#5ab8ff;font-size:.75rem">📞 ${v.telefono}</div>`:''}</td>
+      <td><div style="font-weight:700">${v.cliente}</div>
+        ${v.telefono?`<div style="color:#5ab8ff;font-size:.75rem">📞 ${v.telefono}</div>`:''}
+        ${v.cuit?`<div style="color:#7a9ab8;font-size:.72rem">CUIT: ${v.cuit}</div>`:''}
+      </td>
       <td><span class="ptag ${v.producto==='a'?'pa':'pc'}">${v.producto==='a'?'Silo Aéreo':'Autoconsumo'}</span>${v.modelo?`<div style="font-size:.7rem;color:#7a9ab8;margin-top:2px">${v.modelo}</div>`:''}</td>
       <td><div style="color:#7a9ab8;font-size:.78rem">${v.localidad||'—'}</div>${v.zona?`<div style="color:#c9a840;font-size:.7rem;font-weight:600">📦 ${v.zona}</div>`:''}</td>
       <td style="font-weight:700;color:#c9a840">${v.precio?'$'+Number(v.precio).toLocaleString('es-AR'):'—'}</td>
@@ -377,10 +494,9 @@ function renderVentas(){
 }
 
 function limpiarModal(){
-  ['fCli','fTel','fPrecio','fFecha','fLoc','fZona','fNot'].forEach(i=>document.getElementById(i).value='');
+  ['fCli','fTel','fCuit','fPrecio','fFecha','fLoc','fZona','fNot'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('fCli').style.borderColor='';
-  document.getElementById('fProd').value='a';
-  document.getElementById('fEstado').value='Confirmado';
+  document.getElementById('fProd').value='a';document.getElementById('fEstado').value='Confirmado';
   cargarTons('');modalLat=null;modalLng=null;
   if(modalPin){modalPin.remove();modalPin=null}
 }
@@ -395,8 +511,8 @@ function abrirEditar(id){
   document.getElementById('modalTitle').textContent='Editar venta';
   document.getElementById('fCli').value=v.cliente||'';document.getElementById('fCli').style.borderColor='';
   document.getElementById('fTel').value=v.telefono||'';
-  document.getElementById('fProd').value=v.producto||'a';
-  cargarTons(v.modelo||'');
+  document.getElementById('fCuit').value=v.cuit||'';
+  document.getElementById('fProd').value=v.producto||'a';cargarTons(v.modelo||'');
   document.getElementById('fPrecio').value=v.precio||'';
   document.getElementById('fEstado').value=v.estado||'Confirmado';
   document.getElementById('fFecha').value=v.fecha_entrega||'';
@@ -440,7 +556,7 @@ function actualizarMapV(){
   });
 }
 
-// FLETE — SISTEMA DE VIAJES
+// FLETE
 function initMapF(){
   if(mapF)return;
   mapF=L.map('mapFlete').setView([FLT,FLN],6);
@@ -450,46 +566,42 @@ function initMapF(){
 }
 
 function saveViajes(){localStorage.setItem('remeco_viajes',JSON.stringify(viajes))}
-
-function abrirNuevoViaje(){
-  document.getElementById('viajeNombre').value='';
-  document.getElementById('overlayViaje').classList.add('on');
-  setTimeout(()=>document.getElementById('viajeNombre').focus(),100);
-}
+function abrirNuevoViaje(){document.getElementById('viajeNombre').value='';document.getElementById('viajeFecha').value='';document.getElementById('overlayViaje').classList.add('on');setTimeout(()=>document.getElementById('viajeNombre').focus(),100)}
 function cerrarNuevoViaje(){document.getElementById('overlayViaje').classList.remove('on')}
 function crearViaje(){
   const nom=document.getElementById('viajeNombre').value.trim();
   if(!nom){document.getElementById('viajeNombre').style.borderColor='#ff6060';return}
-  viajes.push({id:uid(),nombre:nom,pedidoIds:[],expandido:true});
+  const fecha=document.getElementById('viajeFecha').value;
+  viajes.push({id:uid(),nombre:nom,fecha:fecha||null,pedidoIds:[],expandido:true});
   saveViajes();cerrarNuevoViaje();renderViajes();toast('Viaje creado ✔');
 }
 
 function renderViajes(){
   const body=document.getElementById('fpBody');
-  if(!viajes.length){
-    body.innerHTML='<div style="text-align:center;padding:30px 12px;color:#3a5a7a;font-size:.8rem">Creá un viaje y agregá los pedidos que querés combinar</div>';
-    limpiarMapFlete();return;
-  }
-  // Pedidos disponibles (con ubicación, no entregados)
+  if(!viajes.length){body.innerHTML='<div style="text-align:center;padding:30px 12px;color:#3a5a7a;font-size:.8rem">Creá un viaje y agregá los pedidos</div>';limpiarMapFlete();return}
   const disponibles=ventas.filter(v=>v.lat&&v.lng&&v.estado!=='Entregado');
   body.innerHTML=viajes.map(vj=>{
     const pedidos=disponibles.filter(v=>vj.pedidoIds.includes(v.id));
-    // Pedidos que NO están en ESTE viaje
     const libres=disponibles.filter(v=>!vj.pedidoIds.includes(v.id));
-    const km=pedidos.length?Math.round(calcKmLista(pedidos)):0;
-    return `<div class="viaje-card" id="vc-${vj.id}">
-      <div class="viaje-header" onclick="toggleViaje('${vj.id}')">
-        <div>
+    const kmMostrar=vj._kmReal?vj._kmReal.toLocaleString('es-AR')+' km reales':pedidos.length?Math.round(calcKmLista(pedidos)).toLocaleString('es-AR')+' km est.':'0 km';
+    const fechaStr=vj.fecha?new Date(vj.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'';
+    return `<div class="viaje-card">
+      <div class="viaje-header">
+        <button class="viaje-collapse" onclick="toggleViaje('${vj.id}')" title="${vj.expandido?'Colapsar':'Expandir'}">${vj.expandido?'▲':'▼'}</button>
+        <div class="viaje-info">
           <div class="viaje-nombre">🚛 ${vj.nombre}</div>
-          <div class="viaje-meta">${pedidos.length} parada${pedidos.length!==1?'s':''} · <span class="viaje-km">${vj._kmReal?vj._kmReal.toLocaleString('es-AR')+' km reales':Math.round(calcKmLista(pedidos))+' km est.'}</span></div>
+          <div class="viaje-meta">
+            <span>${pedidos.length} parada${pedidos.length!==1?'s':''}</span>
+            <span class="viaje-km">${kmMostrar}</span>
+            ${fechaStr?`<span class="viaje-fecha">📅 ${fechaStr}</span>`:''}
+          </div>
         </div>
-        <div style="display:flex;gap:5px;align-items:center">
-          <button onclick="event.stopPropagation();verEnMapa('${vj.id}')" style="background:#1a2c40;border:1px solid #2e4a65;color:#7a9ab8;padding:3px 7px;font-size:.68rem;border-radius:4px">🗺️</button>
-          <button onclick="event.stopPropagation();eliminarViaje('${vj.id}')" style="background:#2a1010;border:1px solid #5a2020;color:#fcc;padding:3px 7px;font-size:.68rem;border-radius:4px">✕</button>
+        <div class="viaje-btns">
+          <button class="vbtn" onclick="verEnMapa('${vj.id}')" title="Ver ruta en mapa">🗺️</button>
+          <button class="vbtn del" onclick="eliminarViaje('${vj.id}')">✕</button>
         </div>
       </div>
-      ${vj.expandido?`
-      <div class="viaje-pedidos">
+      ${vj.expandido?`<div class="viaje-body">
         ${pedidos.length?pedidos.map((v,i)=>`
           <div class="vp-item">
             <div class="vp-num">${i+1}</div>
@@ -498,54 +610,40 @@ function renderViajes(){
               <div class="vp-sub">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${v.localidad||''}</div>
             </div>
             <button class="vp-del" onclick="quitarDePedido('${vj.id}','${v.id}')">✕</button>
-          </div>`).join(''):'<div style="font-size:.73rem;color:#3a5a7a;padding:4px 0">Sin pedidos aún</div>'}
-      </div>
-      ${libres.length?`<div class="viaje-add">
-        <div style="font-size:.67rem;color:#7a9ab8;margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Agregar pedido</div>
-        <div class="pedidos-disponibles">
-          ${libres.map(v=>`<div class="pd-item" onclick="agregarAPedido('${vj.id}','${v.id}')">
-            <div class="pd-info">
-              <div class="pd-cli">${v.cliente}</div>
-              <div class="pd-sub">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${v.localidad||''}</div>
-            </div>
-            <span style="font-size:.7rem;color:#c9a840;font-weight:700">+ agregar</span>
-          </div>`).join('')}
+          </div>`).join(''):'<div style="font-size:.73rem;color:#3a5a7a;padding:4px 2px">Sin pedidos aún</div>'}
+        ${libres.length?`<div class="agregar-section">
+          <div class="agregar-title">+ Agregar pedido</div>
+          <div class="pedidos-disponibles">
+            ${libres.map(v=>`<div class="pd-item" onclick="agregarAPedido('${vj.id}','${v.id}')">
+              <div class="pd-info">
+                <div class="pd-cli">${v.cliente}</div>
+                <div class="pd-sub">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${v.localidad||''}</div>
+              </div>
+              <span style="font-size:.7rem;color:#c9a840;font-weight:700;flex-shrink:0">+ agregar</span>
+            </div>`).join('')}
+          </div>
+        </div>`:''}
+        <div class="viaje-actions">
+          <button class="bv" style="flex:1;font-size:.73rem;padding:5px" onclick="exportarViaje('${vj.id}')">📋 Exportar</button>
+          <button class="bd" style="font-size:.73rem;padding:5px" onclick="optimizarViaje('${vj.id}')">⚡ Optimizar</button>
         </div>
-      </div>`:''}
-      <div class="viaje-actions">
-        <button class="bv" style="flex:1;font-size:.73rem;padding:5px" onclick="exportarViaje('${vj.id}')">📋 Exportar</button>
-        <button class="bd" style="font-size:.73rem;padding:5px" onclick="optimizarViaje('${vj.id}')">⚡ Optimizar</button>
       </div>`:''}
     </div>`;
   }).join('');
   dibujarTodosEnMapa();
 }
 
-function toggleViaje(id){
-  const v=viajes.find(x=>x.id===id);if(!v)return;
-  v.expandido=!v.expandido;saveViajes();renderViajes();
-}
-function eliminarViaje(id){
-  if(!confirm('¿Eliminar este viaje?'))return;
-  viajes=viajes.filter(x=>x.id!==id);saveViajes();renderViajes();
-}
-function agregarAPedido(viajeId,ventaId){
-  const v=viajes.find(x=>x.id===viajeId);if(!v)return;
-  if(!v.pedidoIds.includes(ventaId))v.pedidoIds.push(ventaId);
-  saveViajes();renderViajes();
-}
-function quitarDePedido(viajeId,ventaId){
-  const v=viajes.find(x=>x.id===viajeId);if(!v)return;
-  v.pedidoIds=v.pedidoIds.filter(id=>id!==ventaId);
-  saveViajes();renderViajes();
-}
+function toggleViaje(id){const v=viajes.find(x=>x.id===id);if(!v)return;v.expandido=!v.expandido;saveViajes();renderViajes()}
+function eliminarViaje(id){if(!confirm('¿Eliminar este viaje?'))return;viajes=viajes.filter(x=>x.id!==id);saveViajes();renderViajes()}
+function agregarAPedido(viajeId,ventaId){const v=viajes.find(x=>x.id===viajeId);if(!v)return;if(!v.pedidoIds.includes(ventaId))v.pedidoIds.push(ventaId);saveViajes();renderViajes()}
+function quitarDePedido(viajeId,ventaId){const v=viajes.find(x=>x.id===viajeId);if(!v)return;v.pedidoIds=v.pedidoIds.filter(id=>id!==ventaId);delete v._kmReal;saveViajes();renderViajes()}
 function optimizarViaje(id){
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
   const sel=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
   if(sel.length<2){toast('Necesitás al menos 2 paradas');return}
   const disp=[...sel],opt=[];let a={lat:FLT,lng:FLN};
   while(disp.length){let mi=Infinity,mI=0;disp.forEach((v,i)=>{const d=dk(a.lat,a.lng,v.lat,v.lng);if(d<mi){mi=d;mI=i}});const s=disp.splice(mI,1)[0];opt.push(s);a={lat:s.lat,lng:s.lng}}
-  vj.pedidoIds=opt.map(v=>v.id);saveViajes();renderViajes();toast('Ruta optimizada ⚡');
+  vj.pedidoIds=opt.map(v=>v.id);delete vj._kmReal;saveViajes();renderViajes();toast('Ruta optimizada ⚡');
 }
 
 async function verEnMapa(id){
@@ -557,37 +655,41 @@ async function verEnMapa(id){
   sel.forEach((v,i)=>{
     const col=v.producto==='a'?'#5ab8ff':'#ffc040';
     const ic=L.divIcon({html:`<div style="width:28px;height:28px;border-radius:50%;background:#0d1520;border:2.5px solid ${col};display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:900;color:${col}">${i+1}</div>`,className:'',iconAnchor:[14,14]});
-    const m=L.marker([v.lat,v.lng],{icon:ic}).addTo(mapF).bindPopup(`<b>${v.cliente}</b><br>${v.localidad||''}`);
-    fLayers.push(m);
+    fLayers.push(L.marker([v.lat,v.lng],{icon:ic}).addTo(mapF).bindPopup(`<b>${v.cliente}</b><br>${v.localidad||''}`));
   });
   const pts=[[FLT,FLN],...sel.map(v=>[v.lat,v.lng])];
-  // Línea punteada provisional
   const prov=L.polyline(pts,{color:'#f0c84066',weight:2,dashArray:'6,6'}).addTo(mapF);
   fLayers.push(prov);
   mapF.fitBounds(L.latLngBounds(pts),{padding:[50,50]});
-  // Ruta real OSRM
   try{
-    const coords=pts.map(p=>p[1]+','+p[0]).join(';');
-    const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`);
+    const waypts=sel.map(v=>`${v.lat},${v.lng}`);
+    const origin=`${FLT},${FLN}`;
+    const destination=waypts[waypts.length-1];
+    const waypoints=waypts.slice(0,-1).join('|');
+    let url=`https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${GMAPS_KEY}&language=es`;
+    if(waypoints)url+=`&waypoints=${encodeURIComponent(waypoints)}`;
+    const r=await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
     const d=await r.json();
-    if(d.code==='Ok'&&d.routes?.length){
+    if(d.status==='OK'&&d.routes?.length){
       prov.remove();
-      const rl=L.geoJSON(d.routes[0].geometry,{style:{color:'#f0c840',weight:4,opacity:.95}}).addTo(mapF);
-      fLayers.push(rl);
-      mapF.fitBounds(rl.getBounds(),{padding:[50,50]});
-      const kmReal=Math.round(d.routes[0].distance/1000);
-      // Actualizar km en la tarjeta del viaje
-      const vj2=viajes.find(x=>x.id===id);
-      if(vj2){vj2._kmReal=kmReal;saveViajes();renderViajes()}
-      toast(`Ruta real: ${kmReal.toLocaleString('es-AR')} km`);
+      const points=decodePolyline(d.routes[0].overview_polyline.points);
+      const kmReal=Math.round(d.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
+      const rl=L.polyline(points,{color:'#f0c840',weight:4,opacity:.95}).addTo(mapF);
+      fLayers.push(rl);mapF.fitBounds(rl.getBounds(),{padding:[50,50]});
+      vj._kmReal=kmReal;saveViajes();renderViajes();
+      toast(`Google Maps: ${kmReal.toLocaleString('es-AR')} km`);
+    }else{
+      const coords=pts.map(p=>p[1]+','+p[0]).join(';');
+      const r2=await fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`);
+      const d2=await r2.json();prov.remove();
+      if(d2.code==='Ok'){const rl=L.geoJSON(d2.routes[0].geometry,{style:{color:'#f0c840',weight:4,opacity:.95}}).addTo(mapF);fLayers.push(rl);mapF.fitBounds(rl.getBounds(),{padding:[50,50]});const km=Math.round(d2.routes[0].distance/1000);vj._kmReal=km;saveViajes();renderViajes()}
     }
-  }catch(e){/* queda la línea punteada */}
+  }catch(e){toast('Error calculando ruta')}
 }
 
 function limpiarMapFlete(){fLayers.forEach(l=>{try{l.remove()}catch(e){}});fLayers=[]}
 function dibujarTodosEnMapa(){
-  if(!mapF)return;
-  limpiarMapFlete();
+  if(!mapF)return;limpiarMapFlete();
   const colors=['#5ab8ff','#ffc040','#c0a0ff','#5adf8a','#ff9a60','#ff6090'];
   viajes.forEach((vj,vi)=>{
     const sel=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
@@ -599,26 +701,23 @@ function dibujarTodosEnMapa(){
   });
 }
 
-function calcKmLista(arr){
-  let km=0,p={lat:FLT,lng:FLN};
-  arr.forEach(v=>{km+=dk(p.lat,p.lng,v.lat,v.lng)*FACTOR;p={lat:v.lat,lng:v.lng}});
-  return km;
-}
+function calcKmLista(arr){let km=0,p={lat:FLT,lng:FLN};arr.forEach(v=>{km+=dk(p.lat,p.lng,v.lat,v.lng)*FACTOR;p={lat:v.lat,lng:v.lng}});return km}
 
 function exportarViaje(id){
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
   const sel=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
-  if(!sel.length){alert('No hay pedidos en este viaje');return}
-  let txt=`VIAJE: ${vj.nombre}\n${new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'})}\nSalida: Metalúrgica Remeco\n\n`;
+  if(!sel.length){alert('No hay pedidos');return}
+  const fecha=vj.fecha?new Date(vj.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'}):'';
+  let txt=`VIAJE: ${vj.nombre}${fecha?' – '+fecha:''}\nSalida: Metalúrgica Remeco\n\n`;
   sel.forEach((v,i)=>{
     const prev=i===0?{lat:FLT,lng:FLN}:sel[i-1];
-    txt+=`${i+1}. ${v.cliente}\n   ${v.producto==='a'?'Silo Aéreo':'Autoconsumo'}${v.modelo?' – '+v.modelo:''}\n`;
+    txt+=`${i+1}. ${v.cliente}${v.cuit?' (CUIT: '+v.cuit+')':''}\n   ${v.producto==='a'?'Silo Aéreo':'Autoconsumo'}${v.modelo?' – '+v.modelo:''}\n`;
     if(v.localidad)txt+=`   📍 ${v.localidad}\n`;
     txt+=`   +${Math.round(dk(prev.lat,prev.lng,v.lat,v.lng)*FACTOR)} km\n`;
     if(v.notas)txt+=`   📝 ${v.notas}\n`;
     txt+='\n';
   });
-  txt+=`TOTAL EST.: ${Math.round(calcKmLista(sel)).toLocaleString('es-AR')} km`;
+  if(vj._kmReal)txt+=`TOTAL REAL: ${vj._kmReal.toLocaleString('es-AR')} km`;
   navigator.clipboard.writeText(txt).then(()=>toast('Copiado ✔')).catch(()=>{const w=window.open('','_blank');w.document.write('<pre style="padding:16px">'+txt+'</pre>')});
 }
 
@@ -629,21 +728,127 @@ function exportarViajes(){
   activos.forEach(vj=>{
     const sel=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
     if(!sel.length)return;
-    txt+=`═══ VIAJE: ${vj.nombre} ═══\n`;
+    const fecha=vj.fecha?new Date(vj.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'';
+    txt+=`═══ ${vj.nombre}${fecha?' ('+fecha+')':''} ═══\n`;
     sel.forEach((v,i)=>{txt+=`${i+1}. ${v.cliente} – ${v.producto==='a'?'Silo Aéreo':'Autoconsumo'}${v.modelo?' '+v.modelo:''}${v.localidad?' – '+v.localidad:''}\n`});
-    txt+=`Total est.: ${Math.round(calcKmLista(sel)).toLocaleString('es-AR')} km\n\n`;
+    if(vj._kmReal)txt+=`Total: ${vj._kmReal.toLocaleString('es-AR')} km\n`;
+    txt+='\n';
   });
   navigator.clipboard.writeText(txt).then(()=>toast('Copiado ✔')).catch(()=>{const w=window.open('','_blank');w.document.write('<pre style="padding:16px">'+txt+'</pre>')});
+}
+
+// SIMULADOR
+function initMapSim(){
+  if(mapSim)return;
+  mapSim=L.map('mapSimular').setView([FLT,FLN],6);
+  L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{maxZoom:20,subdomains:['mt0','mt1','mt2','mt3']}).addTo(mapSim);
+  L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}',{maxZoom:20,opacity:.9,subdomains:['mt0','mt1','mt2','mt3']}).addTo(mapSim);
+  L.marker([FLT,FLN],{icon:L.divIcon({html:'<div style="background:#c9a840;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;box-shadow:0 2px 8px rgba(0,0,0,.6)">🏭</div>',className:'',iconAnchor:[14,14]})}).addTo(mapSim).bindTooltip('Remeco');
+  mapSim.on('click',e=>{simLatPend=e.latlng.lat;simLngPend=e.latlng.lng;const inp=document.getElementById('simInput');if(inp.value.trim()){agregarParadaSim()}else{toast('Escribí el nombre de la localidad primero')}});
+}
+
+function sugerirSim(val){
+  buscarLugarGoogle(val,async(pid,desc,lat,lng)=>{
+    document.getElementById('simInput').value=desc;
+    document.getElementById('simSugs').innerHTML='';
+    let coords=lat&&lng?[lat,lng]:null;
+    if(pid&&!coords)coords=await resolverPlaceId(pid);
+    if(coords){simLatPend=coords[0];simLngPend=coords[1]}
+    agregarParadaSim();
+  },document.getElementById('simSugs'));
+}
+
+async function agregarParadaSim(){
+  const val=document.getElementById('simInput').value.trim();
+  if(!val)return;
+  let lat=simLatPend,lng=simLngPend;
+  if(!lat){const c=geoLocal(val);if(c){lat=c[0];lng=c[1]}}
+  if(!lat){toast('No encontré esa localidad');return}
+  simParadas.push({nombre:val,lat,lng});
+  document.getElementById('simInput').value='';
+  document.getElementById('simSugs').innerHTML='';
+  simLatPend=null;simLngPend=null;
+  renderSimParadas();
+  dibujarSimMapa();
+}
+
+function renderSimParadas(){
+  const body=document.getElementById('simBody');
+  if(!simParadas.length){body.innerHTML='<div style="text-align:center;padding:24px 12px;color:#3a5a7a;font-size:.8rem">Agregá localidades para simular el recorrido</div>';document.getElementById('simKm').textContent='0';return}
+  let km=0,prev={lat:FLT,lng:FLN};
+  body.innerHTML=simParadas.map((p,i)=>{
+    const d=Math.round(dk(prev.lat,prev.lng,p.lat,p.lng)*FACTOR);
+    km+=d;prev=p;
+    return `<div class="sim-parada">
+      <div class="sim-num">${i+1}</div>
+      <div class="sim-info">
+        <div class="sim-lugar">${p.nombre}</div>
+        <div class="sim-km">+${d} km desde ${i===0?'fábrica':simParadas[i-1].nombre}</div>
+      </div>
+      <button class="sim-del" onclick="quitarSimParada(${i})">✕</button>
+    </div>`;
+  }).join('');
+  document.getElementById('simKm').textContent=km.toLocaleString('es-AR');
+}
+
+function quitarSimParada(i){simParadas.splice(i,1);renderSimParadas();dibujarSimMapa()}
+function limpiarSim(){simParadas=[];simLayers.forEach(l=>{try{l.remove()}catch(e){}});simLayers=[];renderSimParadas()}
+
+function dibujarSimMapa(){
+  if(!mapSim)return;
+  simLayers.forEach(l=>{try{l.remove()}catch(e){}});simLayers=[];
+  if(!simParadas.length)return;
+  simParadas.forEach((p,i)=>{
+    const ic=L.divIcon({html:`<div style="width:26px;height:26px;border-radius:50%;background:#0d1520;border:2px solid #c9a840;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:900;color:#c9a840">${i+1}</div>`,className:'',iconAnchor:[13,13]});
+    simLayers.push(L.marker([p.lat,p.lng],{icon:ic}).addTo(mapSim).bindPopup(`<b>${p.nombre}</b>`));
+  });
+  const pts=[[FLT,FLN],...simParadas.map(p=>[p.lat,p.lng])];
+  const line=L.polyline(pts,{color:'#c9a840',weight:2,opacity:.6,dashArray:'6,5'}).addTo(mapSim);
+  simLayers.push(line);
+  mapSim.fitBounds(L.latLngBounds(pts),{padding:[40,40]});
+}
+
+async function calcularRutaSim(){
+  if(!simParadas.length){toast('Agregá paradas primero');return}
+  simLayers.forEach(l=>{try{l.remove()}catch(e){}});simLayers=[];
+  simParadas.forEach((p,i)=>{
+    const ic=L.divIcon({html:`<div style="width:26px;height:26px;border-radius:50%;background:#0d1520;border:2px solid #c9a840;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:900;color:#c9a840">${i+1}</div>`,className:'',iconAnchor:[13,13]});
+    simLayers.push(L.marker([p.lat,p.lng],{icon:ic}).addTo(mapSim));
+  });
+  const pts=[[FLT,FLN],...simParadas.map(p=>[p.lat,p.lng])];
+  const prov=L.polyline(pts,{color:'#c9a84066',weight:2,dashArray:'6,6'}).addTo(mapSim);
+  simLayers.push(prov);
+  toast('Calculando ruta...');
+  try{
+    const waypts=simParadas.map(p=>`${p.lat},${p.lng}`);
+    const origin=`${FLT},${FLN}`;
+    const destination=waypts[waypts.length-1];
+    const waypoints=waypts.slice(0,-1).join('|');
+    let url=`https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${GMAPS_KEY}&language=es`;
+    if(waypoints)url+=`&waypoints=${encodeURIComponent(waypoints)}`;
+    const r=await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+    const d=await r.json();
+    if(d.status==='OK'&&d.routes?.length){
+      prov.remove();
+      const points=decodePolyline(d.routes[0].overview_polyline.points);
+      const kmReal=Math.round(d.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
+      const rl=L.polyline(points,{color:'#c9a840',weight:4,opacity:.95}).addTo(mapSim);
+      simLayers.push(rl);mapSim.fitBounds(rl.getBounds(),{padding:[40,40]});
+      document.getElementById('simKm').textContent=kmReal.toLocaleString('es-AR');
+      toast(`Ruta real: ${kmReal.toLocaleString('es-AR')} km`);
+    }
+  }catch(e){toast('Error calculando ruta')}
 }
 
 // CLIENTES
 function renderClientes(){
   const m={};
-  ventas.forEach(v=>{if(!m[v.cliente])m[v.cliente]={n:v.cliente,tel:v.telefono,vs:[]};m[v.cliente].vs.push(v)});
+  ventas.forEach(v=>{if(!m[v.cliente])m[v.cliente]={n:v.cliente,tel:v.telefono,cuit:v.cuit,vs:[]};m[v.cliente].vs.push(v)});
   const lista=Object.values(m).sort((a,b)=>a.n.localeCompare(b.n));
   document.getElementById('cliList').innerHTML=lista.map(c=>`<div class="cli-item${cliSel===c.n?' sel':''}" onclick="verCli('${c.n.replace(/'/g,"\\'")}')">
     <div class="cli-name">${c.n}</div>
     ${c.tel?`<div class="cli-tel">📞 ${c.tel}</div>`:''}
+    ${c.cuit?`<div style="font-size:.68rem;color:#7a9ab8">CUIT: ${c.cuit}</div>`:''}
     <div class="cli-cnt">${c.vs.length} venta${c.vs.length!==1?'s':''}</div>
   </div>`).join('');
   if(cliSel)verCli(cliSel);
@@ -652,12 +857,15 @@ function verCli(nombre){
   cliSel=nombre;
   document.querySelectorAll('.cli-item').forEach(el=>el.classList.toggle('sel',el.querySelector('.cli-name')?.textContent===nombre));
   const cvs=ventas.filter(v=>v.cliente===nombre);
-  const tel=cvs[0]?.telefono||'';
+  const tel=cvs[0]?.telefono||'';const cuit=cvs[0]?.cuit||'';
   const total=cvs.reduce((s,v)=>s+(v.precio||0),0);
   const ent=cvs.filter(v=>v.estado==='Entregado').length;
   document.getElementById('cliDetail').innerHTML=`
     <div class="cd-name">${nombre}</div>
-    ${tel?`<div style="color:#5ab8ff;font-size:.85rem;margin-top:4px;margin-bottom:14px">📞 <a href="tel:${tel}" style="color:#5ab8ff;text-decoration:none">${tel}</a> <button class="bg" style="padding:3px 10px;font-size:.72rem;margin-left:8px" onclick="wa('${tel}')">WhatsApp</button></div>`:'<div style="height:14px"></div>'}
+    <div style="margin-top:4px;margin-bottom:14px;display:flex;flex-direction:column;gap:3px">
+      ${tel?`<div style="color:#5ab8ff;font-size:.85rem">📞 <a href="tel:${tel}" style="color:#5ab8ff;text-decoration:none">${tel}</a> <button class="bg" style="padding:3px 10px;font-size:.72rem;margin-left:6px" onclick="wa('${tel}')">WhatsApp</button></div>`:''}
+      ${cuit?`<div style="color:#7a9ab8;font-size:.78rem">CUIT: ${cuit}</div>`:''}
+    </div>
     <div class="cd-stats">
       <div class="cd-stat"><div class="cd-sv">${cvs.length}</div><div class="cd-sl">ventas</div></div>
       <div class="cd-stat"><div class="cd-sv">${ent}</div><div class="cd-sl">entregadas</div></div>
@@ -681,6 +889,7 @@ function verCli(nombre){
     }).join('')}`;
 }
 
+function decodePolyline(str){let idx=0,lat=0,lng=0,res=[];while(idx<str.length){let b,shift=0,result=0;do{b=str.charCodeAt(idx++)-63;result|=(b&0x1f)<<shift;shift+=5}while(b>=0x20);lat+=(result&1)?~(result>>1):(result>>1);shift=0;result=0;do{b=str.charCodeAt(idx++)-63;result|=(b&0x1f)<<shift;shift+=5}while(b>=0x20);lng+=(result&1)?~(result>>1):(result>>1);res.push([lat/1e5,lng/1e5])}return res}
 function wa(tel){if(!tel){alert('Sin teléfono');return}window.open('https://wa.me/54'+tel.replace(/\D/g,''),'_blank')}
 function dk(a,b,c,d){const R=6371,r=Math.PI/180,dL=(c-a)*r,dl=(d-b)*r,x=Math.sin(dL/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin(dl/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
