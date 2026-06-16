@@ -560,7 +560,7 @@ async function verEnMapa(id){
     const m=L.marker([v.lat,v.lng],{icon:ic}).addTo(mapF).bindPopup(`<b>${v.cliente}</b><br>${v.localidad||''}`);
     fLayers.push(m);
   });
-  const pts=[[FLT,FLN],...sel.map(v=>[v.lat,v.lng]),[FLT,FLN]];
+  const pts=[[FLT,FLN],...sel.map(v=>[v.lat,v.lng])];
   // Línea punteada provisional
   const prov=L.polyline(pts,{color:'#f0c84066',weight:2,dashArray:'6,6'}).addTo(mapF);
   fLayers.push(prov);
@@ -599,7 +599,7 @@ function dibujarTodosEnMapa(){
 function calcKmLista(arr){
   let km=0,p={lat:FLT,lng:FLN};
   arr.forEach(v=>{km+=dk(p.lat,p.lng,v.lat,v.lng)*FACTOR;p={lat:v.lat,lng:v.lng}});
-  return km+dk(p.lat,p.lng,FLT,FLN)*FACTOR;
+  return km;
 }
 
 function exportarViaje(id){
