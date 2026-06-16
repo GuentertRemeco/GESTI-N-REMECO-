@@ -284,7 +284,7 @@ function elegirLoc(k){
 const ESTADOS=['Confirmado','En producción','Listo para entregar','En camino','Entregado'];
 const ECLASES=['e0','e1','e2','e3','e4'];
 const ECOLORS=['#5adf8a','#ffc040','#c0a0ff','#5ab8ff','#40df40'];
-const FLT=-33.0372,FLN=-63.7626,FACTOR=1.35;
+const FLT=-37.574889,FLN=-63.842500,FACTOR=1.35;
 let ventas=[],editId=null;
 let modalMap=null,modalPin=null,modalLat=null,modalLng=null;
 let mapV=null,vMarkers=[];
@@ -501,7 +501,7 @@ function initMapF(){
   L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}',{maxZoom:20,opacity:.9,subdomains:['mt0','mt1','mt2','mt3']}).addTo(mapF);
   L.marker([FLT,FLN],{icon:L.divIcon({html:'<div style="background:#c9a840;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;box-shadow:0 2px 8px rgba(0,0,0,.6)">🏭</div>',className:'',iconAnchor:[15,15]})}).addTo(mapF).bindTooltip('Remeco · Gral. Deheza');
 }
-function actualizarMapF(){
+async function actualizarMapF(){
   if(!mapF)return;
   Object.values(fMK).forEach(m=>m.remove());fMK={};
   if(fRL){fRL.remove();fRL=null}
@@ -511,10 +511,28 @@ function actualizarMapF(){
     const ic=L.divIcon({html:`<div style="position:relative"><div style="width:28px;height:28px;border-radius:50%;background:#0d1520;border:2.5px solid ${col};display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:900;color:${col}">${i+1}</div></div>`,className:'',iconAnchor:[14,14]});
     fMK[v.id]=L.marker([v.lat,v.lng],{icon:ic}).addTo(mapF).bindPopup(`<b>${v.cliente}</b><br>${v.localidad||''}${v.zona?'<br>'+v.zona:''}`);
   });
-  if(sel.length){
-    const pts=[[FLT,FLN],...sel.map(v=>[v.lat,v.lng]),[FLT,FLN]];
+  if(!sel.length)return;
+  const pts=[[FLT,FLN],...sel.map(v=>[v.lat,v.lng]),[FLT,FLN]];
+  // Línea punteada provisoria mientras carga
+  const prov=L.polyline(pts,{color:'#f0c84066',weight:2,dashArray:'6,6'}).addTo(mapF);
+  mapF.fitBounds(L.latLngBounds(pts),{padding:[40,40]});
+  try{
+    const coords=pts.map(p=>p[1]+','+p[0]).join(';');
+    const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`);
+    const d=await r.json();
+    prov.remove();
+    if(d.code==='Ok'&&d.routes?.length){
+      const kmReal=Math.round(d.routes[0].distance/1000);
+      fRL=L.geoJSON(d.routes[0].geometry,{style:{color:'#f0c840',weight:4,opacity:.95}}).addTo(mapF);
+      mapF.fitBounds(fRL.getBounds(),{padding:[40,40]});
+      document.getElementById('fleteKm').textContent=kmReal.toLocaleString('es-AR');
+      document.getElementById('fzSel').textContent=sel.length+' sel. · '+kmReal.toLocaleString('es-AR')+' km reales';
+    }else{
+      fRL=L.polyline(pts,{color:'#f0c840',weight:3,opacity:.9,dashArray:'8,5'}).addTo(mapF);
+    }
+  }catch(e){
+    prov.remove();
     fRL=L.polyline(pts,{color:'#f0c840',weight:3,opacity:.9,dashArray:'8,5'}).addTo(mapF);
-    mapF.fitBounds(L.latLngBounds(pts),{padding:[40,40]});
   }
 }
 function optimizarFlete(){
