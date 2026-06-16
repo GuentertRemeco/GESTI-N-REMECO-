@@ -582,7 +582,9 @@ function renderViajes(){
   const disponibles=ventas.filter(v=>v.lat&&v.lng&&v.estado!=='Entregado');
   body.innerHTML=viajes.map(vj=>{
     const pedidos=disponibles.filter(v=>vj.pedidoIds.includes(v.id));
-    const libres=disponibles.filter(v=>!vj.pedidoIds.includes(v.id));
+            // Pedidos que NO están en NINGÚN viaje
+        const todosAsignados=new Set(viajes.flatMap(x=>x.pedidoIds));
+        const libres=disponibles.filter(v=>!todosAsignados.has(v.id));
     const kmMostrar=vj._kmReal?vj._kmReal.toLocaleString('es-AR')+' km reales':pedidos.length?Math.round(calcKmLista(pedidos)).toLocaleString('es-AR')+' km est.':'0 km';
     const fechaStr=vj.fecha?new Date(vj.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'';
     return `<div class="viaje-card">
@@ -865,7 +867,7 @@ function verCli(nombre){
     <div style="margin-top:4px;margin-bottom:14px;display:flex;flex-direction:column;gap:3px">
       ${tel?`<div style="color:#5ab8ff;font-size:.85rem">📞 <a href="tel:${tel}" style="color:#5ab8ff;text-decoration:none">${tel}</a> <button class="bg" style="padding:3px 10px;font-size:.72rem;margin-left:6px" onclick="wa('${tel}')">WhatsApp</button></div>`:''}
       ${cuit?`<div style="color:#7a9ab8;font-size:.78rem">CUIT: ${cuit}</div>`:''}
-    </div>
+      <button class="bd" style="margin-top:8px;font-size:.73rem;padding:4px 12px" onclick="editarUltimaVentaCliente('${nombre.replace(/'/g,"\\'")}')">✎ Editar datos del cliente</button>
     <div class="cd-stats">
       <div class="cd-stat"><div class="cd-sv">${cvs.length}</div><div class="cd-sl">ventas</div></div>
       <div class="cd-stat"><div class="cd-sv">${ent}</div><div class="cd-sl">entregadas</div></div>
@@ -890,6 +892,12 @@ function verCli(nombre){
 }
 
 function decodePolyline(str){let idx=0,lat=0,lng=0,res=[];while(idx<str.length){let b,shift=0,result=0;do{b=str.charCodeAt(idx++)-63;result|=(b&0x1f)<<shift;shift+=5}while(b>=0x20);lat+=(result&1)?~(result>>1):(result>>1);shift=0;result=0;do{b=str.charCodeAt(idx++)-63;result|=(b&0x1f)<<shift;shift+=5}while(b>=0x20);lng+=(result&1)?~(result>>1):(result>>1);res.push([lat/1e5,lng/1e5])}return res}
+function editarUltimaVentaCliente(nombre){
+  const cvs=ventas.filter(v=>v.cliente===nombre);
+  if(!cvs.length)return;
+  // Abre la venta más reciente del cliente para editar
+  abrirEditar(cvs[0].id);
+}
 function wa(tel){if(!tel){alert('Sin teléfono');return}window.open('https://wa.me/54'+tel.replace(/\D/g,''),'_blank')}
 function dk(a,b,c,d){const R=6371,r=Math.PI/180,dL=(c-a)*r,dl=(d-b)*r,x=Math.sin(dL/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin(dl/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
