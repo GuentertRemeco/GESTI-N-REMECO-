@@ -2,169 +2,263 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Remeco – Gestión</title>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCfazpbJrCmanf7yNvFo9e68l2DvdNX7lg&libraries=places&callback=initGoogle" async defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#0d1520;color:#ddd8ce;height:100vh;display:flex;flex-direction:column;overflow:hidden}
-nav{background:#0a1018;border-bottom:2px solid #c9a840;display:flex;align-items:center;padding:0 16px;height:48px;flex-shrink:0;gap:4px}
-.nav-logo{font-size:.95rem;font-weight:900;color:#c9a840;letter-spacing:2px;text-transform:uppercase;margin-right:16px}
-.nav-logo span{color:#7a9ab8;font-weight:400;font-size:.75rem;letter-spacing:0}
-.ntab{background:none;border:none;color:#5a7a9a;font-size:.8rem;font-weight:600;padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+
+/* NAV */
+nav{background:#0a1018;border-bottom:2px solid #c9a840;display:flex;align-items:center;padding:0 12px;height:52px;flex-shrink:0;gap:2px;overflow-x:auto}
+.nav-logo{font-size:.9rem;font-weight:900;color:#c9a840;letter-spacing:2px;text-transform:uppercase;margin-right:12px;white-space:nowrap;flex-shrink:0}
+.nav-logo span{color:#7a9ab8;font-weight:400;font-size:.72rem;letter-spacing:0}
+.ntab{background:none;border:none;color:#5a7a9a;font-size:.78rem;font-weight:600;padding:8px 10px;border-radius:6px 6px 0 0;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap;flex-shrink:0}
 .ntab:hover{color:#ddd8ce;background:#1a2c40}
 .ntab.on{color:#c9a840;border-bottom-color:#c9a840;background:#111820}
-.nav-right{margin-left:auto}
+.nav-right{margin-left:auto;flex-shrink:0}
 .page{display:none;flex:1;overflow:hidden;flex-direction:column}
 .page.on{display:flex}
-.vbar{background:#111820;border-bottom:1px solid #1e3245;padding:10px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;flex-shrink:0}
-.vbar input,.vbar select{background:#1a2c40;border:1px solid #1e3a55;color:#ddd8ce;border-radius:6px;padding:6px 10px;font-size:.8rem;font-family:inherit}
-.vbar input{width:210px}
-.vtable-wrap{flex:1;overflow-y:auto}
-table{width:100%;border-collapse:collapse;font-size:.8rem}
+
+/* INICIO */
+.inicio-wrap{flex:1;overflow-y:auto;padding:16px}
+.inicio-header{margin-bottom:20px}
+.inicio-titulo{font-size:1.4rem;font-weight:900;color:#c9a840}
+.inicio-sub{font-size:.8rem;color:#5a7a9a;margin-top:4px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:#111820;border:1px solid #1e3245;border-radius:10px;padding:14px;cursor:pointer;transition:border-color .15s}
+.stat-card:hover{border-color:#c9a840}
+.stat-val{font-size:1.8rem;font-weight:900;color:#c9a840;line-height:1}
+.stat-label{font-size:.7rem;color:#5a7a9a;margin-top:4px}
+.stat-sub{font-size:.72rem;color:#3a8a5a;margin-top:2px;font-weight:600}
+.inicio-section{margin-bottom:20px}
+.inicio-stitle{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:#c9a840;margin-bottom:10px}
+.pendiente-card{background:#111820;border:1px solid #1e3245;border-radius:8px;padding:10px 13px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.pendiente-card:hover{border-color:#c9a840}
+.pc-info{flex:1;min-width:0}
+.pc-cli{font-weight:700;font-size:.83rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-sub{font-size:.7rem;color:#6a8aaa;margin-top:1px}
+.viaje-prox{background:#111820;border:1px solid #1e3245;border-radius:8px;padding:10px 13px;margin-bottom:6px}
+.vp-nombre{font-weight:700;font-size:.85rem;color:#c9a840}
+.vp-meta{font-size:.72rem;color:#5a7a9a;margin-top:2px}
+
+/* VENTAS */
+.vbar{background:#111820;border-bottom:1px solid #1e3245;padding:8px 12px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;flex-shrink:0}
+.vbar input,.vbar select{background:#1a2c40;border:1px solid #1e3a55;color:#ddd8ce;border-radius:6px;padding:6px 9px;font-size:.78rem;font-family:inherit;min-width:0}
+.vbar input{flex:1;min-width:140px}
+.vtable-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
 thead{position:sticky;top:0;background:#111820;z-index:10}
-th{padding:9px 12px;text-align:left;color:#5a7a9a;font-size:.67rem;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1e3245;font-weight:700}
-td{padding:9px 12px;border-bottom:1px solid #1a2a3a;vertical-align:middle}
+th{padding:8px 10px;text-align:left;color:#5a7a9a;font-size:.65rem;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1e3245;font-weight:700}
+td{padding:8px 10px;border-bottom:1px solid #1a2a3a;vertical-align:middle}
 tr:hover td{background:#1a2c40}
-.etag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.67rem;font-weight:700;white-space:nowrap}
+.etag{display:inline-block;padding:2px 7px;border-radius:10px;font-size:.65rem;font-weight:700;white-space:nowrap}
 .e0{background:#1a3a20;color:#5adf8a}.e1{background:#3a2800;color:#ffc040}.e2{background:#2a1a40;color:#c0a0ff}.e3{background:#0d2e4a;color:#5ab8ff}.e4{background:#1a3a1a;color:#40df40}
-.ptag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.67rem;font-weight:700}
-.pa{background:#0d2e4a;color:#5ab8ff}.pc{background:#3a2800;color:#ffc040}
-.act-btns{display:flex;gap:4px}
-.ab{background:none;border:none;padding:4px 6px;border-radius:4px;cursor:pointer;font-size:.82rem;color:#3a5a7a;transition:all .15s}
+.ptag{display:inline-block;padding:2px 6px;border-radius:4px;font-size:.65rem;font-weight:700}
+.pa{background:#0d2e4a;color:#5ab8ff}.pc-tag{background:#3a2800;color:#ffc040}
+.act-btns{display:flex;gap:3px}
+.ab{background:none;border:none;padding:4px 5px;border-radius:4px;cursor:pointer;font-size:.8rem;color:#3a5a7a;transition:all .15s}
 .ab:hover{color:#ddd8ce;background:#1e3245}.ab.del:hover{color:#ff6060;background:#2a1010}
 .empty-row td{text-align:center;color:#3a5a7a;padding:40px}
+
+/* MAPAS */
 #mapVentas,#mapFlete,#mapSimular{flex:1;width:100%}
+
+/* FLETE */
 .flete-wrap{flex:1;display:flex;overflow:hidden}
-.flete-panel{width:340px;min-width:300px;background:#0d1520;border-left:1px solid #1e3245;display:flex;flex-direction:column;overflow:hidden}
-.fp-header{padding:10px 14px;border-bottom:1px solid #1e3245;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.fp-title{font-size:.67rem;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:#c9a840}
-.fp-body{flex:1;overflow-y:auto;padding:8px}
-.viaje-card{background:#111820;border:1px solid #1e3245;border-radius:9px;margin-bottom:10px;overflow:hidden}
-.viaje-header{padding:9px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #1e3245}
-.viaje-collapse{background:none;border:none;color:#7a9ab8;cursor:pointer;font-size:1rem;padding:2px 5px;border-radius:4px;transition:all .15s;flex-shrink:0}
+.flete-panel{width:320px;min-width:280px;background:#0d1520;border-left:1px solid #1e3245;display:flex;flex-direction:column;overflow:hidden}
+.fp-header{padding:10px 12px;border-bottom:1px solid #1e3245;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.fp-title{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:#c9a840}
+.fp-body{flex:1;overflow-y:auto;padding:7px;-webkit-overflow-scrolling:touch}
+.viaje-card{background:#111820;border:1px solid #1e3245;border-radius:9px;margin-bottom:8px;overflow:hidden}
+.viaje-header{padding:8px 11px;display:flex;align-items:center;gap:7px;border-bottom:1px solid #1e3245}
+.viaje-collapse{background:none;border:none;color:#7a9ab8;cursor:pointer;font-size:.95rem;padding:2px 5px;border-radius:4px;transition:all .15s;flex-shrink:0}
 .viaje-collapse:hover{background:#1a2c40;color:#c9a840}
 .viaje-info{flex:1;min-width:0}
-.viaje-nombre{font-weight:800;font-size:.85rem;color:#c9a840}
-.viaje-meta{font-size:.68rem;color:#5a7a9a;margin-top:1px;display:flex;gap:8px;flex-wrap:wrap}
+.viaje-nombre{font-weight:800;font-size:.82rem;color:#c9a840}
+.viaje-meta{font-size:.65rem;color:#5a7a9a;margin-top:1px;display:flex;gap:7px;flex-wrap:wrap}
 .viaje-km{color:#3a8a5a;font-weight:700}
-.viaje-btns{display:flex;gap:4px;flex-shrink:0}
-.vbtn{background:#1a2c40;border:1px solid #2e4a65;color:#7a9ab8;padding:3px 7px;font-size:.68rem;border-radius:4px;cursor:pointer;transition:all .15s}
+.viaje-btns{display:flex;gap:3px;flex-shrink:0}
+.vbtn{background:#1a2c40;border:1px solid #2e4a65;color:#7a9ab8;padding:3px 6px;font-size:.65rem;border-radius:4px;cursor:pointer;transition:all .15s}
 .vbtn:hover{color:#ddd8ce;border-color:#c9a840}
 .vbtn.del{background:#2a1010;border-color:#5a2020;color:#fcc}
-.viaje-body{padding:8px}
-.vp-item{background:#1a2c40;border:1px solid #1e3a55;border-radius:6px;padding:6px 9px;margin-bottom:4px;display:flex;align-items:center;gap:7px}
-.vp-num{width:20px;height:20px;border-radius:50%;background:#c9a840;color:#111820;font-size:.62rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.viaje-body{padding:7px}
+.vp-item{background:#1a2c40;border:1px solid #1e3a55;border-radius:6px;padding:5px 8px;margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.vp-num{width:18px;height:18px;border-radius:50%;background:#c9a840;color:#111820;font-size:.6rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .vp-info{flex:1;min-width:0}
-.vp-cli{font-weight:700;font-size:.78rem}
-.vp-sub{font-size:.65rem;color:#6a8aaa;margin-top:1px}
-.vp-del{background:none;border:none;color:#3a5a7a;cursor:pointer;font-size:.85rem;padding:2px 4px;border-radius:3px}
+.vp-cli{font-weight:700;font-size:.76rem}
+.vp-sub{font-size:.63rem;color:#6a8aaa;margin-top:1px}
+.vp-del{background:none;border:none;color:#3a5a7a;cursor:pointer;font-size:.82rem;padding:2px 3px}
 .vp-del:hover{color:#ff6060}
-.agregar-section{margin-top:6px}
-.agregar-title{font-size:.65rem;color:#5a7a9a;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-.pedidos-disponibles{max-height:160px;overflow-y:auto;background:#0d1520;border:1px solid #1e3245;border-radius:6px}
-.pd-item{padding:6px 10px;display:flex;align-items:center;gap:7px;cursor:pointer;transition:background .15s;border-bottom:1px solid #1a2a3a}
+.agregar-section{margin-top:5px}
+.agregar-title{font-size:.63rem;color:#5a7a9a;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.pedidos-disponibles{max-height:150px;overflow-y:auto;background:#0d1520;border:1px solid #1e3245;border-radius:6px}
+.pd-item{padding:5px 9px;display:flex;align-items:center;gap:6px;cursor:pointer;transition:background .15s;border-bottom:1px solid #1a2a3a}
 .pd-item:last-child{border-bottom:none}
 .pd-item:hover{background:#1a2c40}
 .pd-info{flex:1;min-width:0}
-.pd-cli{font-weight:700;font-size:.77rem}
-.pd-sub{font-size:.65rem;color:#6a8aaa}
-.viaje-actions{margin-top:8px;display:flex;gap:6px}
-.fp-footer{padding:10px 14px;border-top:1px solid #1e3245;background:#0a1018;flex-shrink:0}
+.pd-cli{font-weight:700;font-size:.74rem}
+.pd-sub{font-size:.63rem;color:#6a8aaa}
+.viaje-actions{margin-top:7px;display:flex;gap:5px}
+.fp-footer{padding:8px 12px;border-top:1px solid #1e3245;background:#0a1018;flex-shrink:0}
+
+/* SIMULAR */
 .simular-wrap{flex:1;display:flex;overflow:hidden}
-.sim-panel{width:320px;min-width:280px;background:#0d1520;border-left:1px solid #1e3245;display:flex;flex-direction:column;overflow:hidden}
-.sim-header{padding:10px 14px;border-bottom:1px solid #1e3245;flex-shrink:0}
-.sim-title{font-size:.67rem;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:#c9a840;margin-bottom:8px}
+.sim-panel{width:300px;min-width:260px;background:#0d1520;border-left:1px solid #1e3245;display:flex;flex-direction:column;overflow:hidden}
+.sim-header{padding:10px 12px;border-bottom:1px solid #1e3245;flex-shrink:0}
+.sim-title{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:#c9a840;margin-bottom:7px}
 .sim-input{width:100%;background:#1a2c40;border:1px solid #1e3a55;color:#ddd8ce;border-radius:6px;padding:7px 10px;font-size:.8rem;font-family:inherit}
 .sim-input:focus{outline:none;border-color:#c9a840}
-.sim-body{flex:1;overflow-y:auto;padding:8px}
-.sim-parada{background:#1a2c40;border:1px solid #1e3a55;border-radius:7px;padding:7px 10px;margin-bottom:5px;display:flex;align-items:center;gap:8px}
-.sim-num{width:22px;height:22px;border-radius:50%;background:#c9a840;color:#111820;font-size:.65rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sim-body{flex:1;overflow-y:auto;padding:7px}
+.sim-parada{background:#1a2c40;border:1px solid #1e3a55;border-radius:7px;padding:6px 9px;margin-bottom:4px;display:flex;align-items:center;gap:7px}
+.sim-num{width:20px;height:20px;border-radius:50%;background:#c9a840;color:#111820;font-size:.63rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .sim-info{flex:1;min-width:0}
-.sim-lugar{font-weight:700;font-size:.8rem}
-.sim-km{font-size:.68rem;color:#3a8a5a;margin-top:1px}
-.sim-del{background:none;border:none;color:#3a5a7a;cursor:pointer;font-size:.85rem;padding:2px}
+.sim-lugar{font-weight:700;font-size:.78rem}
+.sim-km{font-size:.66rem;color:#3a8a5a;margin-top:1px}
+.sim-del{background:none;border:none;color:#3a5a7a;cursor:pointer;font-size:.82rem;padding:2px}
 .sim-del:hover{color:#ff6060}
-.sim-footer{padding:10px 14px;border-top:1px solid #1e3245;background:#0a1018;flex-shrink:0}
-.sim-total{font-size:1.4rem;font-weight:900;color:#c9a840;line-height:1}
-.sim-label{font-size:.67rem;color:#5a7a9a;margin-bottom:8px}
+.sim-footer{padding:10px 12px;border-top:1px solid #1e3245;background:#0a1018;flex-shrink:0}
+.sim-total{font-size:1.3rem;font-weight:900;color:#c9a840;line-height:1}
+.sim-label{font-size:.65rem;color:#5a7a9a;margin-bottom:7px}
+
+/* CLIENTES */
 .cli-wrap{display:flex;flex:1;overflow:hidden}
-.cli-list{width:250px;background:#111820;border-right:1px solid #1e3245;overflow-y:auto;flex-shrink:0}
-.cli-item{padding:10px 14px;border-bottom:1px solid #1a2a3a;cursor:pointer;transition:background .15s}
+.cli-list{width:240px;background:#111820;border-right:1px solid #1e3245;overflow-y:auto;flex-shrink:0}
+.cli-item{padding:9px 12px;border-bottom:1px solid #1a2a3a;cursor:pointer;transition:background .15s}
 .cli-item:hover{background:#1a2c40}.cli-item.sel{background:#1e3245;border-right:2px solid #c9a840}
-.cli-name{font-weight:700;font-size:.84rem}
-.cli-tel{font-size:.72rem;color:#5ab8ff;margin-top:2px}
-.cli-cnt{font-size:.68rem;color:#5a7a9a;margin-top:1px}
-.cli-detail{flex:1;overflow-y:auto;padding:20px}
-.cd-name{font-size:1.2rem;font-weight:900;color:#c9a840}
-.cd-stats{display:flex;gap:12px;margin:12px 0 16px;flex-wrap:wrap}
-.cd-stat{background:#1a2c40;border:1px solid #1e3a55;border-radius:8px;padding:10px 15px}
-.cd-sv{font-size:1.2rem;font-weight:900;color:#c9a840}
-.cd-sl{font-size:.67rem;color:#5a7a9a;margin-top:1px}
-.cd-vrow{background:#1a2c40;border:1px solid #1e3a55;border-radius:7px;padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:5000;align-items:center;justify-content:center}
+.cli-name{font-weight:700;font-size:.82rem}
+.cli-tel{font-size:.7rem;color:#5ab8ff;margin-top:2px}
+.cli-cnt{font-size:.66rem;color:#5a7a9a;margin-top:1px}
+.cli-detail{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
+.cd-name{font-size:1.15rem;font-weight:900;color:#c9a840}
+.cd-stats{display:flex;gap:10px;margin:10px 0 14px;flex-wrap:wrap}
+.cd-stat{background:#1a2c40;border:1px solid #1e3a55;border-radius:8px;padding:9px 13px;min-width:80px}
+.cd-sv{font-size:1.1rem;font-weight:900;color:#c9a840}
+.cd-sl{font-size:.65rem;color:#5a7a9a;margin-top:1px}
+.cd-vrow{background:#1a2c40;border:1px solid #1e3a55;border-radius:7px;padding:8px 11px;margin-bottom:5px;display:flex;align-items:flex-start;gap:9px}
+
+/* Rentabilidad */
+.rent-card{background:#1a2c40;border:1px solid #1e3a55;border-radius:10px;padding:14px;margin-bottom:14px}
+.rent-title{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#c9a840;margin-bottom:10px}
+.rent-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #1a2a3a;font-size:.78rem}
+.rent-row:last-child{border-bottom:none;margin-top:6px;padding-top:8px;font-weight:800;font-size:.85rem}
+.rent-pos{color:#5adf8a}
+.rent-neg{color:#ff6060}
+.rent-neu{color:#ddd8ce}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:5000;align-items:center;justify-content:center;padding:12px}
 .overlay.on{display:flex}
-.modal{background:#15202e;border:1px solid #c9a840;border-radius:12px;padding:22px;width:95%;max-width:520px;max-height:92vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.7)}
-.modal h2{font-size:.95rem;color:#c9a840;margin-bottom:14px}
-.fg{margin-bottom:10px}
-.fg label{display:block;font-size:.67rem;color:#7a9ab8;margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-.fg input,.fg select,.fg textarea{width:100%;background:#1a2c40;border:1px solid #1e3a55;color:#ddd8ce;border-radius:6px;padding:7px 10px;font-size:.83rem;font-family:inherit;transition:border-color .15s}
+.modal{background:#15202e;border:1px solid #c9a840;border-radius:12px;padding:18px;width:100%;max-width:500px;max-height:95vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal h2{font-size:.92rem;color:#c9a840;margin-bottom:12px}
+.fg{margin-bottom:9px}
+.fg label{display:block;font-size:.65rem;color:#7a9ab8;margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.fg input,.fg select,.fg textarea{width:100%;background:#1a2c40;border:1px solid #1e3a55;color:#ddd8ce;border-radius:6px;padding:8px 10px;font-size:.83rem;font-family:inherit;transition:border-color .15s}
 .fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:#c9a840}
-.fg textarea{resize:vertical;min-height:48px}
-.frow{display:flex;gap:10px}.frow .fg{flex:1}
-.mmap{height:200px;border-radius:8px;overflow:hidden;border:1px solid #1e3a55;margin-bottom:4px}
-.mmhint{font-size:.71rem;color:#5a7a9a;margin-bottom:9px}
-.mact{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
-.modal-sm{background:#15202e;border:1px solid #c9a840;border-radius:10px;padding:18px;width:90%;max-width:360px;box-shadow:0 12px 36px rgba(0,0,0,.7)}
-button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:600;padding:7px 14px;transition:all .15s;font-family:inherit}
+.fg textarea{resize:vertical;min-height:44px}
+.frow{display:flex;gap:8px}.frow .fg{flex:1}
+.mmap{height:180px;border-radius:8px;overflow:hidden;border:1px solid #1e3a55;margin-bottom:4px}
+.mmhint{font-size:.69rem;color:#5a7a9a;margin-bottom:8px}
+.mact{display:flex;gap:7px;justify-content:flex-end;margin-top:12px}
+.modal-sm{background:#15202e;border:1px solid #c9a840;border-radius:10px;padding:16px;width:100%;max-width:340px}
+
+button{border:none;cursor:pointer;border-radius:6px;font-size:.78rem;font-weight:600;padding:8px 14px;transition:all .15s;font-family:inherit;-webkit-tap-highlight-color:transparent}
 .bg{background:#c9a840;color:#111820}.bg:hover{background:#dfc060}
 .bd{background:#1e3245;color:#ddd8ce;border:1px solid #2e4a65}.bd:hover{background:#2a4560}
 .bv{background:#1a5230;color:#9fe;border:1px solid #2a8c50}.bv:hover{background:#236840}
+.brent{background:#1a3a20;color:#5adf8a;border:1px solid #2a6a30}
 .bsim{background:#2a1a40;color:#c0a0ff;border:1px solid #4a3a60}
-#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#15202e;border:1px solid #c9a840;color:#c9a840;padding:8px 18px;border-radius:20px;font-size:.78rem;z-index:9999;font-weight:600;transition:opacity .3s;pointer-events:none;opacity:0}
+
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#15202e;border:1px solid #c9a840;color:#c9a840;padding:8px 18px;border-radius:20px;font-size:.78rem;z-index:9999;font-weight:600;transition:opacity .3s;pointer-events:none;opacity:0;white-space:nowrap}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#0d1520}::-webkit-scrollbar-thumb{background:#1e3a55;border-radius:3px}
 .pac-container{z-index:9999!important}
+
+/* MOBILE */
+@media(max-width:768px){
+  nav{height:48px}
+  .ntab{font-size:.7rem;padding:6px 8px}
+  .flete-wrap,.simular-wrap{flex-direction:column}
+  .flete-panel,.sim-panel{width:100%;max-height:45vh;border-left:none;border-top:1px solid #1e3245}
+  #mapFlete,#mapSimular{flex:1;min-height:200px}
+  .cli-wrap{flex-direction:column}
+  .cli-list{width:100%;max-height:35vh;border-right:none;border-bottom:1px solid #1e3245;display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden}
+  .cli-item{min-width:140px;border-bottom:none;border-right:1px solid #1a2a3a}
+  .cli-detail{padding:12px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .frow{flex-direction:column;gap:0}
+  .vbar{gap:5px}
+  .vbar input{min-width:100px}
+  table{font-size:.72rem}
+  th,td{padding:6px 7px}
+  .inicio-wrap{padding:12px}
+}
 </style>
 </head>
 <body>
 <nav>
   <div class="nav-logo">Remeco <span>Gestión</span></div>
-  <button class="ntab on" onclick="ir('ventas')">📋 Ventas</button>
+  <button class="ntab on" onclick="ir('inicio')">🏠 Inicio</button>
+  <button class="ntab" onclick="ir('ventas')">📋 Ventas</button>
   <button class="ntab" onclick="ir('mapa')">🗺️ Mapa</button>
   <button class="ntab" onclick="ir('flete')">🚛 Flete</button>
   <button class="ntab" onclick="ir('simular')">🧮 Simular</button>
   <button class="ntab" onclick="ir('clientes')">👤 Clientes</button>
-  <div class="nav-right"><button class="bg" onclick="abrirNueva()">+ Nueva venta</button></div>
+  <div class="nav-right"><button class="bg" onclick="abrirNueva()" style="padding:6px 12px;font-size:.75rem">+ Nueva venta</button></div>
 </nav>
-<div class="page on" id="page-ventas">
+
+<!-- INICIO -->
+<div class="page on" id="page-inicio">
+  <div class="inicio-wrap">
+    <div class="inicio-header">
+      <div class="inicio-titulo" id="inicioBienvenida">Bienvenido a Remeco</div>
+      <div class="inicio-sub" id="inicioFecha"></div>
+    </div>
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="inicio-section">
+      <div class="inicio-stitle">Pedidos pendientes de entrega</div>
+      <div id="pendientesList"></div>
+    </div>
+    <div class="inicio-section">
+      <div class="inicio-stitle">Próximos fletes</div>
+      <div id="viajesList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- VENTAS -->
+<div class="page" id="page-ventas">
   <div class="vbar">
-    <input id="buscar" placeholder="🔍 Buscar cliente, localidad..." oninput="renderVentas()"/>
+    <input id="buscar" placeholder="🔍 Buscar..." oninput="renderVentas()"/>
     <select id="filtroE" onchange="renderVentas()">
       <option value="">Todos los estados</option>
       <option>Confirmado</option><option>En producción</option>
       <option>Listo para entregar</option><option>En camino</option><option>Entregado</option>
     </select>
     <select id="filtroP" onchange="renderVentas()">
-      <option value="">Todos los productos</option>
+      <option value="">Todos</option>
       <option value="a">Silo Aéreo</option><option value="c">Autoconsumo</option>
     </select>
-    <span style="margin-left:auto;font-size:.74rem;color:#5a7a9a" id="vCount"></span>
+    <span style="margin-left:auto;font-size:.72rem;color:#5a7a9a" id="vCount"></span>
   </div>
   <div class="vtable-wrap">
     <table>
-      <thead><tr><th>Cliente / CUIT</th><th>Producto</th><th>Localidad / Zona</th><th>Precio</th><th>Estado</th><th>Entrega</th><th></th></tr></thead>
+      <thead><tr><th>Cliente</th><th>Producto</th><th>Localidad</th><th>Precio</th><th>Estado</th><th>Entrega</th><th></th></tr></thead>
       <tbody id="vtbody"></tbody>
     </table>
   </div>
 </div>
+
+<!-- MAPA -->
 <div class="page" id="page-mapa"><div id="mapVentas"></div></div>
+
+<!-- FLETE -->
 <div class="page" id="page-flete">
   <div class="flete-wrap">
     <div id="mapFlete"></div>
     <div class="flete-panel">
       <div class="fp-header">
         <span class="fp-title">Viajes programados</span>
-        <button class="bg" style="padding:4px 10px;font-size:.75rem" onclick="abrirNuevoViaje()">+ Nuevo viaje</button>
+        <button class="bg" style="padding:4px 9px;font-size:.72rem" onclick="abrirNuevoViaje()">+ Nuevo</button>
       </div>
       <div class="fp-body" id="fpBody"></div>
       <div class="fp-footer">
@@ -173,6 +267,8 @@ button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:
     </div>
   </div>
 </div>
+
+<!-- SIMULAR -->
 <div class="page" id="page-simular">
   <div class="simular-wrap">
     <div id="mapSimular"></div>
@@ -181,7 +277,7 @@ button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:
         <div class="sim-title">🧮 Simulador de flete</div>
         <input class="sim-input" id="simInput" placeholder="Escribí una localidad..."/>
       </div>
-      <div class="sim-body" id="simBody"><div style="text-align:center;padding:24px;color:#3a5a7a;font-size:.8rem">Escribí una localidad arriba para agregarla</div></div>
+      <div class="sim-body" id="simBody"><div style="text-align:center;padding:20px;color:#3a5a7a;font-size:.78rem">Escribí una localidad arriba</div></div>
       <div class="sim-footer">
         <div class="sim-total" id="simKm">0</div>
         <div class="sim-label">km del recorrido</div>
@@ -189,20 +285,24 @@ button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:
           <button class="bv" style="flex:1;padding:7px" onclick="calcularRutaSim()">🗺️ Ver ruta real</button>
           <button class="bd" style="padding:7px" onclick="limpiarSim()">Limpiar</button>
         </div>
-        <div style="margin-top:6px;padding:10px;background:#1a2c40;border-radius:8px;border:1px solid #2e4a65;text-align:center">
-          <div style="font-size:.7rem;color:#5a7a9a;margin-bottom:4px">PRÓXIMAMENTE</div>
-          <button class="bsim" style="width:100%;padding:8px" disabled>💰 Calcular costo por cliente</button>
+        <div style="margin-top:8px;padding:10px;background:#1a2c40;border-radius:8px;border:1px solid #2e4a65;text-align:center">
+          <div style="font-size:.68rem;color:#5a7a9a;margin-bottom:4px">PRÓXIMAMENTE</div>
+          <button class="bsim" style="width:100%;padding:7px" disabled>💰 Calcular costo por cliente</button>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- CLIENTES -->
 <div class="page" id="page-clientes">
   <div class="cli-wrap">
     <div class="cli-list" id="cliList"></div>
     <div class="cli-detail" id="cliDetail"><div style="color:#3a5a7a;padding:40px;text-align:center">Seleccioná un cliente</div></div>
   </div>
 </div>
+
+<!-- MODAL VENTA -->
 <div class="overlay" id="overlay">
   <div class="modal">
     <h2 id="modalTitle">Nueva venta</h2>
@@ -211,8 +311,8 @@ button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:
       <div class="fg"><label>Teléfono</label><input id="fTel" placeholder="Ej: 3584123456"/></div>
     </div>
     <div class="frow">
-      <div class="fg"><label>CUIT</label><input id="fCuit" placeholder="Ej: 20-12345678-9"/></div>
-      <div class="fg"><label>Zona de flete</label><input id="fZona" placeholder="Ej: Rosario, BA Norte..."/></div>
+      <div class="fg"><label>CUIT</label><input id="fCuit" placeholder="20-12345678-9"/></div>
+      <div class="fg"><label>Zona de flete</label><input id="fZona" placeholder="Ej: Rosario..."/></div>
     </div>
     <div class="frow">
       <div class="fg"><label>Producto *</label>
@@ -221,7 +321,11 @@ button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:
       <div class="fg"><label>Tonelaje</label><select id="fMod"></select></div>
     </div>
     <div class="frow">
-      <div class="fg"><label>Precio (ARS)</label><input id="fPrecio" type="number" placeholder="0"/></div>
+      <div class="fg"><label>Precio venta (ARS)</label><input id="fPrecio" type="number" placeholder="0"/></div>
+      <div class="fg"><label>Costo producto (ARS)</label><input id="fCostoProducto" type="number" placeholder="0"/></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label>Costo flete (ARS)</label><input id="fCostoFlete" type="number" placeholder="0"/></div>
       <div class="fg"><label>Estado</label>
         <select id="fEstado"><option>Confirmado</option><option>En producción</option><option>Listo para entregar</option><option>En camino</option><option>Entregado</option></select>
       </div>
@@ -239,9 +343,11 @@ button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:
     </div>
   </div>
 </div>
+
+<!-- MODAL NUEVO VIAJE -->
 <div class="overlay" id="overlayViaje">
   <div class="modal-sm">
-    <h2 style="font-size:.9rem;color:#c9a840;margin-bottom:12px">Nuevo viaje</h2>
+    <h2 style="font-size:.88rem;color:#c9a840;margin-bottom:11px">Nuevo viaje</h2>
     <div class="fg"><label>Nombre del viaje</label><input id="viajeNombre" placeholder="Ej: Rosario 20 jun..."/></div>
     <div class="fg"><label>Fecha de salida</label><input id="viajeFecha" type="date"/></div>
     <div class="mact">
@@ -250,7 +356,9 @@ button{border:none;cursor:pointer;border-radius:6px;font-size:.8rem;font-weight:
     </div>
   </div>
 </div>
+
 <div id="toast"></div>
+
 <script>
 const SB_URL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SB_KEY='sb_publishable__iKag8gJWXztsMIkEBhdcQ_W9dB1oTV';
@@ -268,7 +376,11 @@ async function sbFetch(p,m='GET',b=null){
   const t=await r.text();return t?JSON.parse(t):[];
 }
 
-function cargarTons(v){const p=document.getElementById('fProd').value;const s=document.getElementById('fMod');s.innerHTML='<option value="">-- Seleccioná --</option>'+TONS[p].map(t=>`<option${t===v?' selected':''}>${t}</option>`).join('')}
+function cargarTons(v){
+  const p=document.getElementById('fProd').value;
+  const s=document.getElementById('fMod');
+  s.innerHTML='<option value="">-- Seleccioná --</option>'+TONS[p].map(t=>`<option${t===v?' selected':''}>${t}</option>`).join('');
+}
 
 let ventas=[],editId=null;
 let gMapV=null,gMapF=null,gMapSim=null,gMapModal=null;
@@ -283,7 +395,7 @@ function initGoogle(){
   gDir=new google.maps.DirectionsService();
   const pg=document.querySelector('.page.on')?.id;
   if(pg==='page-mapa')initMapV();
-  if(pg==='page-flete')initMapF();
+  if(pg==='page-flete'){initMapF();}
   if(pg==='page-simular')initMapSim();
 }
 
@@ -300,27 +412,105 @@ function ir(pg){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
   document.getElementById('page-'+pg).classList.add('on');
-  document.querySelectorAll('.ntab').forEach(t=>{if(t.textContent.toLowerCase().includes(pg==='simular'?'sim':pg.slice(0,4)))t.classList.add('on')});
+  document.querySelectorAll('.ntab').forEach(t=>{
+    const txt=t.textContent.toLowerCase();
+    if(pg==='inicio'&&txt.includes('inicio'))t.classList.add('on');
+    else if(pg==='ventas'&&txt.includes('venta'))t.classList.add('on');
+    else if(pg==='mapa'&&txt.includes('mapa'))t.classList.add('on');
+    else if(pg==='flete'&&txt.includes('flete'))t.classList.add('on');
+    else if(pg==='simular'&&txt.includes('simul'))t.classList.add('on');
+    else if(pg==='clientes'&&txt.includes('cliente'))t.classList.add('on');
+  });
+  if(pg==='inicio')renderInicio();
   if(pg==='mapa'){initMapV();actualizarMapV()}
-  if(pg==='flete'){initMapF();renderViajes()}
+  if(pg==='flete'){initMapF();renderViajes();}
   if(pg==='simular')initMapSim();
   if(pg==='clientes')renderClientes();
 }
 
+// ── INICIO ────────────────────────────────────────────────────────
+function renderInicio(){
+  const ahora=new Date();
+  document.getElementById('inicioFecha').textContent=ahora.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const hora=ahora.getHours();
+  const saludo=hora<12?'Buenos días':'hora<18?Buenas tardes':'Buenas noches';
+  document.getElementById('inicioBienvenida').textContent=(hora<12?'Buenos días':hora<18?'Buenas tardes':'Buenas noches')+' — Remeco Gestión';
+
+  const pendientes=ventas.filter(v=>v.estado!=='Entregado');
+  const entregados=ventas.filter(v=>v.estado==='Entregado');
+  const mesActual=new Date().getMonth();
+  const ventasMes=ventas.filter(v=>new Date(v.created_at).getMonth()===mesActual);
+  const totalMes=ventasMes.reduce((s,v)=>s+(v.precio||0),0);
+  const rentMes=ventasMes.reduce((s,v)=>s+(v.precio||0)-(v.costo_producto||0)-(v.costo_flete||0),0);
+
+  document.getElementById('statsGrid').innerHTML=`
+    <div class="stat-card" onclick="ir('ventas')">
+      <div class="stat-val">${ventas.length}</div>
+      <div class="stat-label">Ventas totales</div>
+      <div class="stat-sub">${ventasMes.length} este mes</div>
+    </div>
+    <div class="stat-card" onclick="ir('ventas')">
+      <div class="stat-val">${pendientes.length}</div>
+      <div class="stat-label">Pendientes de entrega</div>
+      <div class="stat-sub">${entregados.length} entregados</div>
+    </div>
+    <div class="stat-card" onclick="ir('ventas')">
+      <div class="stat-val" style="font-size:1.3rem">$${(totalMes/1000000).toFixed(1)}M</div>
+      <div class="stat-label">Facturado este mes</div>
+    </div>
+    <div class="stat-card" onclick="ir('clientes')">
+      <div class="stat-val">${Object.keys(ventas.reduce((m,v)=>{m[v.cliente]=1;return m},{})).length}</div>
+      <div class="stat-label">Clientes activos</div>
+    </div>
+    <div class="stat-card" onclick="ir('flete')">
+      <div class="stat-val">${viajes.filter(v=>v.pedidoIds.length>0).length}</div>
+      <div class="stat-label">Viajes programados</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="font-size:1.3rem;color:${rentMes>=0?'#5adf8a':'#ff6060'}">$${(rentMes/1000000).toFixed(1)}M</div>
+      <div class="stat-label">Rentabilidad este mes</div>
+    </div>`;
+
+  const disp=ventas.filter(v=>v.estado!=='Entregado').slice(0,5);
+  document.getElementById('pendientesList').innerHTML=disp.length?disp.map(v=>{
+    const ei=Math.max(0,ESTADOS.indexOf(v.estado));
+    return `<div class="pendiente-card" onclick="ir('ventas')">
+      <div class="pc-info">
+        <div class="pc-cli">${v.cliente}</div>
+        <div class="pc-sub">${v.producto==='a'?'Silo Aéreo':'Autoconsumo'}${v.modelo?' · '+v.modelo:''} · ${v.localidad||''}</div>
+      </div>
+      <span class="${ECLASES[ei]} etag">${v.estado}</span>
+    </div>`;
+  }).join(''):'<div style="color:#3a5a7a;font-size:.78rem;padding:10px 0">No hay pedidos pendientes</div>';
+
+  const vjs=viajes.filter(v=>v.fecha&&v.pedidoIds.length>0).sort((a,b)=>a.fecha.localeCompare(b.fecha)).slice(0,3);
+  document.getElementById('viajesList').innerHTML=vjs.length?vjs.map(vj=>{
+    const f=new Date(vj.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'});
+    return `<div class="viaje-prox" onclick="ir('flete')">
+      <div class="vp-nombre">🚛 ${vj.nombre}</div>
+      <div class="vp-meta">📅 ${f} · ${vj.pedidoIds.length} parada${vj.pedidoIds.length!==1?'s':''}${vj._kmReal?' · '+vj._kmReal.toLocaleString('es-AR')+' km':''}</div>
+    </div>`;
+  }).join(''):'<div style="color:#3a5a7a;font-size:.78rem;padding:10px 0">No hay fletes programados</div>';
+}
+
+// ── SUPABASE ──────────────────────────────────────────────────────
 async function cargarVentas(){
-  try{ventas=await sbFetch('/rest/v1/ventas?select=*&order=created_at.desc');renderVentas();renderClientes();actualizarMapV()}
+  try{ventas=await sbFetch('/rest/v1/ventas?select=*&order=created_at.desc');renderVentas();renderClientes();actualizarMapV();renderInicio()}
   catch(e){toast('Error: '+e.message)}
 }
 
 async function guardarVenta(){
   const cli=document.getElementById('fCli').value.trim();
   if(!cli){document.getElementById('fCli').style.borderColor='#ff6060';return}
+  const precio=parseFloat(document.getElementById('fPrecio').value)||null;
   const data={
     cliente:cli,telefono:document.getElementById('fTel').value.trim()||null,
     cuit:document.getElementById('fCuit').value.trim()||null,
     producto:document.getElementById('fProd').value,
     modelo:document.getElementById('fMod').value||null,
-    precio:parseFloat(document.getElementById('fPrecio').value)||null,
+    precio,
+    costo_producto:parseFloat(document.getElementById('fCostoProducto').value)||null,
+    costo_flete:parseFloat(document.getElementById('fCostoFlete').value)||null,
     moneda:'ARS',estado:document.getElementById('fEstado').value,
     fecha_entrega:document.getElementById('fFecha').value||null,
     localidad:document.getElementById('fLoc').value.trim()||null,
@@ -338,6 +528,7 @@ async function guardarVenta(){
 async function eliminarVenta(id){if(!confirm('¿Eliminar?'))return;try{await sbFetch('/rest/v1/ventas?id=eq.'+id,'DELETE');toast('Eliminada');cargarVentas()}catch(e){}}
 async function cambiarEstado(id,e){try{await sbFetch('/rest/v1/ventas?id=eq.'+id,'PATCH',{estado:e});cargarVentas()}catch(e){}}
 
+// ── VENTAS ────────────────────────────────────────────────────────
 function renderVentas(){
   const q=norm(document.getElementById('buscar').value);
   const est=document.getElementById('filtroE').value;
@@ -355,12 +546,12 @@ function renderVentas(){
     const ei=Math.max(0,ESTADOS.indexOf(v.estado));
     const fecha=v.fecha_entrega?new Date(v.fecha_entrega+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'—';
     return `<tr>
-      <td><div style="font-weight:700">${v.cliente}</div>${v.telefono?`<div style="color:#5ab8ff;font-size:.75rem">📞 ${v.telefono}</div>`:''}${v.cuit?`<div style="color:#7a9ab8;font-size:.72rem">CUIT: ${v.cuit}</div>`:''}</td>
-      <td><span class="ptag ${v.producto==='a'?'pa':'pc'}">${v.producto==='a'?'Silo Aéreo':'Autoconsumo'}</span>${v.modelo?`<div style="font-size:.7rem;color:#7a9ab8;margin-top:2px">${v.modelo}</div>`:''}</td>
-      <td><div style="color:#7a9ab8;font-size:.78rem">${v.localidad||'—'}</div>${v.zona?`<div style="color:#c9a840;font-size:.7rem;font-weight:600">📦 ${v.zona}</div>`:''}</td>
-      <td style="font-weight:700;color:#c9a840">${v.precio?'$'+Number(v.precio).toLocaleString('es-AR'):'—'}</td>
-      <td><select onchange="cambiarEstado('${v.id}',this.value)" style="background:transparent;border:none;font-size:.67rem;font-weight:700;cursor:pointer;font-family:inherit;color:inherit" class="${ECLASES[ei]} etag">${ESTADOS.map(e=>`<option${e===v.estado?' selected':''}>${e}</option>`).join('')}</select></td>
-      <td style="color:#7a9ab8;font-size:.75rem">${fecha}</td>
+      <td><div style="font-weight:700">${v.cliente}</div>${v.telefono?`<div style="color:#5ab8ff;font-size:.72rem">📞 ${v.telefono}</div>`:''}${v.cuit?`<div style="color:#7a9ab8;font-size:.7rem">CUIT: ${v.cuit}</div>`:''}</td>
+      <td><span class="ptag ${v.producto==='a'?'pa':'pc-tag'}">${v.producto==='a'?'Aéreo':'Autocons.'}</span>${v.modelo?`<div style="font-size:.68rem;color:#7a9ab8;margin-top:1px">${v.modelo}</div>`:''}</td>
+      <td><div style="color:#7a9ab8;font-size:.76rem">${v.localidad||'—'}</div>${v.zona?`<div style="color:#c9a840;font-size:.68rem;font-weight:600">📦 ${v.zona}</div>`:''}</td>
+      <td style="font-weight:700;color:#c9a840;font-size:.76rem">${v.precio?'$'+Number(v.precio).toLocaleString('es-AR'):'—'}</td>
+      <td><select onchange="cambiarEstado('${v.id}',this.value)" style="background:transparent;border:none;font-size:.65rem;font-weight:700;cursor:pointer;font-family:inherit;color:inherit" class="${ECLASES[ei]} etag">${ESTADOS.map(e=>`<option${e===v.estado?' selected':''}>${e}</option>`).join('')}</select></td>
+      <td style="color:#7a9ab8;font-size:.73rem">${fecha}</td>
       <td><div class="act-btns">
         <button class="ab" onclick="abrirEditar('${v.id}')">✎</button>
         <button class="ab" onclick="wa('${v.telefono||''}')">💬</button>
@@ -370,8 +561,9 @@ function renderVentas(){
   }).join('');
 }
 
+// ── MODAL ─────────────────────────────────────────────────────────
 function limpiarModal(){
-  ['fCli','fTel','fCuit','fPrecio','fFecha','fLoc','fZona','fNot'].forEach(i=>document.getElementById(i).value='');
+  ['fCli','fTel','fCuit','fPrecio','fCostoProducto','fCostoFlete','fFecha','fLoc','fZona','fNot'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('fCli').style.borderColor='';
   document.getElementById('fProd').value='a';document.getElementById('fEstado').value='Confirmado';
   cargarTons('');modalLat=null;modalLng=null;
@@ -391,6 +583,8 @@ function abrirEditar(id){
   document.getElementById('fCuit').value=v.cuit||'';
   document.getElementById('fProd').value=v.producto||'a';cargarTons(v.modelo||'');
   document.getElementById('fPrecio').value=v.precio||'';
+  document.getElementById('fCostoProducto').value=v.costo_producto||'';
+  document.getElementById('fCostoFlete').value=v.costo_flete||'';
   document.getElementById('fEstado').value=v.estado||'Confirmado';
   document.getElementById('fFecha').value=v.fecha_entrega||'';
   document.getElementById('fLoc').value=v.localidad||'';
@@ -415,6 +609,7 @@ function initModalMap(){
   gMapModal.addListener('click',e=>{modalLat=e.latLng.lat();modalLng=e.latLng.lng();if(gMkModal)gMkModal.setMap(null);gMkModal=new google.maps.Marker({position:e.latLng,map:gMapModal,draggable:true});gMkModal.addListener('dragend',ev=>{modalLat=ev.latLng.lat();modalLng=ev.latLng.lng()})});
 }
 
+// ── MAPA VENTAS ───────────────────────────────────────────────────
 function initMapV(){
   if(gMapV||!window.google)return;
   gMapV=new google.maps.Map(document.getElementById('mapVentas'),{...MBASE,center:{lat:FLT,lng:FLN},zoom:6});
@@ -427,11 +622,11 @@ function actualizarMapV(){
     const ei=Math.max(0,ESTADOS.indexOf(v.estado));
     const m=new google.maps.Marker({position:{lat:v.lat,lng:v.lng},map:gMapV,title:v.cliente,zIndex:50,icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:ECOLORS[ei],fillOpacity:1,strokeColor:'#fff',strokeWeight:1.5}});
     const iw=new google.maps.InfoWindow({content:`<b style="color:#c9a840">${v.cliente}</b><br>${v.producto==='a'?'Silo Aéreo':'Autoconsumo'}${v.modelo?' · '+v.modelo:''}<br>${v.localidad||''}<br>${v.estado}`});
-    m.addListener('click',()=>iw.open(gMapV,m));
-    gMkV.push(m);
+    m.addListener('click',()=>iw.open(gMapV,m));gMkV.push(m);
   });
 }
 
+// ── FLETE ─────────────────────────────────────────────────────────
 function initMapF(){
   if(gMapF||!window.google)return;
   gMapF=new google.maps.Map(document.getElementById('mapFlete'),{...MBASE,center:{lat:FLT,lng:FLN},zoom:6});
@@ -451,7 +646,7 @@ function crearViaje(){
 
 function renderViajes(){
   const body=document.getElementById('fpBody');
-  if(!viajes.length){body.innerHTML='<div style="text-align:center;padding:30px;color:#3a5a7a;font-size:.8rem">Creá un viaje y agregá los pedidos</div>';return}
+  if(!viajes.length){body.innerHTML='<div style="text-align:center;padding:24px;color:#3a5a7a;font-size:.78rem">Creá un viaje y agregá los pedidos</div>';return}
   const disp=ventas.filter(v=>v.lat&&v.lng&&v.estado!=='Entregado');
   const asig=new Set(viajes.flatMap(x=>x.pedidoIds));
   body.innerHTML=viajes.map(vj=>{
@@ -467,47 +662,41 @@ function renderViajes(){
           <div class="viaje-meta"><span>${peds.length} parada${peds.length!==1?'s':''}</span><span class="viaje-km">${kmStr}</span>${fStr?`<span>📅 ${fStr}</span>`:''}</div>
         </div>
         <div class="viaje-btns">
-          <button class="vbtn" onclick="verEnMapa('${vj.id}')">🗺️</button>
           <button class="vbtn del" onclick="eliminarViaje('${vj.id}')">✕</button>
         </div>
       </div>
       ${vj.expandido?`<div class="viaje-body">
-        ${peds.length?peds.map((v,i)=>`<div class="vp-item"><div class="vp-num">${i+1}</div><div class="vp-info"><div class="vp-cli">${v.cliente}</div><div class="vp-sub">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${v.localidad||''}</div></div><button class="vp-del" onclick="quitarPedido('${vj.id}','${v.id}')">✕</button></div>`).join(''):'<div style="font-size:.73rem;color:#3a5a7a;padding:4px">Sin pedidos aún</div>'}
-        ${libres.length?`<div class="agregar-section"><div class="agregar-title">+ Agregar pedido</div><div class="pedidos-disponibles">${libres.map(v=>`<div class="pd-item" onclick="agregarPedido('${vj.id}','${v.id}')"><div class="pd-info"><div class="pd-cli">${v.cliente}</div><div class="pd-sub">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${v.localidad||''}</div></div><span style="font-size:.7rem;color:#c9a840;font-weight:700">+ agregar</span></div>`).join('')}</div></div>`:''}
+        ${peds.length?peds.map((v,i)=>`<div class="vp-item"><div class="vp-num">${i+1}</div><div class="vp-info"><div class="vp-cli">${v.cliente}</div><div class="vp-sub">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${v.localidad||''}</div></div><button class="vp-del" onclick="quitarPedido('${vj.id}','${v.id}')">✕</button></div>`).join(''):'<div style="font-size:.72rem;color:#3a5a7a;padding:4px">Sin pedidos aún</div>'}
+        ${libres.length?`<div class="agregar-section"><div class="agregar-title">+ Agregar pedido</div><div class="pedidos-disponibles">${libres.map(v=>`<div class="pd-item" onclick="agregarPedido('${vj.id}','${v.id}')"><div class="pd-info"><div class="pd-cli">${v.cliente}</div><div class="pd-sub">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${v.localidad||''}</div></div><span style="font-size:.68rem;color:#c9a840;font-weight:700">+ agregar</span></div>`).join('')}</div></div>`:''}
         <div class="viaje-actions">
-          <button class="bv" style="flex:1;font-size:.73rem;padding:5px" onclick="exportarViaje('${vj.id}')">📋 Exportar</button>
-          <button class="bd" style="font-size:.73rem;padding:5px" onclick="optimizarViaje('${vj.id}')">⚡ Optimizar</button>
+          <button class="bv" style="flex:1;font-size:.72rem;padding:5px" onclick="exportarViaje('${vj.id}')">📋 Exportar</button>
+          <button class="bd" style="font-size:.72rem;padding:5px" onclick="optimizarViaje('${vj.id}')">⚡ Optimizar</button>
         </div>
       </div>`:''}
     </div>`;
   }).join('');
+  // Dibujar todos en mapa y calcular ruta del primero expandido automáticamente
+  dibujarTodosEnMapa();
+  const primerExpandido=viajes.find(v=>v.expandido&&v.pedidoIds.length>0);
+  if(primerExpandido)calcularRutaViaje(primerExpandido.id);
 }
 
-function toggleViaje(id){const v=viajes.find(x=>x.id===id);if(!v)return;v.expandido=!v.expandido;saveViajes();renderViajes()}
-function eliminarViaje(id){if(!confirm('¿Eliminar?'))return;viajes=viajes.filter(x=>x.id!==id);saveViajes();renderViajes()}
-function agregarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v||v.pedidoIds.includes(pid))return;v.pedidoIds.push(pid);saveViajes();renderViajes()}
-function quitarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v)return;v.pedidoIds=v.pedidoIds.filter(x=>x!==pid);delete v._kmReal;saveViajes();renderViajes()}
-function optimizarViaje(id){
-  const vj=viajes.find(x=>x.id===id);if(!vj)return;
-  const sel=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
-  if(sel.length<2){toast('Necesitás al menos 2 paradas');return}
-  const d=[...sel],opt=[];let a={lat:FLT,lng:FLN};
-  while(d.length){let mi=Infinity,mI=0;d.forEach((v,i)=>{const dd=dk(a.lat,a.lng,v.lat,v.lng);if(dd<mi){mi=dd;mI=i}});const s=d.splice(mI,1)[0];opt.push(s);a={lat:s.lat,lng:s.lng}}
-  vj.pedidoIds=opt.map(v=>v.id);delete vj._kmReal;saveViajes();renderViajes();toast('Optimizado ⚡');
+function dibujarTodosEnMapa(){
+  if(!gMapF)return;
+  gMkF.forEach(m=>m.setMap(null));gMkF=[];
 }
 
-function verEnMapa(id){
-  if(!gMapF||!gDir){toast('Entrá a la pestaña Flete primero');return}
+function calcularRutaViaje(id){
+  if(!gMapF||!gDir)return;
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
   const sel=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
-  if(!sel.length){toast('No hay pedidos con ubicación');return}
+  if(!sel.length)return;
   gMkF.forEach(m=>m.setMap(null));gMkF=[];
   sel.forEach((v,i)=>{
     const m=new google.maps.Marker({position:{lat:v.lat,lng:v.lng},map:gMapF,label:{text:String(i+1),color:'#fff',fontWeight:'bold'},title:v.cliente,zIndex:50});
     const iw=new google.maps.InfoWindow({content:`<b>${v.cliente}</b><br>${v.localidad||''}`});
     m.addListener('click',()=>iw.open(gMapF,m));gMkF.push(m);
   });
-  toast('Calculando ruta Google Maps...');
   const last=sel[sel.length-1];
   gDir.route({
     origin:{lat:FLT,lng:FLN},
@@ -518,13 +707,25 @@ function verEnMapa(id){
     if(status==='OK'){
       gDirRF.setDirections(result);
       const km=Math.round(result.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
-      vj._kmReal=km;saveViajes();renderViajes();
-      const b=new google.maps.LatLngBounds();
-      b.extend({lat:FLT,lng:FLN});sel.forEach(v=>b.extend({lat:v.lat,lng:v.lng}));
-      gMapF.fitBounds(b);
-      toast(`Google Maps: ${km.toLocaleString('es-AR')} km ✔`);
-    }else toast('Error Google: '+status);
+      vj._kmReal=km;saveViajes();
+      document.querySelectorAll('.viaje-km').forEach((el,i)=>{if(viajes[i]?.id===id)el.textContent=km.toLocaleString('es-AR')+' km reales'});
+      const b=new google.maps.LatLngBounds();b.extend({lat:FLT,lng:FLN});sel.forEach(v=>b.extend({lat:v.lat,lng:v.lng}));gMapF.fitBounds(b);
+      toast(`Ruta: ${km.toLocaleString('es-AR')} km ✔`);
+    }
   });
+}
+
+function toggleViaje(id){const v=viajes.find(x=>x.id===id);if(!v)return;v.expandido=!v.expandido;saveViajes();renderViajes();if(v.expandido&&v.pedidoIds.length)calcularRutaViaje(id)}
+function eliminarViaje(id){if(!confirm('¿Eliminar?'))return;viajes=viajes.filter(x=>x.id!==id);saveViajes();renderViajes()}
+function agregarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v||v.pedidoIds.includes(pid))return;v.pedidoIds.push(pid);saveViajes();renderViajes();calcularRutaViaje(vid)}
+function quitarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v)return;v.pedidoIds=v.pedidoIds.filter(x=>x!==pid);delete v._kmReal;saveViajes();renderViajes()}
+function optimizarViaje(id){
+  const vj=viajes.find(x=>x.id===id);if(!vj)return;
+  const sel=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
+  if(sel.length<2){toast('Necesitás al menos 2 paradas');return}
+  const d=[...sel],opt=[];let a={lat:FLT,lng:FLN};
+  while(d.length){let mi=Infinity,mI=0;d.forEach((v,i)=>{const dd=dk(a.lat,a.lng,v.lat,v.lng);if(dd<mi){mi=dd;mI=i}});const s=d.splice(mI,1)[0];opt.push(s);a={lat:s.lat,lng:s.lng}}
+  vj.pedidoIds=opt.map(v=>v.id);delete vj._kmReal;saveViajes();renderViajes();calcularRutaViaje(id);toast('Optimizado ⚡');
 }
 
 function calcKm(arr){let km=0,p={lat:FLT,lng:FLN};arr.forEach(v=>{km+=dk(p.lat,p.lng,v.lat,v.lng)*FACTOR;p={lat:v.lat,lng:v.lng}});return km}
@@ -558,6 +759,7 @@ function exportarViajes(){
   navigator.clipboard.writeText(t).then(()=>toast('Copiado ✔')).catch(()=>{const w=window.open('','_blank');w.document.write('<pre style="padding:16px">'+t+'</pre>')});
 }
 
+// ── SIMULAR ───────────────────────────────────────────────────────
 function initMapSim(){
   if(gMapSim||!window.google)return;
   gMapSim=new google.maps.Map(document.getElementById('mapSimular'),{...MBASE,center:{lat:FLT,lng:FLN},zoom:6});
@@ -566,18 +768,12 @@ function initMapSim(){
   acSim=new google.maps.places.Autocomplete(document.getElementById('simInput'),{componentRestrictions:{country:'ar'},fields:['geometry','name']});
   acSim.addListener('place_changed',()=>{
     const p=acSim.getPlace();
-    if(p.geometry){
-      const l=p.geometry.location;
-      simParadas.push({nombre:p.name||'',lat:l.lat(),lng:l.lng()});
-      document.getElementById('simInput').value='';
-      renderSimParadas();dibujarSimMapa();
-    }
+    if(p.geometry){const l=p.geometry.location;simParadas.push({nombre:p.name||'',lat:l.lat(),lng:l.lng()});document.getElementById('simInput').value='';renderSimParadas();dibujarSimMapa()}
   });
 }
-
 function renderSimParadas(){
   const b=document.getElementById('simBody');
-  if(!simParadas.length){b.innerHTML='<div style="text-align:center;padding:24px;color:#3a5a7a;font-size:.8rem">Escribí una localidad arriba</div>';document.getElementById('simKm').textContent='0';return}
+  if(!simParadas.length){b.innerHTML='<div style="text-align:center;padding:20px;color:#3a5a7a;font-size:.78rem">Escribí una localidad arriba</div>';document.getElementById('simKm').textContent='0';return}
   let km=0,prev={lat:FLT,lng:FLN};
   b.innerHTML=simParadas.map((p,i)=>{const d=Math.round(dk(prev.lat,prev.lng,p.lat,p.lng)*FACTOR);km+=d;prev=p;return `<div class="sim-parada"><div class="sim-num">${i+1}</div><div class="sim-info"><div class="sim-lugar">${p.nombre}</div><div class="sim-km">+${d} km desde ${i===0?'fábrica':simParadas[i-1].nombre}</div></div><button class="sim-del" onclick="quitarSim(${i})">✕</button></div>`}).join('');
   document.getElementById('simKm').textContent=km.toLocaleString('es-AR');
@@ -596,43 +792,70 @@ function calcularRutaSim(){
     waypoints:simParadas.slice(0,-1).map(p=>({location:{lat:p.lat,lng:p.lng},stopover:true})),
     travelMode:google.maps.TravelMode.DRIVING
   },(result,status)=>{
-    if(status==='OK'){
-      gDirRS.setDirections(result);
-      const km=Math.round(result.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
-      document.getElementById('simKm').textContent=km.toLocaleString('es-AR');
-      toast(`Ruta real: ${km.toLocaleString('es-AR')} km ✔`);
-    }else toast('Error: '+status);
+    if(status==='OK'){gDirRS.setDirections(result);const km=Math.round(result.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);document.getElementById('simKm').textContent=km.toLocaleString('es-AR');toast(`Ruta: ${km.toLocaleString('es-AR')} km ✔`)}
+    else toast('Error: '+status);
   });
 }
 
+// ── CLIENTES ─────────────────────────────────────────────────────
 function renderClientes(){
   const m={};ventas.forEach(v=>{if(!m[v.cliente])m[v.cliente]={n:v.cliente,tel:v.telefono,cuit:v.cuit,vs:[]};m[v.cliente].vs.push(v)});
   const lista=Object.values(m).sort((a,b)=>a.n.localeCompare(b.n));
   document.getElementById('cliList').innerHTML=lista.map(c=>`<div class="cli-item${cliSel===c.n?' sel':''}" onclick="verCli('${c.n.replace(/'/g,"\\'")}')"><div class="cli-name">${c.n}</div>${c.tel?`<div class="cli-tel">📞 ${c.tel}</div>`:''}<div class="cli-cnt">${c.vs.length} venta${c.vs.length!==1?'s':''}</div></div>`).join('');
   if(cliSel)verCli(cliSel);
 }
+
 function verCli(nombre){
   cliSel=nombre;
   document.querySelectorAll('.cli-item').forEach(el=>el.classList.toggle('sel',el.querySelector('.cli-name')?.textContent===nombre));
   const cvs=ventas.filter(v=>v.cliente===nombre);
   const tel=cvs[0]?.telefono||'',cuit=cvs[0]?.cuit||'';
-  const total=cvs.reduce((s,v)=>s+(v.precio||0),0);
+  const totalVentas=cvs.reduce((s,v)=>s+(v.precio||0),0);
+  const totalCostoP=cvs.reduce((s,v)=>s+(v.costo_producto||0),0);
+  const totalCostoF=cvs.reduce((s,v)=>s+(v.costo_flete||0),0);
+  const rentabilidad=totalVentas-totalCostoP-totalCostoF;
+  const margen=totalVentas>0?((rentabilidad/totalVentas)*100).toFixed(1):0;
   const ent=cvs.filter(v=>v.estado==='Entregado').length;
+
   document.getElementById('cliDetail').innerHTML=`
     <div class="cd-name">${nombre}</div>
-    <div style="margin-top:4px;margin-bottom:14px;display:flex;flex-direction:column;gap:4px">
-      ${tel?`<div style="color:#5ab8ff;font-size:.85rem">📞 <a href="tel:${tel}" style="color:#5ab8ff;text-decoration:none">${tel}</a> <button class="bg" style="padding:3px 10px;font-size:.72rem;margin-left:6px" onclick="wa('${tel}')">WhatsApp</button></div>`:''}
-      ${cuit?`<div style="color:#7a9ab8;font-size:.78rem">CUIT: ${cuit}</div>`:''}
-      <button class="bd" style="width:fit-content;font-size:.73rem;padding:4px 12px;margin-top:4px" onclick="editarUltimaVenta('${nombre.replace(/'/g,"\\'")}')">✎ Editar cliente</button>
+    <div style="margin-top:4px;margin-bottom:12px;display:flex;flex-direction:column;gap:4px">
+      ${tel?`<div style="color:#5ab8ff;font-size:.83rem">📞 <a href="tel:${tel}" style="color:#5ab8ff;text-decoration:none">${tel}</a> <button class="bg" style="padding:3px 10px;font-size:.7rem;margin-left:6px" onclick="wa('${tel}')">WhatsApp</button></div>`:''}
+      ${cuit?`<div style="color:#7a9ab8;font-size:.76rem">CUIT: ${cuit}</div>`:''}
+      <button class="bd" style="width:fit-content;font-size:.71rem;padding:4px 11px;margin-top:3px" onclick="editarUltimaVenta('${nombre.replace(/'/g,"\\'")}')">✎ Editar cliente</button>
     </div>
     <div class="cd-stats">
       <div class="cd-stat"><div class="cd-sv">${cvs.length}</div><div class="cd-sl">ventas</div></div>
       <div class="cd-stat"><div class="cd-sv">${ent}</div><div class="cd-sl">entregadas</div></div>
-      ${total>0?`<div class="cd-stat"><div class="cd-sv">$${total.toLocaleString('es-AR')}</div><div class="cd-sl">facturado</div></div>`:''}
+      <div class="cd-stat"><div class="cd-sv" style="font-size:.95rem">$${(totalVentas/1000000).toFixed(1)}M</div><div class="cd-sl">facturado</div></div>
     </div>
-    <div style="font-size:.72rem;font-weight:700;color:#5a7a9a;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Historial</div>
-    ${cvs.map(v=>{const ei=Math.max(0,ESTADOS.indexOf(v.estado));const f=v.created_at?new Date(v.created_at).toLocaleDateString('es-AR',{day:'2-digit',month:'short',year:'numeric'}):'';return `<div class="cd-vrow"><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.83rem">${v.producto==='a'?'Silo Aéreo':'Autoconsumo'}${v.modelo?' · '+v.modelo:''}</div><div style="font-size:.72rem;color:#7a9ab8">${v.localidad||''}${v.zona?' · '+v.zona:''}${f?' · '+f:''}</div>${v.notas?`<div style="font-size:.7rem;color:#f0c040;margin-top:2px">${v.notas}</div>`:''}</div><div style="text-align:right;flex-shrink:0"><span class="${ECLASES[ei]} etag">${v.estado}</span>${v.precio?`<div style="font-size:.8rem;font-weight:700;color:#c9a840;margin-top:4px">$${Number(v.precio).toLocaleString('es-AR')}</div>`:''}</div></div>`}).join('')}`;
+    ${totalVentas>0?`<div class="rent-card">
+      <div class="rent-title">📊 Rentabilidad del cliente</div>
+      <div class="rent-row"><span>Precio de venta</span><span class="rent-neu">$${totalVentas.toLocaleString('es-AR')}</span></div>
+      <div class="rent-row"><span>Costo producto</span><span class="rent-neg">- $${totalCostoP.toLocaleString('es-AR')}</span></div>
+      <div class="rent-row"><span>Costo flete</span><span class="rent-neg">- $${totalCostoF.toLocaleString('es-AR')}</span></div>
+      <div class="rent-row"><span>Rentabilidad neta</span><span class="${rentabilidad>=0?'rent-pos':'rent-neg'}">$${rentabilidad.toLocaleString('es-AR')} (${margen}%)</span></div>
+    </div>`:''}
+    <div style="font-size:.7rem;font-weight:700;color:#5a7a9a;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px">Historial de ventas</div>
+    ${cvs.map(v=>{
+      const ei=Math.max(0,ESTADOS.indexOf(v.estado));
+      const f=v.created_at?new Date(v.created_at).toLocaleDateString('es-AR',{day:'2-digit',month:'short',year:'numeric'}):'';
+      const rent=(v.precio||0)-(v.costo_producto||0)-(v.costo_flete||0);
+      return `<div class="cd-vrow">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:.82rem">${v.producto==='a'?'Silo Aéreo':'Autoconsumo'}${v.modelo?' · '+v.modelo:''}</div>
+          <div style="font-size:.7rem;color:#7a9ab8">${v.localidad||''}${v.zona?' · '+v.zona:''}${f?' · '+f:''}</div>
+          ${v.precio?`<div style="font-size:.7rem;color:#5a7a9a;margin-top:2px">Precio: $${Number(v.precio).toLocaleString('es-AR')}${v.costo_producto?' · Costo: $'+Number(v.costo_producto).toLocaleString('es-AR'):''}${v.costo_flete?' · Flete: $'+Number(v.costo_flete).toLocaleString('es-AR'):''}</div>`:''}
+          ${(v.precio&&(v.costo_producto||v.costo_flete))?`<div style="font-size:.72rem;font-weight:700;color:${rent>=0?'#5adf8a':'#ff6060'};margin-top:1px">Ganancia: $${rent.toLocaleString('es-AR')}</div>`:''}
+          ${v.notas?`<div style="font-size:.68rem;color:#f0c040;margin-top:2px">${v.notas}</div>`:''}
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <span class="${ECLASES[ei]} etag">${v.estado}</span>
+        </div>
+      </div>`;
+    }).join('')}`;
 }
+
 function editarUltimaVenta(n){const cvs=ventas.filter(v=>v.cliente===n);if(!cvs.length)return;abrirEditar(cvs[0].id)}
 
 function wa(tel){if(!tel){alert('Sin teléfono');return}window.open('https://wa.me/54'+tel.replace(/\D/g,''),'_blank')}
