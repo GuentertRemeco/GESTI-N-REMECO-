@@ -6,7 +6,7 @@
 <title>Remeco – Gestión</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCfazpbJrCmanf7yNvFo9e68l2DvdNX7lg&libraries=places,directions"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCfazpbJrCmanf7yNvFo9e68l2DvdNX7lg&libraries=places&callback=initGoogleMaps" async defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#0d1520;color:#ddd8ce;height:100vh;display:flex;flex-direction:column;overflow:hidden}
@@ -649,6 +649,9 @@ function optimizarViaje(id){
   vj.pedidoIds=opt.map(v=>v.id);delete vj._kmReal;saveViajes();renderViajes();toast('Ruta optimizada ⚡');
 }
 
+let googleReady=false;
+function initGoogleMaps(){googleReady=true}
+
 async function verEnMapa(id){
   if(!mapF)return;
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
@@ -658,37 +661,64 @@ async function verEnMapa(id){
   sel.forEach((v,i)=>{
     const col=v.producto==='a'?'#5ab8ff':'#ffc040';
     const ic=L.divIcon({html:`<div style="width:28px;height:28px;border-radius:50%;background:#0d1520;border:2.5px solid ${col};display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:900;color:${col}">${i+1}</div>`,className:'',iconAnchor:[14,14]});
-    const m=L.marker([v.lat,v.lng],{icon:ic}).addTo(mapF).bindPopup(`<b>${v.cliente}</b><br>${v.localidad||''}`);
-    fLayers.push(m);
+    fLayers.push(L.marker([v.lat,v.lng],{icon:ic}).addTo(mapF).bindPopup(`<b>${v.cliente}</b><br>${v.localidad||''}`));
   });
   const pts=[[FLT,FLN],...sel.map(v=>[v.lat,v.lng])];
   const prov=L.polyline(pts,{color:'#f0c84066',weight:2,dashArray:'6,6'}).addTo(mapF);
   fLayers.push(prov);
   mapF.fitBounds(L.latLngBounds(pts),{padding:[50,50]});
-  toast('Calculando ruta por OSRM...');
+  toast('Calculando ruta...');
+
+  if(googleReady&&window.google?.maps){
+    // Google Maps Directions Service (sin CORS, usa la librería JS)
+    try{
+      const ds=new google.maps.DirectionsService();
+      const waypoints=sel.slice(0,-1).map(v=>({
+        location:{lat:v.lat,lng:v.lng},stopover:true
+      }));
+      const last=sel[sel.length-1];
+      ds.route({
+        origin:{lat:FLT,lng:FLN},
+        destination:{lat:last.lat,lng:last.lng},
+        waypoints,
+        travelMode:'DRIVING'
+      },(result,status)=>{
+        if(status==='OK'){
+          prov.remove();
+          fLayers=fLayers.filter(l=>l!==prov);
+          const path=result.routes[0].overview_path.map(p=>[p.lat(),p.lng()]);
+          const km=Math.round(result.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
+          const rl=L.polyline(path,{color:'#f0c840',weight:4,opacity:.95}).addTo(mapF);
+          fLayers.push(rl);
+          mapF.fitBounds(rl.getBounds(),{padding:[50,50]});
+          vj._kmReal=km;saveViajes();renderViajes();
+          toast(`Google Maps: ${km.toLocaleString('es-AR')} km ✔`);
+        }else{
+          toast('Google error: '+status);
+          usarOSRM(pts,prov,vj);
+        }
+      });
+    }catch(e){usarOSRM(pts,prov,vj)}
+  }else{
+    usarOSRM(pts,prov,vj);
+  }
+}
+
+async function usarOSRM(pts,prov,vj){
   try{
     const coords=pts.map(p=>p[1]+','+p[0]).join(';');
     const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`);
     const d=await r.json();
-    if(d.code==='Ok'&&d.routes?.length){
-      // Quitar línea provisoria
-      prov.remove();
-      fLayers=fLayers.filter(l=>l!==prov);
-      // Dibujar ruta real
-      const rl=L.geoJSON(d.routes[0].geometry,{
-        style:{color:'#f0c840',weight:4,opacity:.95}
-      }).addTo(mapF);
+    if(d.code==='Ok'){
+      if(prov){prov.remove();fLayers=fLayers.filter(l=>l!==prov)}
+      const rl=L.geoJSON(d.routes[0].geometry,{style:{color:'#f0c840',weight:4,opacity:.95}}).addTo(mapF);
       fLayers.push(rl);
       mapF.fitBounds(rl.getBounds(),{padding:[50,50]});
       const km=Math.round(d.routes[0].distance/1000);
       vj._kmReal=km;saveViajes();renderViajes();
       toast(`Ruta calculada: ${km.toLocaleString('es-AR')} km ✔`);
-    }else{
-      toast('No se pudo calcular la ruta');
     }
-  }catch(e){
-    toast('Error: '+e.message);
-  }
+  }catch(e){toast('Error calculando ruta')}
 }
 
 function limpiarMapFlete(){fLayers.forEach(l=>{try{l.remove()}catch(e){}});fLayers=[]}
