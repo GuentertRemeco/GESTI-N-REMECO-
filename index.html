@@ -361,7 +361,7 @@ button{border:none;cursor:pointer;border-radius:6px;font-size:.78rem;font-weight
 
 <script>
 const SB_URL='https://ahympdvzytatwlgzvyoh.supabase.co';
-const SB_KEY='sb_publishable__iKag8gJWXztsMIkEBhdcQ_W9dB1oTV';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const FLT=-37.574897,FLN=-63.842515,FACTOR=1.35;
 const TONS={a:['6TN','10TN','16TN','22TN','28TN','30TN','40TN','50TN','60TN','62TN','72TN','80TN','100TN','120TN','140TN','150TN','175TN','200TN'],c:['2TN','4TN','7TN','12TN','18TN']};
 const ESTADOS=['Confirmado','En producción','Listo para entregar','En camino','Entregado'];
@@ -495,8 +495,13 @@ function renderInicio(){
 
 // ── SUPABASE ──────────────────────────────────────────────────────
 async function cargarVentas(){
-  try{ventas=await sbFetch('/rest/v1/ventas?select=*&order=created_at.desc');renderVentas();renderClientes();actualizarMapV();renderInicio()}
-  catch(e){toast('Error: '+e.message)}
+  try{
+    ventas=await sbFetch('/rest/v1/ventas?select=*&order=created_at.desc');
+    renderVentas();
+    renderClientes();
+    actualizarMapV();
+    if(document.getElementById('page-inicio').classList.contains('on'))renderInicio();
+  }catch(e){toast('Error cargando datos: '+e.message);console.error(e)}
 }
 
 async function guardarVenta(){
