@@ -1098,9 +1098,39 @@ function optimizarViaje(id){
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
   const sel=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
   if(sel.length<2){toast('Necesitás al menos 2 paradas');return}
-  const d=[...sel],opt=[];let a={lat:FLT,lng:FLN};
-  while(d.length){let mi=Infinity,mI=0;d.forEach((v,i)=>{const dd=dk(a.lat,a.lng,v.lat,v.lng);if(dd<mi){mi=dd;mI=i}});const s=d.splice(mI,1)[0];opt.push(s);a={lat:s.lat,lng:s.lng}}
-  vj.pedidoIds=opt.map(v=>v.id);delete vj._kmReal;saveViajes();renderViajes();calcularRutaViaje(id);toast('Ruta optimizada ⚡');
+  if(!gDir){toast('Mapa no cargado aún');return}
+  toast('Optimizando ruta real...');
+  // Usamos la última parada como destino flexible (Google elige el orden óptimo)
+  // optimizeWaypoints:true reordena todos los waypoints para minimizar distancia real
+  const waypoints=sel.map(v=>({location:{lat:v.lat,lng:v.lng},stopover:true}));
+  gDir.route({
+    origin:{lat:FLT,lng:FLN},
+    destination:{lat:FLT,lng:FLN}, // vuelve a fábrica para forzar optimización circular
+    waypoints,
+    optimizeWaypoints:true,
+    travelMode:google.maps.TravelMode.DRIVING
+  },(result,status)=>{
+    if(status==='OK'){
+      // Google devuelve el orden óptimo en waypoint_order
+      const orden=result.routes[0].waypoint_order;
+      vj.pedidoIds=orden.map(i=>sel[i].id);
+      // Calcular km reales (sin el tramo de vuelta a fábrica)
+      const legs=result.routes[0].legs;
+      // legs incluye el tramo de vuelta, lo excluimos
+      const kmTotal=Math.round(legs.slice(0,legs.length-1).reduce((s,l)=>s+l.distance.value,0)/1000);
+      vj._kmReal=kmTotal;
+      saveViajes();renderViajes();
+      // Ahora dibujar la ruta correcta (sin volver a fábrica)
+      calcularRutaViaje(id);
+      toast(`Ruta optimizada: ${kmTotal.toLocaleString('es-AR')} km ⚡`);
+    }else{
+      // Fallback al algoritmo local si falla la API
+      const d=[...sel],opt=[];let a={lat:FLT,lng:FLN};
+      while(d.length){let mi=Infinity,mI=0;d.forEach((v,i)=>{const dd=dk(a.lat,a.lng,v.lat,v.lng);if(dd<mi){mi=dd;mI=i}});const s=d.splice(mI,1)[0];opt.push(s);a={lat:s.lat,lng:s.lng}}
+      vj.pedidoIds=opt.map(v=>v.id);delete vj._kmReal;saveViajes();renderViajes();calcularRutaViaje(id);
+      toast('Optimizado (estimado) ⚡');
+    }
+  });
 }
 function calcKm(arr){let km=0,p={lat:FLT,lng:FLN};arr.forEach(v=>{km+=dk(p.lat,p.lng,v.lat,v.lng)*FACTOR;p={lat:v.lat,lng:v.lng}});return km}
 function exportarViaje(id){
