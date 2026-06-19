@@ -1059,8 +1059,9 @@ function renderViajes(){
     </div>`;
   }).join('');
   gMkF.forEach(m=>m.setMap(null));gMkF=[];
-  const primerExpandido=viajes.find(v=>v.expandido&&v.pedidoIds.length>0);
-  if(primerExpandido)calcularRutaViaje(primerExpandido.id);
+  // Solo redibujar si hay exactamente uno expandido (para no perder la ruta al agregar/quitar pedidos)
+  const expandidos=viajes.filter(v=>v.expandido&&v.pedidoIds.length>0);
+  if(expandidos.length===1) calcularRutaViaje(expandidos[0].id);
 }
 function calcularRutaViaje(id){
   if(!gMapF||!gDir)return;
@@ -1092,7 +1093,18 @@ function calcularRutaViaje(id){
     }
   });
 }
-function toggleViaje(id){const v=viajes.find(x=>x.id===id);if(!v)return;v.expandido=!v.expandido;saveViajes();renderViajes();if(v.expandido&&v.pedidoIds.length)calcularRutaViaje(id)}
+function toggleViaje(id){
+  const v=viajes.find(x=>x.id===id);if(!v)return;
+  const abriendo=!v.expandido;
+  // Si estamos abriendo, colapsar todos los demás
+  if(abriendo) viajes.forEach(vj=>{ if(vj.id!==id) vj.expandido=false; });
+  v.expandido=abriendo;
+  saveViajes();renderViajes();
+  // Limpiar ruta anterior del mapa
+  if(gDirRF) gDirRF.setDirections({routes:[]});
+  gMkF.forEach(m=>m.setMap(null));gMkF=[];
+  if(abriendo&&v.pedidoIds.length) calcularRutaViaje(id);
+}
 function eliminarViaje(id){if(!confirm('¿Eliminar?'))return;viajes=viajes.filter(x=>x.id!==id);saveViajes();renderViajes()}
 function agregarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v||v.pedidoIds.includes(pid))return;v.pedidoIds.push(pid);saveViajes();renderViajes();calcularRutaViaje(vid)}
 function quitarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v)return;v.pedidoIds=v.pedidoIds.filter(x=>x!==pid);delete v._kmReal;saveViajes();renderViajes()}
