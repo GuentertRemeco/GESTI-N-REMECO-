@@ -337,6 +337,60 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   .vcards-wrap{display:none}
   .vtable-wrap{display:block}
 }
+
+/* ── CHAT IA ─────────────────────────────────────────────── */
+.chat-fab{position:fixed;bottom:calc(var(--bnav-h) + 14px);left:16px;
+          width:50px;height:50px;border-radius:50%;background:var(--gold);
+          color:#111820;font-size:1.4rem;display:flex;align-items:center;
+          justify-content:center;cursor:pointer;border:none;
+          box-shadow:0 4px 20px rgba(201,168,64,.45);z-index:800;
+          transition:transform .2s}
+.chat-fab:hover{transform:scale(1.08)}
+.chat-fab.has-notif::after{content:'';position:absolute;top:4px;right:4px;
+  width:10px;height:10px;border-radius:50%;background:var(--red);border:2px solid var(--bg)}
+.chat-panel{position:fixed;bottom:calc(var(--bnav-h) + 74px);left:12px;
+            width:340px;max-width:calc(100vw - 24px);height:500px;max-height:60vh;
+            background:#15202e;border:1px solid var(--gold);border-radius:16px;
+            display:flex;flex-direction:column;z-index:1500;
+            box-shadow:0 8px 40px rgba(0,0,0,.6);
+            transform:scale(.95) translateY(10px);opacity:0;
+            pointer-events:none;transition:all .2s ease}
+.chat-panel.on{transform:scale(1) translateY(0);opacity:1;pointer-events:all}
+.chat-header{padding:12px 14px;border-bottom:1px solid var(--border);
+             display:flex;align-items:center;gap:9px;flex-shrink:0}
+.chat-avatar{width:32px;height:32px;border-radius:50%;background:var(--gold);
+             display:flex;align-items:center;justify-content:center;
+             font-size:1rem;flex-shrink:0}
+.chat-title{flex:1;min-width:0}
+.chat-title-name{font-weight:800;font-size:.83rem;color:var(--gold)}
+.chat-title-sub{font-size:.65rem;color:var(--text3);margin-top:1px}
+.chat-close{background:none;border:none;color:var(--text3);font-size:1rem;
+            cursor:pointer;padding:4px;border-radius:4px}
+.chat-close:hover{color:var(--text);background:var(--border)}
+.chat-msgs{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;
+           -webkit-overflow-scrolling:touch}
+.chat-msg{max-width:88%;padding:8px 11px;border-radius:12px;font-size:.78rem;line-height:1.45;word-break:break-word}
+.chat-msg.user{background:var(--gold);color:#111820;align-self:flex-end;border-radius:12px 12px 3px 12px;font-weight:600}
+.chat-msg.ai{background:var(--bg3);color:var(--text);align-self:flex-start;border-radius:12px 12px 12px 3px;border:1px solid var(--border)}
+.chat-msg.ai.loading{color:var(--text3);font-style:italic}
+.chat-sugs{display:flex;flex-wrap:wrap;gap:5px;padding:0 10px 8px;flex-shrink:0}
+.chat-sug{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);
+          border-radius:20px;padding:4px 10px;font-size:.68rem;cursor:pointer;
+          font-family:inherit;transition:all .15s;white-space:nowrap}
+.chat-sug:hover{border-color:var(--gold);color:var(--gold)}
+.chat-input-wrap{padding:8px 10px;border-top:1px solid var(--border);display:flex;gap:7px;flex-shrink:0}
+.chat-input{flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text);
+            border-radius:8px;padding:8px 11px;font-size:.8rem;font-family:inherit;resize:none;
+            max-height:80px;min-height:36px}
+.chat-input:focus{outline:none;border-color:var(--gold)}
+.chat-send{background:var(--gold);color:#111820;border:none;border-radius:8px;
+           padding:8px 12px;font-size:.85rem;cursor:pointer;flex-shrink:0;font-weight:700}
+.chat-send:hover{background:var(--gold2)}
+.chat-send:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:768px){
+  .chat-fab{bottom:calc(var(--bnav-h) + 14px)}
+  .chat-panel{bottom:calc(var(--bnav-h) + 70px);left:8px;right:8px;width:auto;height:55vh}
+}
 </style>
 </head>
 <body>
@@ -1332,6 +1386,162 @@ window.addEventListener('resize',()=>{
 });
 
 cargarVentas();
+
+/* ── CHAT IA ─────────────────────────────────────────────── */
+let chatAbierto=false;
+let chatHistorial=[];
+
+function toggleChat(){
+  chatAbierto=!chatAbierto;
+  document.getElementById('chatPanel').classList.toggle('on',chatAbierto);
+  document.getElementById('chatFab').textContent=chatAbierto?'✕':'🤖';
+  if(chatAbierto)document.getElementById('chatInput').focus();
+}
+
+function sendSug(el){
+  document.getElementById('chatInput').value=el.textContent.replace(/^[^\w]+/,'').trim();
+  document.getElementById('chatSugs').style.display='none';
+  enviarChat();
+}
+
+function buildContexto(){
+  const mes=new Date().getMonth();
+  const anio=new Date().getFullYear();
+  const vMes=ventas.filter(v=>{const d=new Date(v.created_at);return d.getMonth()===mes&&d.getFullYear()===anio});
+  const pendientes=ventas.filter(v=>v.estado!=='Entregado');
+  const totMes=vMes.reduce((s,v)=>s+(v.precio||0),0);
+  const rentMes=vMes.reduce((s,v)=>s+(v.precio||0)-(v.costo_producto||0)-(v.costo_flete||0),0);
+
+  // Top clientes por rentabilidad
+  const porCliente={};
+  ventas.forEach(v=>{
+    if(!porCliente[v.cliente])porCliente[v.cliente]={ventas:0,rent:0};
+    porCliente[v.cliente].ventas+=(v.precio||0);
+    porCliente[v.cliente].rent+=(v.precio||0)-(v.costo_producto||0)-(v.costo_flete||0);
+  });
+  const topCli=Object.entries(porCliente).sort((a,b)=>b[1].rent-a[1].rent).slice(0,5)
+    .map(([n,d])=>`${n}: $${d.rent.toLocaleString('es-AR')} ganancia`).join(', ');
+
+  // Viajes activos
+  const viajesActivos=viajes.filter(v=>v.pedidoIds.length>0)
+    .map(v=>`${v.nombre}${v.fecha?' ('+v.fecha+')':''}: ${v.pedidoIds.length} paradas${v._kmReal?' '+v._kmReal+'km':''}`).join('; ');
+
+  return `Sos el asistente de Metalúrgica Remeco, una empresa argentina de silos y comederos autoconsumo ubicada en Colonia Menonita, La Pampa.
+
+DATOS ACTUALES DEL NEGOCIO:
+- Total ventas registradas: ${ventas.length}
+- Ventas este mes: ${vMes.length} por $${totMes.toLocaleString('es-AR')} ARS
+- Rentabilidad este mes: $${rentMes.toLocaleString('es-AR')} ARS
+- Pedidos pendientes de entrega: ${pendientes.length}
+- Clientes activos: ${new Set(ventas.map(v=>v.cliente)).size}
+- Top clientes por ganancia: ${topCli||'sin datos'}
+- Viajes programados: ${viajesActivos||'ninguno'}
+
+ÚLTIMAS 10 VENTAS:
+${ventas.slice(0,10).map(v=>`- ${v.cliente}: ${v.producto==='a'?'Silo Aéreo':'Autoconsumo'} ${v.modelo||''} | Precio: $${(v.precio||0).toLocaleString('es-AR')} | Costo prod: $${(v.costo_producto||0).toLocaleString('es-AR')} | Flete: $${(v.costo_flete||0).toLocaleString('es-AR')} | Estado: ${v.estado} | Localidad: ${v.localidad||'—'}`).join('\n')}
+
+Respondé siempre en español argentino, de forma concisa y útil. Si te preguntan algo que no está en los datos, respondé igual con tu conocimiento general.`;
+}
+
+async function enviarChat(){
+  const input=document.getElementById('chatInput');
+  const msg=input.value.trim();
+  if(!msg)return;
+  input.value='';
+  input.style.height='auto';
+
+  // Ocultar sugerencias después del primer mensaje
+  document.getElementById('chatSugs').style.display='none';
+
+  // Agregar mensaje del usuario
+  agregarMsgChat('user',msg);
+  chatHistorial.push({role:'user',content:msg});
+
+  // Loader
+  const loaderId='loader-'+Date.now();
+  agregarMsgChat('ai','Escribiendo...','loading',loaderId);
+  document.getElementById('chatSend').disabled=true;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        system:buildContexto(),
+        messages:chatHistorial
+      })
+    });
+    const data=await res.json();
+    const texto=data.content?.[0]?.text||'Sin respuesta';
+
+    // Reemplazar loader con respuesta real
+    const loaderEl=document.getElementById(loaderId);
+    if(loaderEl){loaderEl.textContent=texto;loaderEl.classList.remove('loading')}
+
+    chatHistorial.push({role:'assistant',content:texto});
+    // Mantener historial razonable
+    if(chatHistorial.length>20)chatHistorial=chatHistorial.slice(-20);
+
+  }catch(e){
+    const loaderEl=document.getElementById(loaderId);
+    if(loaderEl){loaderEl.textContent='Error de conexión. Intentá de nuevo.';loaderEl.classList.remove('loading')}
+  }
+
+  document.getElementById('chatSend').disabled=false;
+  scrollChatAbajo();
+}
+
+function agregarMsgChat(role,texto,extraClass='',id=''){
+  const msgs=document.getElementById('chatMsgs');
+  const div=document.createElement('div');
+  div.className='chat-msg '+role+(extraClass?' '+extraClass:'');
+  div.textContent=texto;
+  if(id)div.id=id;
+  msgs.appendChild(div);
+  scrollChatAbajo();
+}
+
+function scrollChatAbajo(){
+  const msgs=document.getElementById('chatMsgs');
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+// Auto-resize textarea
+document.addEventListener('DOMContentLoaded',()=>{
+  const ta=document.getElementById('chatInput');
+  if(ta)ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,80)+'px'});
+});
+
 </script>
+
+<!-- ── CHAT IA ─────────────────────────────────────────────── -->
+<button class="chat-fab" id="chatFab" onclick="toggleChat()" title="Asistente IA">🤖</button>
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <div class="chat-avatar">🤖</div>
+    <div class="chat-title">
+      <div class="chat-title-name">Asistente Remeco</div>
+      <div class="chat-title-sub">IA · Conoce tus ventas y viajes</div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-msgs" id="chatMsgs">
+    <div class="chat-msg ai">¡Hola! Soy tu asistente. Conozco tus ventas, clientes y viajes. ¿En qué te ayudo?</div>
+  </div>
+  <div class="chat-sugs" id="chatSugs">
+    <button class="chat-sug" onclick="sendSug(this)">📊 ¿Cuánto vendí este mes?</button>
+    <button class="chat-sug" onclick="sendSug(this)">🏆 ¿Cuál es mi cliente más rentable?</button>
+    <button class="chat-sug" onclick="sendSug(this)">📦 ¿Qué pedidos están pendientes?</button>
+    <button class="chat-sug" onclick="sendSug(this)">🚛 ¿Qué viajes tengo programados?</button>
+  </div>
+  <div class="chat-input-wrap">
+    <textarea class="chat-input" id="chatInput" placeholder="Preguntá lo que quieras..." rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarChat()}"></textarea>
+    <button class="chat-send" id="chatSend" onclick="enviarChat()">➤</button>
+  </div>
+</div>
+
 </body>
 </html>
