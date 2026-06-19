@@ -1065,7 +1065,8 @@ function renderViajes(){
 function calcularRutaViaje(id){
   if(!gMapF||!gDir)return;
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
-  const sel=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
+  // Respetar el orden de pedidoIds para que los números del mapa coincidan con el panel
+  const sel=vj.pedidoIds.map(pid=>ventas.find(v=>v.id===pid&&v.lat&&v.lng)).filter(Boolean);
   if(!sel.length)return;
   gMkF.forEach(m=>m.setMap(null));gMkF=[];
   sel.forEach((v,i)=>{
