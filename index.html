@@ -1017,7 +1017,8 @@ function renderViajes(){
   const disp=ventas.filter(v=>v.lat&&v.lng&&v.estado!=='Entregado');
   const asig=new Set(viajes.flatMap(x=>x.pedidoIds));
   body.innerHTML=viajes.map(vj=>{
-    const peds=disp.filter(v=>vj.pedidoIds.includes(v.id));
+    // Respetar el orden de pedidoIds (orden optimizado), no el orden del array de ventas
+    const peds=vj.pedidoIds.map(pid=>disp.find(v=>v.id===pid)).filter(Boolean);
     const libres=disp.filter(v=>!asig.has(v.id));
     const kmStr=vj._kmReal?vj._kmReal.toLocaleString('es-AR')+' km reales':peds.length?Math.round(calcKm(peds)).toLocaleString('es-AR')+' km est.':'0 km';
     const fStr=vj.fecha?new Date(vj.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'';
