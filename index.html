@@ -1100,27 +1100,44 @@ function optimizarViaje(id){
   if(sel.length<2){toast("Necesitás al menos 2 paradas");return}
   if(!gDir){toast("Mapa no cargado aún");return}
   toast("Calculando ruta óptima...");
-  const destino=sel[sel.length-1];
-  const intermedios=sel.slice(0,-1).map(v=>({location:{lat:v.lat,lng:v.lng},stopover:true}));
-  gDir.route({
-    origin:{lat:FLT,lng:FLN},
-    destination:{lat:destino.lat,lng:destino.lng},
-    waypoints:intermedios,
-    optimizeWaypoints:true,
-    travelMode:google.maps.TravelMode.DRIVING
-  },(result,status)=>{
-    if(status==="OK"){
-      const orden=result.routes[0].waypoint_order;
-      const reordenados=orden.map(i=>sel[i]);
-      reordenados.push(destino);
-      vj.pedidoIds=reordenados.map(v=>v.id);
-      const km=Math.round(result.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
-      vj._kmReal=km;
-      saveViajes();renderViajes();calcularRutaViaje(id);
-      toast("Ruta optimizada: "+km.toLocaleString("es-AR")+" km ⚡");
-    }else{
-      toast("Error: "+status);
-    }
+  // Probamos cada parada como posible destino final y nos quedamos con la ruta más corta.
+  // Esto resuelve el problema de que Google exige destino fijo y no siempre elige el mejor.
+  let mejorKm=Infinity, mejorIds=null, pendientes=sel.length, errores=0;
+  sel.forEach((candidatoDestino, idx)=>{
+    const resto=sel.filter((_,i)=>i!==idx);
+    const waypoints=resto.map(v=>({location:{lat:v.lat,lng:v.lng},stopover:true}));
+    gDir.route({
+      origin:{lat:FLT,lng:FLN},
+      destination:{lat:candidatoDestino.lat,lng:candidatoDestino.lng},
+      waypoints,
+      optimizeWaypoints:true,
+      travelMode:google.maps.TravelMode.DRIVING
+    },(result,status)=>{
+      pendientes--;
+      if(status==="OK"){
+        const km=Math.round(result.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
+        if(km<mejorKm){
+          mejorKm=km;
+          const orden=result.routes[0].waypoint_order;
+          const reordenados=orden.map(i=>resto[i]);
+          reordenados.push(candidatoDestino);
+          mejorIds=reordenados.map(v=>v.id);
+        }
+      }else{
+        errores++;
+      }
+      // Cuando terminaron todas las consultas, aplicar la mejor
+      if(pendientes===0){
+        if(mejorIds){
+          vj.pedidoIds=mejorIds;
+          vj._kmReal=mejorKm;
+          saveViajes();renderViajes();calcularRutaViaje(id);
+          toast("Ruta optimizada: "+mejorKm.toLocaleString("es-AR")+" km ⚡");
+        }else{
+          toast("No se pudo calcular la ruta. Revisá la conexión.");
+        }
+      }
+    });
   });
 }
 function calcKm(arr){let km=0,p={lat:FLT,lng:FLN};arr.forEach(v=>{km+=dk(p.lat,p.lng,v.lat,v.lng)*FACTOR;p={lat:v.lat,lng:v.lng}});return km}
