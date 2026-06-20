@@ -1060,14 +1060,21 @@ async function saveViaje(vj){
   if(!vj.pedidoIds.length) delete vj._kmReal;
   const data={
     id:vj.id, nombre:vj.nombre, fecha:vj.fecha||null,
-    pedido_ids:vj.pedidoIds, km_real:vj._kmReal||null, expandido:vj.expandido||false
+    pedido_ids:JSON.stringify(vj.pedidoIds||[]), km_real:vj._kmReal||null, expandido:vj.expandido||false
   };
   try{
-    await sbFetch('/rest/v1/viajes?id=eq.'+vj.id,'PATCH',data);
-  }catch(e){
-    // Si no existe, insertar
-    try{await sbFetch('/rest/v1/viajes','POST',data)}catch(e2){console.error('saveViaje:',e2)}
-  }
+    // Upsert: inserta si no existe, actualiza si existe
+    await fetch(SB_URL+'/rest/v1/viajes',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'apikey':SB_KEY,
+        'Authorization':'Bearer '+SB_KEY,
+        'Prefer':'resolution=merge-duplicates,return=minimal'
+      },
+      body:JSON.stringify(data)
+    });
+  }catch(e){console.error('saveViaje:',e)}
 }
 async function saveViajes(){
   viajes.forEach(v=>{if(!v.pedidoIds.length)delete v._kmReal});
@@ -1078,7 +1085,8 @@ async function cargarViajes(){
     const rows=await sbFetch('/rest/v1/viajes?select=*&order=created_at.asc');
     viajes=rows.map(r=>({
       id:r.id, nombre:r.nombre, fecha:r.fecha||null,
-      pedidoIds:r.pedido_ids||[], _kmReal:r.km_real||undefined,
+      pedidoIds:typeof r.pedido_ids==='string'?JSON.parse(r.pedido_ids||'[]'):(r.pedido_ids||[]),
+      _kmReal:r.km_real||undefined,
       expandido:r.expandido||false
     }));
   }catch(e){console.error('cargarViajes:',e)}
