@@ -1645,7 +1645,7 @@ ${ventas.slice(0,10).map(v=>`- ${v.cliente}: ${v.producto==='a'?'Silo Aéreo':'A
 Respondé siempre en español argentino, de forma concisa y útil. Si te preguntan algo que no está en los datos, respondé igual con tu conocimiento general.`;
 }
 
-const OPENAI_KEY='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';
+const WORKER_URL='https://remeco-ai.guentergerherd.workers.dev';
 
 async function enviarChat(){
   const input=document.getElementById('chatInput');
@@ -1663,9 +1663,9 @@ async function enviarChat(){
   document.getElementById('chatSend').disabled=true;
 
   try{
-    const res=await fetch('https://api.openai.com/v1/chat/completions',{
+    const res=await fetch(WORKER_URL,{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+OPENAI_KEY},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'gpt-4o-mini',
         max_tokens:1000,
