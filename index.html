@@ -897,15 +897,17 @@ function renumerarLineas(){
 }
 
 function getProductos(){
-  const lineas=document.querySelectorAll('.prod-linea');
-  return Array.from(lineas).map(l=>{
-    const tipo=l.querySelector('.prod-tipo').value;
-    const mod=l.querySelector('.prod-mod').value;
-    const cant=parseInt(l.querySelector('.prod-cant').value)||1;
-    const fibra=l.querySelector('.prod-fibra')?.checked||false;
-    const modFinal=fibra&&mod?mod+' Base de fibra':mod;
-    return{tipo,mod:modFinal,cant};
-  }).filter(p=>p.mod);
+  try{
+    const lineas=document.querySelectorAll('.prod-linea');
+    return Array.from(lineas).map(l=>{
+      const tipo=l.querySelector('.prod-tipo')?.value||'a';
+      const mod=l.querySelector('.prod-mod')?.value||'';
+      const cant=parseInt(l.querySelector('.prod-cant')?.value)||1;
+      const fibra=l.querySelector('.prod-fibra')?.checked||false;
+      const modFinal=fibra&&mod?mod+' Base de fibra':mod;
+      return{tipo,mod:modFinal,cant};
+    }).filter(p=>p.mod);
+  }catch(e){return[]}
 }
 
 /* ── RENDER VENTAS ───────────────────────────────────────── */
@@ -1080,9 +1082,11 @@ function renderInicio(){
 function limpiarModal(){
   ['fCli','fTel','fCuit','fPrecio','fCostoProducto','fCostoFlete','fFecha','fLoc','fZona','fNot']
     .forEach(i=>document.getElementById(i).value='');
-  // Inicializar productos
-  const pw=document.getElementById('productosWrap');
-  if(pw){pw.innerHTML='';agregarLineaProducto();}
+  // Inicializar productos (solo si el modal está visible)
+  try{
+    const pw=document.getElementById('productosWrap');
+    if(pw){pw.innerHTML='';agregarLineaProducto();}
+  }catch(e){console.error('limpiarModal productos:',e)}
   document.getElementById('fCli').style.borderColor='';
   document.getElementById('fProd').value='a';
   document.getElementById('fEstado').value='Confirmado';
@@ -1702,14 +1706,16 @@ document.addEventListener('click',e=>{
 });
 
 function iniciarApp(){
-  const u=currentUser;
-  document.getElementById('loginScreen').style.display='none';
-  const inicial=(u.nombre||u.email)[0].toUpperCase();
-  document.getElementById('userAvatar').textContent=inicial;
-  document.getElementById('userNameText').textContent=u.nombre||u.email.split('@')[0];
-  document.getElementById('userMenuNombre').textContent=u.nombre||'';
-  document.getElementById('userMenuEmail').textContent=u.email;
-  cargarVentas();
+  try{
+    const u=currentUser;
+    document.getElementById('loginScreen').style.display='none';
+    const inicial=(u.nombre||u.email)[0].toUpperCase();
+    document.getElementById('userAvatar').textContent=inicial;
+    document.getElementById('userNameText').textContent=u.nombre||u.email.split('@')[0];
+    document.getElementById('userMenuNombre').textContent=u.nombre||'';
+    document.getElementById('userMenuEmail').textContent=u.email;
+    cargarVentas();
+  }catch(e){console.error('iniciarApp:',e)}
 }
 
 window.addEventListener('load',()=>{
@@ -1881,7 +1887,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
     <div class="login-logo">
-      <div class="login-logo-text">🏭 Remeco</div>
+      <div class="login-logo-text"> Remeco</div>
       <div class="login-logo-sub">Sistema de Gestión</div>
     </div>
     <div class="login-tabs">
