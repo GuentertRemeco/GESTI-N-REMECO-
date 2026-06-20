@@ -638,21 +638,12 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div class="fg"><label>CUIT</label><input id="fCuit" placeholder="20-12345678-9"/></div>
       <div class="fg"><label>Zona de flete</label><input id="fZona" placeholder="Ej: Rosario"/></div>
     </div>
+    <!-- PRODUCTOS MÚLTIPLES -->
+    <div id="productosWrap"></div>
+    <button type="button" onclick="agregarLineaProducto()" style="width:100%;background:var(--bg3);border:1px dashed var(--border2);color:var(--text2);border-radius:7px;padding:7px;font-size:.76rem;margin-bottom:9px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'">+ Agregar producto</button>
     <div class="frow">
-      <div class="fg"><label>Producto *</label>
-        <select id="fProd" onchange="cargarTons('')">
-          <option value="a">Silo Aéreo</option><option value="c">Autoconsumo</option>
-        </select>
-      </div>
-      <div class="fg"><label>Tonelaje</label><select id="fMod"></select></div>
-    </div>
-    <div class="frow">
-      <div class="fg"><label>Cantidad</label><input id="fCantidad" type="number" placeholder="1" min="1" value="1"/></div>
       <div class="fg"><label>Precio venta (ARS)</label><input id="fPrecio" type="number" placeholder="0"/></div>
-    </div>
-    <div class="frow">
       <div class="fg"><label>Costo producto (ARS)</label><input id="fCostoProducto" type="number" placeholder="0"/></div>
-      <div class="fg"></div>
     </div>
     <div class="frow">
       <div class="fg"><label>Costo flete (ARS)</label><input id="fCostoFlete" type="number" placeholder="0"/></div>
@@ -746,9 +737,10 @@ async function guardarVenta(){
     cliente:cli,
     telefono:document.getElementById('fTel').value.trim()||null,
     cuit:document.getElementById('fCuit').value.trim()||null,
-    producto:document.getElementById('fProd').value,
-    modelo:document.getElementById('fMod').value||null,
-    cantidad:parseInt(document.getElementById('fCantidad').value)||1,
+    producto:(getProductos()[0]?.tipo)||'a',
+    modelo:(getProductos()[0]?.mod)||null,
+    cantidad:(getProductos()[0]?.cant)||1,
+    productos:JSON.stringify(getProductos()),
     precio:parseFloat(document.getElementById('fPrecio').value)||null,
     costo_producto:parseFloat(document.getElementById('fCostoProducto').value)||null,
     costo_flete:parseFloat(document.getElementById('fCostoFlete').value)||null,
@@ -838,10 +830,82 @@ function toggleSort(key){
   else document.getElementById('sortSel').value=key+'_asc';
   renderVentas();
 }
-function cargarTons(v){
-  const p=document.getElementById('fProd').value;
-  const s=document.getElementById('fMod');
-  s.innerHTML='<option value="">-- Seleccioná --</option>'+TONS[p].map(t=>`<option${t===v?' selected':''}>${t}</option>`).join('');
+function cargarTons(v,idx=0){
+  const wrap=document.getElementById('productosWrap');
+  const linea=wrap.querySelectorAll('.prod-linea')[idx];
+  if(!linea)return;
+  const prod=linea.querySelector('.prod-tipo').value;
+  const modSel=linea.querySelector('.prod-mod');
+  modSel.innerHTML='<option value="">-- Seleccioná --</option>'+TONS[prod].map(t=>`<option${t===v?' selected':''}>${t}</option>`).join('');
+  actualizarFibra(idx);
+}
+
+function actualizarFibra(idx){
+  const wrap=document.getElementById('productosWrap');
+  const linea=wrap.querySelectorAll('.prod-linea')[idx];
+  if(!linea)return;
+  const prod=linea.querySelector('.prod-tipo').value;
+  const mod=linea.querySelector('.prod-mod').value;
+  const fibraWrap=linea.querySelector('.fibra-wrap');
+  // Mostrar opción base fibra solo para autoconsumo 12tn o 18tn
+  const esFibrable=prod==='c'&&(mod.startsWith('12tn')||mod.startsWith('18tn'));
+  fibraWrap.style.display=esFibrable?'flex':'none';
+}
+
+function agregarLineaProducto(datos=null){
+  const wrap=document.getElementById('productosWrap');
+  const idx=wrap.querySelectorAll('.prod-linea').length;
+  const div=document.createElement('div');
+  div.className='prod-linea';
+  div.style.cssText='background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 11px;margin-bottom:7px';
+  div.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+      <span style="font-size:.66rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.5px">Producto ${idx+1}</span>
+      ${idx>0?`<button type="button" onclick="this.closest('.prod-linea').remove();renumerarLineas()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.85rem">✕</button>`:''}
+    </div>
+    <div style="display:flex;gap:7px;margin-bottom:6px">
+      <select class="prod-tipo" onchange="cargarTons('',${idx})" style="flex:1;background:var(--bg);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:7px 9px;font-size:.8rem;font-family:inherit">
+        <option value="a">Silo Aéreo</option>
+        <option value="c">Autoconsumo</option>
+      </select>
+      <select class="prod-mod" onchange="actualizarFibra(${idx})" style="flex:1.5;background:var(--bg);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:7px 9px;font-size:.8rem;font-family:inherit">
+        <option value="">-- Tonelaje --</option>
+      </select>
+      <input class="prod-cant" type="number" min="1" value="1" placeholder="Cant." style="width:60px;background:var(--bg);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:7px 8px;font-size:.8rem;font-family:inherit;text-align:center"/>
+    </div>
+    <div class="fibra-wrap" style="display:none;align-items:center;gap:8px;padding:6px 9px;background:var(--bg);border:1px solid var(--border2);border-radius:6px">
+      <input class="prod-fibra" type="checkbox" id="fibra-${idx}" style="width:16px;height:16px;accent-color:var(--gold)"/>
+      <label for="fibra-${idx}" style="font-size:.76rem;color:var(--text2);cursor:pointer">🌿 Base de fibra</label>
+    </div>`;
+  wrap.appendChild(div);
+  // Cargar tonelajes según tipo
+  cargarTons('',idx);
+  // Si hay datos previos, setear valores
+  if(datos){
+    div.querySelector('.prod-tipo').value=datos.tipo||'a';
+    cargarTons(datos.mod||'',idx);
+    div.querySelector('.prod-cant').value=datos.cant||1;
+    if(datos.fibra)div.querySelector('.prod-fibra').checked=true;
+  }
+}
+
+function renumerarLineas(){
+  document.querySelectorAll('.prod-linea').forEach((l,i)=>{
+    const titulo=l.querySelector('span');
+    if(titulo)titulo.textContent='Producto '+(i+1);
+  });
+}
+
+function getProductos(){
+  const lineas=document.querySelectorAll('.prod-linea');
+  return Array.from(lineas).map(l=>{
+    const tipo=l.querySelector('.prod-tipo').value;
+    const mod=l.querySelector('.prod-mod').value;
+    const cant=parseInt(l.querySelector('.prod-cant').value)||1;
+    const fibra=l.querySelector('.prod-fibra')?.checked||false;
+    const modFinal=fibra&&mod?mod+' Base de fibra':mod;
+    return{tipo,mod:modFinal,cant};
+  }).filter(p=>p.mod);
 }
 
 /* ── RENDER VENTAS ───────────────────────────────────────── */
@@ -922,10 +986,12 @@ function renderCards(f){
       <div class="vcard-header">
         <div class="vcard-main">
           <div class="vcard-name">${v.cliente}</div>
-          <div class="vcard-prod">
-            <span class="ptag ${v.producto==='a'?'pa':'pc-tag'}">${v.producto==='a'?'Aéreo':'Autocons.'}</span>
-            ${v.modelo?`<span style="font-size:.7rem;color:var(--text2)">${v.modelo}</span>`:''}
-            ${v.cantidad>1?`<span style="font-size:.7rem;font-weight:800;color:var(--gold)">x${v.cantidad}</span>`:''}
+          <div class="vcard-prod" style="flex-wrap:wrap;gap:4px">
+            ${(v.productos?JSON.parse(v.productos):[{tipo:v.producto,mod:v.modelo,cant:v.cantidad||1}]).map(p=>`
+              <span class="ptag ${p.tipo==='a'?'pa':'pc-tag'}" style="margin-bottom:2px">${p.tipo==='a'?'Aéreo':'Autocons.'}</span>
+              ${p.mod?`<span style="font-size:.7rem;color:var(--text2)">${p.mod}</span>`:''}
+              ${(p.cant||1)>1?`<span style="font-size:.7rem;font-weight:800;color:var(--gold)">x${p.cant}</span>`:''}
+            `).join('<span style="color:var(--border2);margin:0 3px">·</span>')}
           </div>
           ${v.localidad||v.zona?`<div class="vcard-loc">📍 ${[ciudad(v.localidad),v.zona].filter(Boolean).join(' · ')}</div>`:''}
         </div>
@@ -1014,7 +1080,9 @@ function renderInicio(){
 function limpiarModal(){
   ['fCli','fTel','fCuit','fPrecio','fCostoProducto','fCostoFlete','fFecha','fLoc','fZona','fNot']
     .forEach(i=>document.getElementById(i).value='');
-  const cantEl=document.getElementById('fCantidad');if(cantEl)cantEl.value='1';
+  // Inicializar productos
+  const pw=document.getElementById('productosWrap');
+  if(pw){pw.innerHTML='';agregarLineaProducto();}
   document.getElementById('fCli').style.borderColor='';
   document.getElementById('fProd').value='a';
   document.getElementById('fEstado').value='Confirmado';
@@ -1034,8 +1102,13 @@ function abrirEditar(id){
   document.getElementById('fCli').style.borderColor='';
   document.getElementById('fTel').value=v.telefono||'';
   document.getElementById('fCuit').value=v.cuit||'';
-  document.getElementById('fProd').value=v.producto||'a';cargarTons(v.modelo||'');
-  document.getElementById('fCantidad').value=v.cantidad||1;
+  // Cargar productos
+  const pw2=document.getElementById('productosWrap');
+  if(pw2){
+    pw2.innerHTML='';
+    const prods=v.productos?JSON.parse(v.productos):[{tipo:v.producto||'a',mod:v.modelo||'',cant:v.cantidad||1}];
+    prods.forEach(p=>agregarLineaProducto(p));
+  }
   document.getElementById('fPrecio').value=v.precio||'';
   document.getElementById('fCostoProducto').value=v.costo_producto||'';
   document.getElementById('fCostoFlete').value=v.costo_flete||'';
@@ -1217,6 +1290,7 @@ function renderViajes(){
         </div>`:''}
         <div class="viaje-actions">
           <button class="bv" style="flex:1;font-size:.72rem;padding:6px" onclick="exportarViaje('${vj.id}')">📋 Exportar</button>
+          <button class="bd" style="font-size:.72rem;padding:6px" onclick="sugerirParadas('${vj.id}')">💡 Sugerir</button>
           <button class="bd" style="font-size:.72rem;padding:6px" onclick="optimizarViaje('${vj.id}')">⚡ Optimizar</button>
         </div>
       </div>`:''}
@@ -1323,7 +1397,57 @@ function optimizarViaje(id){
     });
   });
 }
-function calcKm(arr){let km=0,p={lat:FLT,lng:FLN};arr.forEach(v=>{km+=dk(p.lat,p.lng,v.lat,v.lng)*FACTOR;p={lat:v.lat,lng:v.lng}});return km}
+function sugerirParadas(id){
+  const vj=viajes.find(x=>x.id===id);if(!vj)return;
+  const asig=new Set(viajes.flatMap(x=>x.pedidoIds));
+  const enViaje=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
+  const disponibles=ventas.filter(v=>!asig.has(v.id)&&v.lat&&v.lng&&v.estado!=='Entregado');
+  if(!disponibles.length){toast('No hay pedidos disponibles para agregar');return}
+  if(!enViaje.length){toast('Primero agregá al menos una parada al viaje');return}
+
+  // Calcular km actual del viaje
+  const kmActual=calcKm(enViaje);
+
+  // Para cada disponible, calcular cuánto agrega a la ruta
+  const sugerencias=disponibles.map(v=>{
+    const kmCon=calcKm([...enViaje,v]);
+    const desvio=Math.round(kmCon-kmActual);
+    return{v,desvio};
+  }).sort((a,b)=>a.desvio-b.desvio).slice(0,3);
+
+  // Mostrar modal de sugerencias
+  const html=sugerencias.map(({v,desvio})=>`
+    <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:.82rem">${v.cliente}</div>
+        <div style="font-size:.7rem;color:var(--text2)">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${ciudad(v.localidad)}</div>
+        <div style="font-size:.7rem;color:${desvio<100?'var(--green)':'var(--yellow)'};font-weight:700;margin-top:2px">+${desvio} km de desvío</div>
+      </div>
+      <button class="bg" style="padding:5px 11px;font-size:.72rem;flex-shrink:0" onclick="agregarSugerida('${id}','${v.id}')">+ Agregar</button>
+    </div>`).join('');
+
+  document.getElementById('sugerModal').innerHTML=`
+    <div style="background:#15202e;border:1px solid var(--gold);border-radius:14px;padding:18px;width:100%;max-width:420px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-size:.85rem;font-weight:800;color:var(--gold)">💡 Paradas sugeridas</div>
+        <button onclick="cerrarSugerModal()" style="background:none;border:none;color:var(--text3);font-size:1.1rem;cursor:pointer">✕</button>
+      </div>
+      <div style="font-size:.72rem;color:var(--text3);margin-bottom:12px">Clientes disponibles ordenados por menor desvío de ruta:</div>
+      ${html}
+    </div>`;
+  document.getElementById('sugerModal').style.display='flex';
+}
+
+function agregarSugerida(vid,pid){
+  agregarPedido(vid,pid);
+  cerrarSugerModal();
+  toast('Parada agregada ✔');
+}
+function cerrarSugerModal(){
+  document.getElementById('sugerModal').style.display='none';
+}
+
+function calcKm(arr){let km=0,p={lat:FLT,lng:FLN};arr.forEach(v=>{km+=dk(p.lat,p.lng,v.lat,v.lng)*FACTOR;p={lat:v.lat,lng:v.lng}});return km}let km=0,p={lat:FLT,lng:FLN};arr.forEach(v=>{km+=dk(p.lat,p.lng,v.lat,v.lng)*FACTOR;p={lat:v.lat,lng:v.lng}});return km}
 function exportarViaje(id){
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
   const sel=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
@@ -1615,42 +1739,34 @@ function sendSug(el){
 }
 
 function buildContexto(){
-  const mes=new Date().getMonth();
-  const anio=new Date().getFullYear();
-  const vMes=ventas.filter(v=>{const d=new Date(v.created_at);return d.getMonth()===mes&&d.getFullYear()===anio});
-  const pendientes=ventas.filter(v=>v.estado!=='Entregado');
-  const totMes=vMes.reduce((s,v)=>s+(v.precio||0),0);
-  const rentMes=vMes.reduce((s,v)=>s+(v.precio||0)-(v.costo_producto||0)-(v.costo_flete||0),0);
+  try{
+    const mes=new Date().getMonth();
+    const anio=new Date().getFullYear();
+    const vMes=ventas.filter(v=>{const d=new Date(v.created_at);return d.getMonth()===mes&&d.getFullYear()===anio});
+    const pendientes=ventas.filter(v=>v.estado!=='Entregado');
+    const totMes=vMes.reduce((s,v)=>s+(v.precio||0),0);
+    const rentMes=vMes.reduce((s,v)=>s+(v.precio||0)-(v.costo_producto||0)-(v.costo_flete||0),0);
+    const porCliente={};
+    ventas.forEach(v=>{
+      if(!porCliente[v.cliente])porCliente[v.cliente]={rent:0};
+      porCliente[v.cliente].rent+=(v.precio||0)-(v.costo_producto||0)-(v.costo_flete||0);
+    });
+    const topCli=Object.entries(porCliente).sort((a,b)=>b[1].rent-a[1].rent).slice(0,3)
+      .map(([n,d])=>n+': $'+Math.round(d.rent/1000)+'k').join(', ');
+    const ultVentas=ventas.slice(0,8).map(v=>
+      `${v.cliente} - ${v.producto==='a'?'Silo':'Autocons'} ${v.modelo||''} - $${Math.round((v.precio||0)/1000)}k - ${v.estado}`
+    ).join('; ');
+    const viajesStr=viajes.filter(v=>v.pedidoIds.length>0)
+      .map(v=>`${v.nombre}: ${v.pedidoIds.length} paradas`).join('; ');
+    return `Sos el asistente de Metalúrgica Remeco, empresa argentina de silos y comederos en Colonia Menonita, La Pampa. Respondé en español rioplatense, breve y directo.
 
-  // Top clientes por rentabilidad
-  const porCliente={};
-  ventas.forEach(v=>{
-    if(!porCliente[v.cliente])porCliente[v.cliente]={ventas:0,rent:0};
-    porCliente[v.cliente].ventas+=(v.precio||0);
-    porCliente[v.cliente].rent+=(v.precio||0)-(v.costo_producto||0)-(v.costo_flete||0);
-  });
-  const topCli=Object.entries(porCliente).sort((a,b)=>b[1].rent-a[1].rent).slice(0,5)
-    .map(([n,d])=>`${n}: $${d.rent.toLocaleString('es-AR')} ganancia`).join(', ');
+DATOS:
+Ventas totales: ${ventas.length} | Este mes: ${vMes.length} por $${Math.round(totMes/1000)}k | Rentabilidad mes: $${Math.round(rentMes/1000)}k | Pendientes: ${pendientes.length} | Top clientes: ${topCli||'ninguno'} | Viajes: ${viajesStr||'ninguno'}
 
-  // Viajes activos
-  const viajesActivos=viajes.filter(v=>v.pedidoIds.length>0)
-    .map(v=>`${v.nombre}${v.fecha?' ('+v.fecha+')':''}: ${v.pedidoIds.length} paradas${v._kmReal?' '+v._kmReal+'km':''}`).join('; ');
-
-  return `Sos el asistente de Metalúrgica Remeco, una empresa argentina de silos y comederos autoconsumo ubicada en Colonia Menonita, La Pampa.
-
-DATOS ACTUALES DEL NEGOCIO:
-- Total ventas registradas: ${ventas.length}
-- Ventas este mes: ${vMes.length} por $${totMes.toLocaleString('es-AR')} ARS
-- Rentabilidad este mes: $${rentMes.toLocaleString('es-AR')} ARS
-- Pedidos pendientes de entrega: ${pendientes.length}
-- Clientes activos: ${new Set(ventas.map(v=>v.cliente)).size}
-- Top clientes por ganancia: ${topCli||'sin datos'}
-- Viajes programados: ${viajesActivos||'ninguno'}
-
-ÚLTIMAS 10 VENTAS:
-${ventas.slice(0,10).map(v=>`- ${v.cliente}: ${v.producto==='a'?'Silo Aéreo':'Autoconsumo'} ${v.modelo||''} | Precio: $${(v.precio||0).toLocaleString('es-AR')} | Costo prod: $${(v.costo_producto||0).toLocaleString('es-AR')} | Flete: $${(v.costo_flete||0).toLocaleString('es-AR')} | Estado: ${v.estado} | Localidad: ${v.localidad||'—'}`).join('\n')}
-
-Respondé siempre en español argentino, de forma concisa y útil. Si te preguntan algo que no está en los datos, respondé igual con tu conocimiento general.`;
+Últimas ventas: ${ultVentas||'ninguna'}`;
+  }catch(e){
+    return 'Sos el asistente de Metalúrgica Remeco. Respondé en español argentino.';
+  }
 }
 
 const WORKER_URL='https://remeco-ai.guentergerherd.workers.dev';
@@ -1684,7 +1800,7 @@ async function enviarChat(){
       })
     });
     const data=await res.json();
-    const texto=data.choices?.[0]?.message?.content||'Sin respuesta';
+    const texto=data.choices?.[0]?.message?.content||(data.error?'Error: '+data.error.message:'Sin respuesta');
 
     const loaderEl=document.getElementById(loaderId);
     if(loaderEl){loaderEl.textContent=texto;loaderEl.classList.remove('loading')}
@@ -1729,6 +1845,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 </script>
+
+<!-- ── MODAL SUGERENCIAS ────────────────────────────────────── -->
+<div id="sugerModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:6000;align-items:center;justify-content:center;padding:16px"></div>
 
 <!-- ── CHAT IA ─────────────────────────────────────────────── -->
 <button class="chat-fab" id="chatFab" onclick="toggleChat()" title="Asistente IA">🤖</button>
