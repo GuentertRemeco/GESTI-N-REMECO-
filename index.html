@@ -56,9 +56,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 /* ─── INICIO ───────────────────────────────────────────────────── */
 .inicio-wrap{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
 .inicio-header{margin-bottom:18px}
-.inicio-titulo{font-size:1.35rem;font-weight:900;color:var(--gold)}
-.inicio-sub{font-size:.78rem;color:var(--text3);margin-top:3px}
-.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.inicio-titulo{font-size:1.5rem;font-weight:900;color:var(--gold);margin-top:2px;line-height:1.2}
+.inicio-sub{font-size:.72rem;color:var(--text3);text-transform:capitalize}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
 .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
            padding:13px;cursor:pointer;transition:border-color .15s,transform .1s}
 .stat-card:active{transform:scale(.97)}
@@ -310,16 +310,21 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   .vbar-top{margin-bottom:6px}
 
   /* flete y simular: apilar */
-  .flete-wrap,.simular-wrap{flex-direction:column-reverse}
-  .flete-panel,.sim-panel{width:100%;max-height:50vh;border-left:none;border-top:1px solid var(--border)}
-  #mapFlete,#mapSimular{flex:1;min-height:180px}
+  .flete-wrap{flex-direction:column}
+  .simular-wrap{flex-direction:column-reverse}
+  .flete-panel{width:100%;max-height:55vh;border-left:none;border-bottom:1px solid var(--border);overflow-y:auto}
+  .sim-panel{width:100%;max-height:50vh;border-left:none;border-top:1px solid var(--border)}
+  #mapFlete{flex:1;min-height:200px}
+  #mapSimular{flex:1;min-height:180px}
 
   /* clientes: scroll horizontal */
   .cli-wrap{flex-direction:column}
-  .cli-list{width:100%;max-height:36vh;border-right:none;border-bottom:1px solid var(--border);
-            display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden}
-  .cli-item{min-width:150px;border-bottom:none;border-right:1px solid #1a2a3a;flex-shrink:0}
-  .cli-detail{padding:12px}
+  .cli-list{width:100%;max-height:40vh;border-right:none;border-bottom:1px solid var(--border);
+            overflow-y:auto;overflow-x:hidden;display:block}
+  .cli-item{min-width:unset;border-bottom:1px solid #1a2a3a;border-right:none;flex-shrink:unset;
+            display:flex;align-items:center;gap:10px;padding:10px 14px}
+  .cli-item.sel{border-right:none;border-left:3px solid var(--gold);background:#1e3245}
+  .cli-detail{padding:12px;flex:1;overflow-y:auto}
 
   /* stats grid 2 col */
   .stats-grid{grid-template-columns:repeat(2,1fr)}
@@ -339,7 +344,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 }
 
 /* ── CHAT IA ─────────────────────────────────────────────── */
-.chat-fab{position:fixed;bottom:calc(var(--bnav-h) + 14px);left:16px;
+.chat-fab{position:fixed;bottom:calc(var(--bnav-h) + 14px);right:16px;
           width:50px;height:50px;border-radius:50%;background:var(--gold);
           color:#111820;font-size:1.4rem;display:flex;align-items:center;
           justify-content:center;cursor:pointer;border:none;
@@ -348,7 +353,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .chat-fab:hover{transform:scale(1.08)}
 .chat-fab.has-notif::after{content:'';position:absolute;top:4px;right:4px;
   width:10px;height:10px;border-radius:50%;background:var(--red);border:2px solid var(--bg)}
-.chat-panel{position:fixed;bottom:calc(var(--bnav-h) + 74px);left:12px;
+.chat-panel{position:fixed;bottom:calc(var(--bnav-h) + 74px);right:12px;
             width:340px;max-width:calc(100vw - 24px);height:500px;max-height:60vh;
             background:#15202e;border:1px solid var(--gold);border-radius:16px;
             display:flex;flex-direction:column;z-index:1500;
@@ -388,7 +393,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .chat-send:hover{background:var(--gold2)}
 .chat-send:disabled{opacity:.4;cursor:not-allowed}
 @media(max-width:768px){
-  .chat-fab{bottom:calc(var(--bnav-h) + 14px)}
+  .chat-fab{bottom:calc(var(--bnav-h) + 14px);right:12px}
   .chat-panel{bottom:calc(var(--bnav-h) + 70px);left:8px;right:8px;width:auto;height:55vh}
 }
 </style>
@@ -432,8 +437,9 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 <div class="page on" id="page-inicio">
   <div class="inicio-wrap">
     <div class="inicio-header">
-      <div class="inicio-titulo" id="inicioBienvenida">Remeco Gestión</div>
       <div class="inicio-sub" id="inicioFecha"></div>
+      <div class="inicio-titulo" id="inicioBienvenida">Remeco Gestión</div>
+      <div style="font-size:.75rem;color:var(--text3);margin-top:2px">Metalúrgica Remeco · Colonia Menonita</div>
     </div>
     <div class="stats-grid" id="statsGrid"></div>
     <div style="margin-bottom:20px">
@@ -446,11 +452,11 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     </div>
     <!-- FAB móvil -->
     <button class="bg" onclick="abrirNueva()"
-      style="position:fixed;bottom:calc(var(--bnav-h) + 14px);right:16px;
+      style="position:fixed;bottom:calc(var(--bnav-h) + 14px);left:16px;
              border-radius:50px;padding:12px 20px;font-size:.82rem;
              box-shadow:0 4px 20px rgba(201,168,64,.35);z-index:800;
-             display:none" id="fabBtn">
-      + Nueva
+             display:none;align-items:center;gap:6px" id="fabBtn">
+      ✚ Nueva venta
     </button>
   </div>
 </div>
@@ -651,7 +657,7 @@ let gDir=null,gDirRF=null,gDirRS=null;
 let gMkModal=null,modalLat=null,modalLng=null;
 let gMkV=[],gMkF=[];
 let simParadas=[];
-let viajes=JSON.parse(localStorage.getItem('remeco_viajes')||'[]');
+let viajes=[];
 let cliSel=null,acModal=null,acSim=null;
 let filtroEstado='',filtroProd='',sortKey='fecha_desc';
 
@@ -666,7 +672,7 @@ async function sbFetch(p,m='GET',b=null){
 
 async function cargarVentas(){
   try{
-    ventas=await sbFetch('/rest/v1/ventas?select=*&order=created_at.desc');
+    [ventas]=await Promise.all([sbFetch('/rest/v1/ventas?select=*&order=created_at.desc'),cargarViajes()]);
     renderVentas();renderClientes();actualizarMapV();
     if(document.getElementById('page-inicio').classList.contains('on'))renderInicio();
   }catch(e){toast('Error: '+e.message)}
@@ -857,7 +863,7 @@ function renderCards(f){
             <span class="ptag ${v.producto==='a'?'pa':'pc-tag'}">${v.producto==='a'?'Aéreo':'Autocons.'}</span>
             ${v.modelo?`<span style="font-size:.7rem;color:var(--text2)">${v.modelo}</span>`:''}
           </div>
-          ${v.localidad||v.zona?`<div class="vcard-loc">📍 ${[v.localidad,v.zona].filter(Boolean).join(' · ')}</div>`:''}
+          ${v.localidad||v.zona?`<div class="vcard-loc">📍 ${[ciudad(v.localidad),v.zona].filter(Boolean).join(' · ')}</div>`:''}
         </div>
         <div class="vcard-right">
           <div class="vcard-price">${v.precio?'$'+Number(v.precio).toLocaleString('es-AR'):'—'}</div>
@@ -890,8 +896,8 @@ function renderInicio(){
   document.getElementById('inicioFecha').textContent=
     ahora.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const h=ahora.getHours();
-  document.getElementById('inicioBienvenida').textContent=
-    (h<12?'Buenos días':h<18?'Buenas tardes':'Buenas noches')+' — Remeco';
+  const saludo=h<12?'Buenos días 🌅':h<18?'Buenas tardes ☀️':'Buenas noches 🌙';
+  document.getElementById('inicioBienvenida').textContent=saludo;
 
   const pendientes=ventas.filter(v=>v.estado!=='Entregado');
   const entregados=ventas.filter(v=>v.estado==='Entregado');
@@ -922,7 +928,7 @@ function renderInicio(){
       <div class="pendiente-card" onclick="ir('ventas')">
         <div class="pc-info">
           <div class="pc-cli">${v.cliente}</div>
-          <div class="pc-sub">${v.producto==='a'?'Silo Aéreo':'Autoconsumo'}${v.modelo?' · '+v.modelo:''} · ${v.localidad||''}</div>
+          <div class="pc-sub">${v.producto==='a'?'Silo Aéreo':'Autoconsumo'}${v.modelo?' · '+v.modelo:''} · ${ciudad(v.localidad)}</div>
         </div>
         <span class="${ECLASES[ei]} etag">${ESTADO_ICONS[ei]} ${v.estado}</span>
       </div>`}).join('')
@@ -1049,7 +1055,34 @@ function initMapF(){
   fabMk(gMapF);
   gDirRF=new google.maps.DirectionsRenderer({polylineOptions:{strokeColor:'#f0c840',strokeWeight:5,strokeOpacity:.95},suppressMarkers:true,map:gMapF});
 }
-function saveViajes(){localStorage.setItem('remeco_viajes',JSON.stringify(viajes))}
+async function saveViaje(vj){
+  // Limpiar km si no tiene pedidos
+  if(!vj.pedidoIds.length) delete vj._kmReal;
+  const data={
+    id:vj.id, nombre:vj.nombre, fecha:vj.fecha||null,
+    pedido_ids:vj.pedidoIds, km_real:vj._kmReal||null, expandido:vj.expandido||false
+  };
+  try{
+    await sbFetch('/rest/v1/viajes?id=eq.'+vj.id,'PATCH',data);
+  }catch(e){
+    // Si no existe, insertar
+    try{await sbFetch('/rest/v1/viajes','POST',data)}catch(e2){console.error('saveViaje:',e2)}
+  }
+}
+async function saveViajes(){
+  viajes.forEach(v=>{if(!v.pedidoIds.length)delete v._kmReal});
+  await Promise.all(viajes.map(vj=>saveViaje(vj)));
+}
+async function cargarViajes(){
+  try{
+    const rows=await sbFetch('/rest/v1/viajes?select=*&order=created_at.asc');
+    viajes=rows.map(r=>({
+      id:r.id, nombre:r.nombre, fecha:r.fecha||null,
+      pedidoIds:r.pedido_ids||[], _kmReal:r.km_real||undefined,
+      expandido:r.expandido||false
+    }));
+  }catch(e){console.error('cargarViajes:',e)}
+}
 function abrirNuevoViaje(){
   document.getElementById('viajeNombre').value='';document.getElementById('viajeFecha').value='';
   document.getElementById('overlayViaje').classList.add('on');
@@ -1059,8 +1092,9 @@ function cerrarNuevoViaje(){document.getElementById('overlayViaje').classList.re
 function crearViaje(){
   const nom=document.getElementById('viajeNombre').value.trim();
   if(!nom){document.getElementById('viajeNombre').style.borderColor='var(--red)';return}
-  viajes.push({id:uid(),nombre:nom,fecha:document.getElementById('viajeFecha').value||null,pedidoIds:[],expandido:true});
-  saveViajes();cerrarNuevoViaje();renderViajes();toast('Viaje creado ✔');
+  const nv={id:uid(),nombre:nom,fecha:document.getElementById('viajeFecha').value||null,pedidoIds:[],expandido:true};
+  viajes.push(nv);
+  saveViaje(nv);cerrarNuevoViaje();renderViajes();toast('Viaje creado ✔');
 }
 function renderViajes(){
   const body=document.getElementById('fpBody');
@@ -1094,14 +1128,14 @@ function renderViajes(){
           <div class="vp-num">${i+1}</div>
           <div class="vp-info">
             <div class="vp-cli">${v.cliente}</div>
-            <div class="vp-sub">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${v.localidad||''}</div>
+            <div class="vp-sub">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${ciudad(v.localidad)}</div>
           </div>
           <button class="vp-del" onclick="quitarPedido('${vj.id}','${v.id}')">✕</button>
         </div>`).join(''):'<div style="font-size:.72rem;color:var(--text3);padding:4px 0">Sin pedidos aún</div>'}
         ${libres.length?`<div class="agregar-section">
           <div class="agregar-title">+ Agregar pedido</div>
           <div class="pedidos-disponibles">${libres.map(v=>`<div class="pd-item" onclick="agregarPedido('${vj.id}','${v.id}')">
-            <div class="pd-info"><div class="pd-cli">${v.cliente}</div><div class="pd-sub">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${v.localidad||''}</div></div>
+            <div class="pd-info"><div class="pd-cli">${v.cliente}</div><div class="pd-sub">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${ciudad(v.localidad)}</div></div>
             <span style="font-size:.68rem;color:var(--gold);font-weight:700">+ agregar</span>
           </div>`).join('')}</div>
         </div>`:''}
@@ -1139,7 +1173,7 @@ function calcularRutaViaje(id){
     if(status==='OK'){
       gDirRF.setDirections(result);
       const km=Math.round(result.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
-      vj._kmReal=km;saveViajes();
+      vj._kmReal=km;saveViaje(vj);
       toast(`Ruta: ${km.toLocaleString('es-AR')} km ✔`);
       const b=new google.maps.LatLngBounds();
       b.extend({lat:FLT,lng:FLN});sel.forEach(v=>b.extend({lat:v.lat,lng:v.lng}));
@@ -1153,15 +1187,20 @@ function toggleViaje(id){
   // Si estamos abriendo, colapsar todos los demás
   if(abriendo) viajes.forEach(vj=>{ if(vj.id!==id) vj.expandido=false; });
   v.expandido=abriendo;
-  saveViajes();renderViajes();
+  viajes.forEach(vj=>saveViaje(vj));renderViajes();
   // Limpiar ruta anterior del mapa
   if(gDirRF) gDirRF.setDirections({routes:[]});
   gMkF.forEach(m=>m.setMap(null));gMkF=[];
   if(abriendo&&v.pedidoIds.length) calcularRutaViaje(id);
 }
-function eliminarViaje(id){if(!confirm('¿Eliminar?'))return;viajes=viajes.filter(x=>x.id!==id);saveViajes();renderViajes()}
-function agregarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v||v.pedidoIds.includes(pid))return;v.pedidoIds.push(pid);saveViajes();renderViajes();calcularRutaViaje(vid)}
-function quitarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v)return;v.pedidoIds=v.pedidoIds.filter(x=>x!==pid);delete v._kmReal;saveViajes();renderViajes()}
+async function eliminarViaje(id){
+  if(!confirm('¿Eliminar?'))return;
+  viajes=viajes.filter(x=>x.id!==id);
+  try{await sbFetch('/rest/v1/viajes?id=eq.'+id,'DELETE')}catch(e){}
+  renderViajes();
+}
+function agregarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v||v.pedidoIds.includes(pid))return;v.pedidoIds.push(pid);saveViaje(v);renderViajes();calcularRutaViaje(vid)}
+function quitarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v)return;v.pedidoIds=v.pedidoIds.filter(x=>x!==pid);delete v._kmReal;saveViaje(v);renderViajes()}
 function optimizarViaje(id){
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
   const sel=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
@@ -1199,7 +1238,7 @@ function optimizarViaje(id){
         if(mejorIds){
           vj.pedidoIds=mejorIds;
           vj._kmReal=mejorKm;
-          saveViajes();renderViajes();calcularRutaViaje(id);
+          saveViaje(vj);renderViajes();calcularRutaViaje(id);
           toast("Ruta optimizada: "+mejorKm.toLocaleString("es-AR")+" km ⚡");
         }else{
           toast("No se pudo calcular la ruta. Revisá la conexión.");
@@ -1374,6 +1413,7 @@ function wa(tel){if(!tel){alert('Sin teléfono');return}window.open('https://wa.
 function dk(a,b,c,d){const R=6371,r=Math.PI/180,dL=(c-a)*r,dl=(d-b)*r,x=Math.sin(dL/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin(dl/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
 function norm(s){return(s||'').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ')}
+function ciudad(s){if(!s)return '';const p=s.split(',');return p[0].trim()}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2500)}
 
 /* ── INIT ────────────────────────────────────────────────── */
@@ -1382,7 +1422,7 @@ const isMobile=()=>window.innerWidth<=768;
 window.addEventListener('load',()=>{if(isMobile())document.getElementById('fabBtn').style.display='block'});
 window.addEventListener('resize',()=>{
   const fab=document.getElementById('fabBtn');
-  if(fab)fab.style.display=(isMobile()&&document.getElementById('page-inicio').classList.contains('on'))?'block':'none';
+  if(fab)fab.style.display=(isMobile()&&document.getElementById('page-inicio').classList.contains('on'))?'flex':'none';
 });
 
 cargarVentas();
