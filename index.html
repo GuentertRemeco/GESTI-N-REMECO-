@@ -396,6 +396,54 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   .chat-fab{bottom:calc(var(--bnav-h) + 14px);right:12px}
   .chat-panel{bottom:calc(var(--bnav-h) + 70px);left:8px;right:8px;width:auto;height:55vh}
 }
+
+/* ─── LOGIN ────────────────────────────────────────────────────── */
+.login-screen{position:fixed;inset:0;background:var(--bg);z-index:9000;
+              display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;
+           padding:32px 28px;width:100%;max-width:380px}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo-text{font-size:1.6rem;font-weight:900;color:var(--gold);letter-spacing:3px;text-transform:uppercase}
+.login-logo-sub{font-size:.75rem;color:var(--text3);margin-top:4px;letter-spacing:1px}
+.login-tabs{display:flex;gap:0;margin-bottom:24px;background:var(--bg3);border-radius:8px;padding:3px}
+.login-tab{flex:1;background:none;border:none;color:var(--text3);font-size:.8rem;font-weight:700;
+           padding:8px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .15s}
+.login-tab.on{background:var(--gold);color:#111820}
+.login-fg{margin-bottom:14px}
+.login-fg label{display:block;font-size:.65rem;color:var(--text2);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.login-fg input{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);
+                border-radius:8px;padding:10px 13px;font-size:.9rem;font-family:inherit;transition:border-color .15s}
+.login-fg input:focus{outline:none;border-color:var(--gold)}
+.login-btn{width:100%;background:var(--gold);color:#111820;border:none;border-radius:8px;
+           padding:12px;font-size:.9rem;font-weight:800;cursor:pointer;font-family:inherit;
+           margin-top:8px;transition:all .15s}
+.login-btn:hover{background:var(--gold2)}
+.login-btn:disabled{opacity:.5;cursor:not-allowed}
+.login-err{background:#2a1010;border:1px solid var(--red);color:var(--red);border-radius:7px;
+           padding:9px 12px;font-size:.76rem;margin-bottom:12px;display:none}
+.login-err.on{display:block}
+.login-nombre-fg{display:none}
+.login-nombre-fg.on{display:block}
+
+/* ─── USER BADGE (nav) ─────────────────────────────────────────── */
+.user-badge{display:flex;align-items:center;gap:7px;background:var(--bg3);
+            border:1px solid var(--border2);border-radius:8px;padding:5px 10px;cursor:pointer;
+            transition:border-color .15s;flex-shrink:0}
+.user-badge:hover{border-color:var(--gold)}
+.user-avatar{width:26px;height:26px;border-radius:50%;background:var(--gold);
+             color:#111820;font-size:.75rem;font-weight:900;display:flex;align-items:center;justify-content:center}
+.user-name{font-size:.72rem;font-weight:700;color:var(--text2);max-width:100px;
+           overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-menu{position:absolute;top:calc(var(--nav-h) + 4px);right:12px;
+           background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+           padding:6px;z-index:2000;min-width:180px;box-shadow:0 8px 30px rgba(0,0,0,.5);
+           display:none}
+.user-menu.on{display:block}
+.user-menu-item{padding:9px 12px;border-radius:7px;cursor:pointer;font-size:.8rem;
+                color:var(--text);transition:background .15s;display:flex;align-items:center;gap:8px}
+.user-menu-item:hover{background:var(--bg3)}
+.user-menu-item.danger{color:var(--red)}
+.user-menu-sep{height:1px;background:var(--border);margin:4px 0}
 </style>
 </head>
 <body>
@@ -410,6 +458,10 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <button class="ntab" onclick="ir('simular')">🧮 Simular</button>
   <button class="ntab" onclick="ir('clientes')">👤 Clientes</button>
   <div class="nav-right">
+    <div class="user-badge" onclick="toggleUserMenu()">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <span class="user-name" id="userNameText">Usuario</span>
+    </div>
     <button class="bg" onclick="abrirNueva()" style="padding:6px 13px;font-size:.75rem">+ Nueva venta</button>
   </div>
 </nav>
@@ -691,6 +743,7 @@ async function guardarVenta(){
     costo_producto:parseFloat(document.getElementById('fCostoProducto').value)||null,
     costo_flete:parseFloat(document.getElementById('fCostoFlete').value)||null,
     moneda:'ARS',estado:document.getElementById('fEstado').value,
+    user_id:currentUser?.id||null,
     fecha_entrega:document.getElementById('fFecha').value||null,
     localidad:document.getElementById('fLoc').value.trim()||null,
     zona:document.getElementById('fZona').value.trim()||null,
@@ -1060,7 +1113,8 @@ async function saveViaje(vj){
   if(!vj.pedidoIds.length) delete vj._kmReal;
   const data={
     id:vj.id, nombre:vj.nombre, fecha:vj.fecha||null,
-    pedido_ids:JSON.stringify(vj.pedidoIds||[]), km_real:vj._kmReal||null, expandido:vj.expandido||false
+    pedido_ids:JSON.stringify(vj.pedidoIds||[]), km_real:vj._kmReal||null, expandido:vj.expandido||false,
+    user_id:currentUser?.id||null
   };
   try{
     // Upsert: inserta si no existe, actualiza si existe
@@ -1588,6 +1642,42 @@ document.addEventListener('DOMContentLoaded',()=>{
     <textarea class="chat-input" id="chatInput" placeholder="Preguntá lo que quieras..." rows="1"
       onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarChat()}"></textarea>
     <button class="chat-send" id="chatSend" onclick="enviarChat()">➤</button>
+  </div>
+</div>
+
+
+<!-- ── PANTALLA DE LOGIN ──────────────────────────────────────── -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-text">🏭 Remeco</div>
+      <div class="login-logo-sub">Sistema de Gestión</div>
+    </div>
+    <div class="login-tabs">
+      <button class="login-tab on" id="tabLogin" onclick="setLoginTab('login')">Iniciar sesión</button>
+      <button class="login-tab" id="tabReg" onclick="setLoginTab('registro')">Registrarse</button>
+    </div>
+    <div class="login-err" id="loginErr"></div>
+    <div class="login-nombre-fg" id="loginNombreFg">
+      <div class="login-fg"><label>Tu nombre</label><input id="loginNombre" placeholder="Ej: Gerardo"/></div>
+    </div>
+    <div class="login-fg"><label>Email</label><input id="loginEmail" type="email" placeholder="tu@email.com"/></div>
+    <div class="login-fg"><label>Contraseña</label><input id="loginPass" type="password" placeholder="Mínimo 6 caracteres" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Ingresar</button>
+  </div>
+</div>
+
+<!-- ── MENÚ DE USUARIO ─────────────────────────────────────────── -->
+<div class="user-menu" id="userMenu">
+  <div class="user-menu-item" style="pointer-events:none;opacity:.6">
+    <span>👤</span><span id="userMenuNombre">Usuario</span>
+  </div>
+  <div class="user-menu-item" style="pointer-events:none;opacity:.6;font-size:.7rem">
+    <span>✉️</span><span id="userMenuEmail"></span>
+  </div>
+  <div class="user-menu-sep"></div>
+  <div class="user-menu-item danger" onclick="cerrarSesion()">
+    <span>🚪</span><span>Cerrar sesión</span>
   </div>
 </div>
 
