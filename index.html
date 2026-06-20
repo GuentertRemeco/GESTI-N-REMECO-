@@ -647,8 +647,12 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div class="fg"><label>Tonelaje</label><select id="fMod"></select></div>
     </div>
     <div class="frow">
+      <div class="fg"><label>Cantidad</label><input id="fCantidad" type="number" placeholder="1" min="1" value="1"/></div>
       <div class="fg"><label>Precio venta (ARS)</label><input id="fPrecio" type="number" placeholder="0"/></div>
+    </div>
+    <div class="frow">
       <div class="fg"><label>Costo producto (ARS)</label><input id="fCostoProducto" type="number" placeholder="0"/></div>
+      <div class="fg"></div>
     </div>
     <div class="frow">
       <div class="fg"><label>Costo flete (ARS)</label><input id="fCostoFlete" type="number" placeholder="0"/></div>
@@ -744,6 +748,7 @@ async function guardarVenta(){
     cuit:document.getElementById('fCuit').value.trim()||null,
     producto:document.getElementById('fProd').value,
     modelo:document.getElementById('fMod').value||null,
+    cantidad:parseInt(document.getElementById('fCantidad').value)||1,
     precio:parseFloat(document.getElementById('fPrecio').value)||null,
     costo_producto:parseFloat(document.getElementById('fCostoProducto').value)||null,
     costo_flete:parseFloat(document.getElementById('fCostoFlete').value)||null,
@@ -883,7 +888,7 @@ function renderTabla(f){
           ${v.telefono?`<div style="color:var(--blue);font-size:.7rem">📞 ${v.telefono}</div>`:''}
           ${v.cuit?`<div style="color:var(--text2);font-size:.68rem">CUIT: ${v.cuit}</div>`:''}</td>
       <td><span class="ptag ${v.producto==='a'?'pa':'pc-tag'}">${v.producto==='a'?'Aéreo':'Autocons.'}</span>
-          ${v.modelo?`<div style="font-size:.67rem;color:var(--text2);margin-top:2px">${v.modelo}</div>`:''}</td>
+          ${v.modelo?`<div style="font-size:.67rem;color:var(--text2);margin-top:2px">${v.modelo}${(v.cantidad||1)>1?' <b style=color:var(--gold)>x'+v.cantidad+'</b>':''}</div>`:((v.cantidad||1)>1?`<div style="font-size:.67rem;color:var(--gold);font-weight:800">x${v.cantidad}</div>`:'')}</td>
       <td><div style="color:var(--text2);font-size:.75rem">${v.localidad||'—'}</div>
           ${v.zona?`<div style="color:var(--gold);font-size:.67rem;font-weight:600">📦 ${v.zona}</div>`:''}</td>
       <td style="font-weight:800;color:var(--gold);font-size:.78rem">${v.precio?'$'+Number(v.precio).toLocaleString('es-AR'):'—'}</td>
@@ -920,6 +925,7 @@ function renderCards(f){
           <div class="vcard-prod">
             <span class="ptag ${v.producto==='a'?'pa':'pc-tag'}">${v.producto==='a'?'Aéreo':'Autocons.'}</span>
             ${v.modelo?`<span style="font-size:.7rem;color:var(--text2)">${v.modelo}</span>`:''}
+            ${v.cantidad>1?`<span style="font-size:.7rem;font-weight:800;color:var(--gold)">x${v.cantidad}</span>`:''}
           </div>
           ${v.localidad||v.zona?`<div class="vcard-loc">📍 ${[ciudad(v.localidad),v.zona].filter(Boolean).join(' · ')}</div>`:''}
         </div>
@@ -1008,6 +1014,7 @@ function renderInicio(){
 function limpiarModal(){
   ['fCli','fTel','fCuit','fPrecio','fCostoProducto','fCostoFlete','fFecha','fLoc','fZona','fNot']
     .forEach(i=>document.getElementById(i).value='');
+  const cantEl=document.getElementById('fCantidad');if(cantEl)cantEl.value='1';
   document.getElementById('fCli').style.borderColor='';
   document.getElementById('fProd').value='a';
   document.getElementById('fEstado').value='Confirmado';
@@ -1028,6 +1035,7 @@ function abrirEditar(id){
   document.getElementById('fTel').value=v.telefono||'';
   document.getElementById('fCuit').value=v.cuit||'';
   document.getElementById('fProd').value=v.producto||'a';cargarTons(v.modelo||'');
+  document.getElementById('fCantidad').value=v.cantidad||1;
   document.getElementById('fPrecio').value=v.precio||'';
   document.getElementById('fCostoProducto').value=v.costo_producto||'';
   document.getElementById('fCostoFlete').value=v.costo_flete||'';
