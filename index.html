@@ -695,7 +695,7 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const FLT=-37.574897,FLN=-63.842515,FACTOR=1.35;
 const TONS={
   a:['6TN','10TN','16TN','22TN','28TN','30TN','40TN','50TN','60TN','62TN','72TN','80TN','100TN','120TN','140TN','150TN','175TN','200TN'],
-  c:['2TN','4TN','7TN','12TN','18TN']
+  c:['2tn 12 bocas','2tn 18 bocas','4tn','7tn','7tn con Alero al medio','12tn','12tn con Alero al medio','12tn con Alero grande','12tn Cambio de base','18tn con Alero al medio','18tn con Alero grande','18tn Cambio de base']
 };
 const ESTADOS=['Confirmado','En producción','Listo para entregar','En camino','Entregado'];
 const ECLASES=['e0','e1','e2','e3','e4'];
@@ -1645,6 +1645,8 @@ ${ventas.slice(0,10).map(v=>`- ${v.cliente}: ${v.producto==='a'?'Silo Aéreo':'A
 Respondé siempre en español argentino, de forma concisa y útil. Si te preguntan algo que no está en los datos, respondé igual con tu conocimiento general.`;
 }
 
+const OPENAI_KEY='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';
+
 async function enviarChat(){
   const input=document.getElementById('chatInput');
   const msg=input.value.trim();
@@ -1652,38 +1654,34 @@ async function enviarChat(){
   input.value='';
   input.style.height='auto';
 
-  // Ocultar sugerencias después del primer mensaje
   document.getElementById('chatSugs').style.display='none';
-
-  // Agregar mensaje del usuario
   agregarMsgChat('user',msg);
   chatHistorial.push({role:'user',content:msg});
 
-  // Loader
   const loaderId='loader-'+Date.now();
   agregarMsgChat('ai','Escribiendo...','loading',loaderId);
   document.getElementById('chatSend').disabled=true;
 
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
+    const res=await fetch('https://api.openai.com/v1/chat/completions',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+OPENAI_KEY},
       body:JSON.stringify({
-        model:'claude-sonnet-4-6',
+        model:'gpt-4o-mini',
         max_tokens:1000,
-        system:buildContexto(),
-        messages:chatHistorial
+        messages:[
+          {role:'system',content:buildContexto()},
+          ...chatHistorial
+        ]
       })
     });
     const data=await res.json();
-    const texto=data.content?.[0]?.text||'Sin respuesta';
+    const texto=data.choices?.[0]?.message?.content||'Sin respuesta';
 
-    // Reemplazar loader con respuesta real
     const loaderEl=document.getElementById(loaderId);
     if(loaderEl){loaderEl.textContent=texto;loaderEl.classList.remove('loading')}
 
     chatHistorial.push({role:'assistant',content:texto});
-    // Mantener historial razonable
     if(chatHistorial.length>20)chatHistorial=chatHistorial.slice(-20);
 
   }catch(e){
