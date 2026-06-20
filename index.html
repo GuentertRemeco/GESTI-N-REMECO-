@@ -723,8 +723,13 @@ async function sbFetch(p,m='GET',b=null){
 }
 
 async function cargarVentas(){
+  if(!currentUser)return;
   try{
-    [ventas]=await Promise.all([sbFetch('/rest/v1/ventas?select=*&order=created_at.desc'),cargarViajes()]);
+    const uid=currentUser.id;
+    [ventas]=await Promise.all([
+      sbFetch('/rest/v1/ventas?select=*&order=created_at.desc&user_id=eq.'+uid),
+      cargarViajes()
+    ]);
     renderVentas();renderClientes();actualizarMapV();
     if(document.getElementById('page-inicio').classList.contains('on'))renderInicio();
   }catch(e){toast('Error: '+e.message)}
@@ -1135,8 +1140,9 @@ async function saveViajes(){
   await Promise.all(viajes.map(vj=>saveViaje(vj)));
 }
 async function cargarViajes(){
+  if(!currentUser)return;
   try{
-    const rows=await sbFetch('/rest/v1/viajes?select=*&order=created_at.asc');
+    const rows=await sbFetch('/rest/v1/viajes?select=*&order=created_at.asc&user_id=eq.'+currentUser.id);
     viajes=rows.map(r=>({
       id:r.id, nombre:r.nombre, fecha:r.fecha||null,
       pedidoIds:typeof r.pedido_ids==='string'?JSON.parse(r.pedido_ids||'[]'):(r.pedido_ids||[]),
@@ -1487,7 +1493,101 @@ window.addEventListener('resize',()=>{
   if(fab)fab.style.display=(isMobile()&&document.getElementById('page-inicio').classList.contains('on'))?'flex':'none';
 });
 
-cargarVentas();
+
+/* ── AUTH ────────────────────────────────────────────────── */
+let currentUser=null;
+let loginMode='login';
+
+function setLoginTab(mode){
+  loginMode=mode;
+  document.getElementById('tabLogin').classList.toggle('on',mode==='login');
+  document.getElementById('tabReg').classList.toggle('on',mode==='registro');
+  document.getElementById('loginBtn').textContent=mode==='login'?'Ingresar':'Crear cuenta';
+  document.getElementById('loginNombreFg').classList.toggle('on',mode==='registro');
+  document.getElementById('loginErr').classList.remove('on');
+}
+
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const nombre=document.getElementById('loginNombre').value.trim();
+  const err=document.getElementById('loginErr');
+  const btn=document.getElementById('loginBtn');
+  if(!email||!pass){err.textContent='Completá email y contraseña';err.classList.add('on');return}
+  if(loginMode==='registro'&&!nombre){err.textContent='Ingresá tu nombre';err.classList.add('on');return}
+  btn.disabled=true;btn.textContent='Cargando...';err.classList.remove('on');
+  try{
+    let res,data;
+    if(loginMode==='login'){
+      res=await fetch(SB_URL+'/auth/v1/token?grant_type=password',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SB_KEY},
+        body:JSON.stringify({email,password:pass})
+      });
+      data=await res.json();
+      if(!res.ok)throw new Error(data.error_description||data.msg||'Error al iniciar sesión');
+      currentUser={id:data.user.id,email:data.user.email,token:data.access_token,
+                   nombre:data.user.user_metadata?.nombre||email.split('@')[0]};
+    }else{
+      res=await fetch(SB_URL+'/auth/v1/signup',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SB_KEY},
+        body:JSON.stringify({email,password:pass,data:{nombre}})
+      });
+      data=await res.json();
+      if(!res.ok)throw new Error(data.error_description||data.msg||'Error al registrarse');
+      if(!data.access_token)throw new Error('Error al crear cuenta');
+      currentUser={id:data.user.id,email:data.user.email,token:data.access_token,nombre};
+    }
+    localStorage.setItem('remeco_session',JSON.stringify(currentUser));
+    iniciarApp();
+  }catch(e){
+    err.textContent=e.message;err.classList.add('on');
+    btn.disabled=false;btn.textContent=loginMode==='login'?'Ingresar':'Crear cuenta';
+  }
+}
+
+function cerrarSesion(){
+  currentUser=null;
+  localStorage.removeItem('remeco_session');
+  document.getElementById('userMenu').classList.remove('on');
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginEmail').value='';
+  document.getElementById('loginPass').value='';
+  document.getElementById('loginErr').classList.remove('on');
+  ventas=[];viajes=[];
+  setLoginTab('login');
+}
+
+function toggleUserMenu(){
+  document.getElementById('userMenu').classList.toggle('on');
+}
+
+document.addEventListener('click',e=>{
+  const menu=document.getElementById('userMenu');
+  if(menu&&menu.classList.contains('on')&&!e.target.closest('.user-badge')&&!e.target.closest('.user-menu'))
+    menu.classList.remove('on');
+});
+
+function iniciarApp(){
+  const u=currentUser;
+  document.getElementById('loginScreen').style.display='none';
+  const inicial=(u.nombre||u.email)[0].toUpperCase();
+  document.getElementById('userAvatar').textContent=inicial;
+  document.getElementById('userNameText').textContent=u.nombre||u.email.split('@')[0];
+  document.getElementById('userMenuNombre').textContent=u.nombre||'';
+  document.getElementById('userMenuEmail').textContent=u.email;
+  cargarVentas();
+}
+
+window.addEventListener('load',()=>{
+  const saved=localStorage.getItem('remeco_session');
+  if(saved){
+    try{currentUser=JSON.parse(saved);iniciarApp()}
+    catch(e){localStorage.removeItem('remeco_session')}
+  }
+});
+
 
 /* ── CHAT IA ─────────────────────────────────────────────── */
 let chatAbierto=false;
@@ -1614,6 +1714,12 @@ function scrollChatAbajo(){
 document.addEventListener('DOMContentLoaded',()=>{
   const ta=document.getElementById('chatInput');
   if(ta)ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,80)+'px'});
+
+  // Login event listeners
+  document.getElementById('tabLogin')?.addEventListener('click',()=>setLoginTab('login'));
+  document.getElementById('tabReg')?.addEventListener('click',()=>setLoginTab('registro'));
+  document.getElementById('loginBtn')?.addEventListener('click',doLogin);
+  document.getElementById('loginPass')?.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 });
 
 </script>
@@ -1654,16 +1760,16 @@ document.addEventListener('DOMContentLoaded',()=>{
       <div class="login-logo-sub">Sistema de Gestión</div>
     </div>
     <div class="login-tabs">
-      <button class="login-tab on" id="tabLogin" onclick="setLoginTab('login')">Iniciar sesión</button>
-      <button class="login-tab" id="tabReg" onclick="setLoginTab('registro')">Registrarse</button>
+      <button class="login-tab on" id="tabLogin">Iniciar sesión</button>
+      <button class="login-tab" id="tabReg">Registrarse</button>
     </div>
     <div class="login-err" id="loginErr"></div>
     <div class="login-nombre-fg" id="loginNombreFg">
       <div class="login-fg"><label>Tu nombre</label><input id="loginNombre" placeholder="Ej: Gerardo"/></div>
     </div>
     <div class="login-fg"><label>Email</label><input id="loginEmail" type="email" placeholder="tu@email.com"/></div>
-    <div class="login-fg"><label>Contraseña</label><input id="loginPass" type="password" placeholder="Mínimo 6 caracteres" onkeydown="if(event.key==='Enter')doLogin()"/></div>
-    <button class="login-btn" id="loginBtn" onclick="doLogin()">Ingresar</button>
+    <div class="login-fg"><label>Contraseña</label><input id="loginPass" type="password" placeholder="Mínimo 6 caracteres"/></div>
+    <button class="login-btn" id="loginBtn">Ingresar</button>
   </div>
 </div>
 
