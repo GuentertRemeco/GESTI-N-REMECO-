@@ -1342,9 +1342,15 @@ function initMapF(){
 async function saveViaje(vj){
   // Limpiar km si no tiene pedidos
   if(!vj.pedidoIds.length) delete vj._kmReal;
+  // Snapshot de paradas para que otros usuarios puedan ver la ruta
+  const paradaSnap=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng)
+    .map(v=>({id:v.id,cliente:v.cliente,localidad:v.localidad,lat:v.lat,lng:v.lng,
+              producto:v.producto,modelo:v.modelo}));
   const data={
     id:vj.id, nombre:vj.nombre, fecha:vj.fecha||null,
-    pedido_ids:JSON.stringify(vj.pedidoIds||[]), km_real:vj._kmReal||null, expandido:vj.expandido||false,
+    pedido_ids:JSON.stringify(vj.pedidoIds||[]),
+    paradas_snap:JSON.stringify(paradaSnap),
+    km_real:vj._kmReal||null, expandido:vj.expandido||false,
     user_id:currentUser?.id||null
   };
   try{
@@ -1370,10 +1376,12 @@ async function cargarViajes(){
   try{
     const rows=await sbFetch('/rest/v1/viajes?select=*&order=created_at.asc&user_id=eq.'+currentUser.id);
     viajes=rows.map(r=>({
-      id:r.id, nombre:r.nombre, fecha:r.fecha||null,
+      id:r.id,nombre:r.nombre,fecha:r.fecha||null,
       pedidoIds:typeof r.pedido_ids==='string'?JSON.parse(r.pedido_ids||'[]'):(r.pedido_ids||[]),
+      paradasSnap:typeof r.paradas_snap==='string'?JSON.parse(r.paradas_snap||'[]'):(r.paradas_snap||[]),
       _kmReal:r.km_real||undefined,
-      expandido:r.expandido||false
+      expandido:r.expandido||false,
+      publico:r.publico||false
     }));
   }catch(e){console.error('cargarViajes:',e)}
 }
@@ -1574,10 +1582,10 @@ async function verRutaPublica(viajeRow){
   initMapPublico();
   if(!gMapPub||!window.google)return;
 
-  // Traer coordenadas desde Supabase (ventas del otro usuario)
+  // Usar paradas_snap del viaje (no necesita acceso a ventas de otro usuario)
   try{
-    const ventasViaje=await sbFetch('/rest/v1/ventas?select=id,cliente,localidad,lat,lng,producto,modelo&id=in.('+peds.join(',')+')');
-    const conCoords=ventasViaje.filter(v=>v.lat&&v.lng);
+    const snapRaw=typeof viajeRow.paradas_snap==='string'?JSON.parse(viajeRow.paradas_snap||'[]'):(viajeRow.paradas_snap||[]);
+    const conCoords=snapRaw.filter(v=>v.lat&&v.lng);
     if(!conCoords.length){toast('Las paradas no tienen coordenadas');return}
 
     // Limpiar marcadores
