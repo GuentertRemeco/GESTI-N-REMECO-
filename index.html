@@ -1602,22 +1602,47 @@ async function verRutaPublica(viajeRow){
       gMkPub.push(m);
     });
 
-    // Dibujar ruta real
-    const last=conCoords[conCoords.length-1];
+    // Dibujar ruta real optimizada
     if(!gDir)gDir=new google.maps.DirectionsService();
-    gDir.route({
-      origin:{lat:FLT,lng:FLN},
-      destination:{lat:last.lat,lng:last.lng},
-      waypoints:conCoords.slice(0,-1).map(v=>({location:{lat:v.lat,lng:v.lng},stopover:true})),
-      travelMode:google.maps.TravelMode.DRIVING
-    },(result,status)=>{
-      if(status==='OK'){
-        gDirPub.setDirections(result);
-        const b=new google.maps.LatLngBounds();
-        b.extend({lat:FLT,lng:FLN});
-        conCoords.forEach(v=>b.extend({lat:v.lat,lng:v.lng}));
-        gMapPub.fitBounds(b);
-      }
+    // Probar todas las combinaciones de destino final para encontrar la ruta más corta
+    let mejorKmPub=Infinity, mejorResultPub=null, pendientesPub=conCoords.length;
+    conCoords.forEach((candidato,idx)=>{
+      const resto=conCoords.filter((_,i)=>i!==idx);
+      gDir.route({
+        origin:{lat:FLT,lng:FLN},
+        destination:{lat:candidato.lat,lng:candidato.lng},
+        waypoints:resto.map(v=>({location:{lat:v.lat,lng:v.lng},stopover:true})),
+        optimizeWaypoints:true,
+        travelMode:google.maps.TravelMode.DRIVING
+      },(result,status)=>{
+        pendientesPub--;
+        if(status==='OK'){
+          const km=result.routes[0].legs.reduce((s,l)=>s+l.distance.value,0);
+          if(km<mejorKmPub){mejorKmPub=km;mejorResultPub=result;}
+        }
+        if(pendientesPub===0&&mejorResultPub){
+          gDirPub.setDirections(mejorResultPub);
+          // Redibujar marcadores en orden optimizado
+          gMkPub.forEach(m=>m.setMap(null));gMkPub=[];
+          const orden=mejorResultPub.routes[0].waypoint_order;
+          const ultimo=conCoords[conCoords.indexOf(candidato)];
+          const reordenados=[...orden.map(i=>resto[i]),ultimo];
+          reordenados.forEach((v,i)=>{
+            const m=new google.maps.Marker({
+              position:{lat:v.lat,lng:v.lng},map:gMapPub,
+              label:{text:String(i+1),color:'#fff',fontWeight:'bold'},
+              title:v.cliente,zIndex:50
+            });
+            const iw=new google.maps.InfoWindow({content:`<b>${v.cliente}</b><br>${ciudad(v.localidad)||''}`});
+            m.addListener('click',()=>iw.open(gMapPub,m));
+            gMkPub.push(m);
+          });
+          const b=new google.maps.LatLngBounds();
+          b.extend({lat:FLT,lng:FLN});
+          conCoords.forEach(v=>b.extend({lat:v.lat,lng:v.lng}));
+          gMapPub.fitBounds(b);
+        }
+      });
     });
   }catch(e){toast('Error cargando ruta: '+e.message)}
 }
@@ -1723,6 +1748,10 @@ async function togglePublicar(id){
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
   vj.publico=!vj.publico;
   const ownerNombre=currentUser?.nombre||currentUser?.email?.split('@')[0]||'Vendedor';
+  // Armar snapshot de paradas con coordenadas reales
+  const paradaSnap=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng)
+    .map(v=>({id:v.id,cliente:v.cliente,localidad:v.localidad,lat:v.lat,lng:v.lng,
+              producto:v.producto,modelo:v.modelo}));
   try{
     await fetch(SB_URL+'/rest/v1/viajes',{
       method:'POST',
@@ -1732,6 +1761,7 @@ async function togglePublicar(id){
       body:JSON.stringify({
         id:vj.id,nombre:vj.nombre,fecha:vj.fecha||null,
         pedido_ids:JSON.stringify(vj.pedidoIds||[]),
+        paradas_snap:JSON.stringify(paradaSnap),
         km_real:vj._kmReal||null,expandido:vj.expandido||false,
         user_id:currentUser?.id||null,
         publico:vj.publico,
@@ -1740,7 +1770,7 @@ async function togglePublicar(id){
     });
     renderViajes();
     cargarViajesPublicos();
-    toast(vj.publico?'Viaje publicado — otros vendedores lo pueden ver 🌐':'Viaje despublicado');
+    toast(vj.publico?'Viaje publicado ✔ — otros lo pueden ver 🌐':'Viaje despublicado');
   }catch(e){toast('Error: '+e.message)}
 }
 
