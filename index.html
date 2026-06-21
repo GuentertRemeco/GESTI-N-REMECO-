@@ -481,6 +481,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <button class="ntab" onclick="ir('mapa')">🗺️ Mapa</button>
   <button class="ntab" onclick="ir('flete')">🚛 Flete</button>
   <button class="ntab" onclick="ir('simular')">🧮 Simular</button>
+  <button class="ntab" onclick="ir('publico')">🌐 Fletes</button>
   <button class="ntab" onclick="ir('clientes')">👤 Clientes</button>
   <div class="nav-right">
     <div class="user-badge" onclick="toggleUserMenu()">
@@ -507,6 +508,9 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   </button>
   <button class="bnav-item" id="bn-mas" onclick="ir('simular')">
     <span class="bnav-icon">🧮</span><span class="bnav-label">Simular</span>
+  </button>
+  <button class="bnav-item" id="bn-publico" onclick="ir('publico')">
+    <span class="bnav-icon">🌐</span><span class="bnav-label">Fletes</span>
   </button>
 </nav>
 
@@ -651,6 +655,23 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <div class="cli-list" id="cliList"></div>
     <div class="cli-detail" id="cliDetail">
       <div class="empty-state"><div class="empty-icon">👤</div><div class="empty-msg">Seleccioná un cliente</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FLETES PÚBLICOS ───────────────────────────────────────── -->
+<div class="page" id="page-publico">
+  <div style="flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch">
+    <div style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold)">Mis viajes publicados</div>
+        <button class="bg" style="padding:5px 11px;font-size:.72rem" onclick="ir('flete')">+ Crear viaje</button>
+      </div>
+      <div id="misViajesPublic"></div>
+    </div>
+    <div>
+      <div style="font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--blue);margin-bottom:10px">🌐 Viajes de otros vendedores</div>
+      <div id="otrosViajesPublic"></div>
     </div>
   </div>
 </div>
@@ -874,7 +895,7 @@ function cerrarEntrega(){
 }
 
 /* ── NAVEGACIÓN ──────────────────────────────────────────── */
-const BNAV_MAP={inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes'};
+const BNAV_MAP={inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes',publico:'bn-publico'};
 
 function ir(pg){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
@@ -902,6 +923,7 @@ function ir(pg){
   if(pg==='inicio')renderInicio();
   if(pg==='mapa'){initMapV();actualizarMapV()}
   if(pg==='flete'){initMapF();renderViajes();cargarViajesPublicos()}
+  if(pg==='publico')renderPaginaPublico();
   if(pg==='simular')initMapSim();
   if(pg==='clientes')renderClientes();
   if(pg==='ventas')renderVentas();
@@ -1507,6 +1529,93 @@ function optimizarViaje(id){
     });
   });
 }
+/* ── PÁGINA FLETES PÚBLICOS ──────────────────────────────── */
+async function renderPaginaPublico(){
+  // Mis viajes publicados
+  const misPublic=viajes.filter(v=>v.publico&&v.pedidoIds.length>0);
+  const misEl=document.getElementById('misViajesPublic');
+  if(misEl){
+    if(!misPublic.length){
+      misEl.innerHTML='<div style="font-size:.78rem;color:var(--text3);padding:10px;background:var(--bg2);border-radius:8px">No tenés viajes publicados. Andá a Flete y tocá "📢 Publicar" en un viaje.</div>';
+    }else{
+      misEl.innerHTML=misPublic.map(vj=>{
+        const f=vj.fecha?new Date(vj.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'Sin fecha';
+        const peds=ventas.filter(v=>vj.pedidoIds.includes(v.id));
+        const dest=peds.map(v=>ciudad(v.localidad)).filter(Boolean).join(' → ');
+        return `<div style="background:var(--bg2);border:1px solid var(--gold);border-radius:10px;padding:12px 14px;margin-bottom:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div style="font-weight:800;font-size:.85rem;color:var(--gold)">🚛 ${vj.nombre}</div>
+            <span style="font-size:.62rem;background:#1a3a20;color:var(--green);padding:2px 8px;border-radius:10px;font-weight:700">🌐 Publicado</span>
+          </div>
+          <div style="font-size:.72rem;color:var(--text2)">📅 ${f} · ${peds.length} parada${peds.length!==1?'s':''}${vj._kmReal?' · '+vj._kmReal+'km':''}</div>
+          ${dest?`<div style="font-size:.72rem;color:var(--text3);margin-top:3px">📍 ${dest}</div>`:''}
+          <button onclick="togglePublicar('${vj.id}');renderPaginaPublico()" style="margin-top:8px;background:#2a1010;border:1px solid var(--red);color:var(--red);border-radius:6px;padding:5px 11px;font-size:.7rem;cursor:pointer;font-family:inherit">Despublicar</button>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Viajes de otros vendedores
+  const otrosEl=document.getElementById('otrosViajesPublic');
+  if(!otrosEl)return;
+  try{
+    const rows=await sbFetch('/rest/v1/viajes?select=*&publico=eq.true&user_id=neq.'+currentUser.id+'&order=fecha.asc');
+    if(!rows.length){
+      otrosEl.innerHTML='<div style="font-size:.78rem;color:var(--text3);padding:10px;background:var(--bg2);border-radius:8px">Ningún vendedor tiene viajes publicados todavía.</div>';
+      return;
+    }
+    otrosEl.innerHTML=rows.map(r=>{
+      const peds=typeof r.pedido_ids==='string'?JSON.parse(r.pedido_ids||'[]'):(r.pedido_ids||[]);
+      const f=r.fecha?new Date(r.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'Sin fecha';
+      const vendedorVentas=ventas; // solo tenemos nuestras ventas
+      const misVentasCercanas=ventas.filter(v=>v.estado!=='Entregado'&&v.lat&&v.lng&&!viajes.some(vj=>vj.pedidoIds.includes(v.id)));
+      return `<div style="background:var(--bg2);border:1px solid var(--blue);border-radius:10px;padding:12px 14px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div style="font-weight:800;font-size:.85rem;color:var(--blue)">🚛 ${r.nombre}</div>
+          <span style="font-size:.62rem;background:#0d2e4a;color:var(--blue);padding:2px 8px;border-radius:10px;font-weight:700">${r.owner_nombre||'Vendedor'}</span>
+        </div>
+        <div style="font-size:.72rem;color:var(--text2)">📅 ${f}${r.km_real?' · '+r.km_real+'km reales':''} · ${peds.length} parada${peds.length!==1?'s':''}</div>
+        ${misVentasCercanas.length?`
+        <div style="margin-top:10px;padding:9px;background:var(--bg3);border-radius:7px;border:1px solid var(--border2)">
+          <div style="font-size:.66rem;color:var(--text3);margin-bottom:6px;font-weight:700">TUS CLIENTES DISPONIBLES PARA SUMAR:</div>
+          ${misVentasCercanas.slice(0,3).map(v=>`
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
+              <div>
+                <div style="font-size:.76rem;font-weight:700">${v.cliente}</div>
+                <div style="font-size:.67rem;color:var(--text3)">${ciudad(v.localidad)||'—'}</div>
+              </div>
+              <button onclick="sumarClienteAViaje('${r.id}','${r.nombre}','${v.id}')" style="background:var(--bg3);border:1px solid var(--blue);color:var(--blue);border-radius:5px;padding:4px 9px;font-size:.68rem;cursor:pointer;font-family:inherit;transition:all .15s">+ Sumar</button>
+            </div>`).join('')}
+          ${misVentasCercanas.length>3?`<div style="font-size:.68rem;color:var(--text3);margin-top:5px">y ${misVentasCercanas.length-3} más en Flete...</div>`:''}
+        </div>`:'<div style="font-size:.72rem;color:var(--text3);margin-top:7px">No tenés clientes disponibles sin asignar.</div>'}
+      </div>`;
+    }).join('');
+  }catch(e){
+    otrosEl.innerHTML='<div style="font-size:.72rem;color:var(--red)">Error cargando viajes</div>';
+  }
+}
+
+async function sumarClienteAViaje(viajeIdOtro, nombreViaje, miVentaId){
+  // Buscar si ya tengo un viaje vinculado a este o crear uno nuevo
+  const nombreMio=nombreViaje+' (mi parte)';
+  let miViaje=viajes.find(v=>v.nombre===nombreMio);
+  if(!miViaje){
+    const nv={id:uid(),nombre:nombreMio,fecha:null,pedidoIds:[miVentaId],expandido:true,publico:false};
+    viajes.push(nv);
+    await saveViaje(nv);
+    toast('¡Sumado! Tu cliente quedó en "'+nombreMio+'"');
+  }else{
+    if(!miViaje.pedidoIds.includes(miVentaId)){
+      miViaje.pedidoIds.push(miVentaId);
+      await saveViaje(miViaje);
+      toast('Cliente agregado al viaje ✔');
+    }else{
+      toast('Este cliente ya está en el viaje');
+    }
+  }
+  renderPaginaPublico();
+}
+
 /* ── VIAJES PÚBLICOS ─────────────────────────────────────── */
 async function togglePublicar(id){
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
