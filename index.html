@@ -444,6 +444,31 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .user-menu-item:hover{background:var(--bg3)}
 .user-menu-item.danger{color:var(--red)}
 .user-menu-sep{height:1px;background:var(--border);margin:4px 0}
+
+/* ─── VIAJES PÚBLICOS ──────────────────────────────────────────── */
+.viajes-pub-section{padding:8px 7px;border-top:1px solid var(--border)}
+.viajes-pub-title{font-size:.62rem;font-weight:800;text-transform:uppercase;
+                  letter-spacing:1.5px;color:var(--blue);margin-bottom:7px;
+                  display:flex;align-items:center;gap:6px}
+.viaje-pub-card{background:#0d1e30;border:1px solid #1e3a5a;border-radius:9px;
+                margin-bottom:7px;overflow:hidden}
+.viaje-pub-header{padding:8px 11px;display:flex;align-items:center;gap:7px}
+.viaje-pub-badge{font-size:.58rem;font-weight:800;background:#0d2e4a;color:var(--blue);
+                 padding:2px 7px;border-radius:10px;white-space:nowrap}
+.viaje-pub-info{flex:1;min-width:0}
+.viaje-pub-nombre{font-weight:800;font-size:.82rem;color:var(--blue)}
+.viaje-pub-meta{font-size:.63rem;color:var(--text3);margin-top:1px}
+.viaje-pub-body{padding:6px 11px 9px}
+.viaje-pub-parada{font-size:.72rem;color:var(--text2);padding:2px 0}
+.btn-sumar{background:#0d2e4a;border:1px solid var(--blue);color:var(--blue);
+           border-radius:6px;padding:6px 12px;font-size:.74rem;font-weight:700;
+           cursor:pointer;font-family:inherit;transition:all .15s;width:100%;margin-top:7px}
+.btn-sumar:hover{background:var(--blue);color:#0a1018}
+.btn-publicar{background:#1a2c40;border:1px solid var(--blue);color:var(--blue);
+              padding:3px 8px;font-size:.65rem;border-radius:4px;cursor:pointer;
+              transition:all .15s;font-family:inherit}
+.btn-publicar:hover{background:var(--blue);color:#0a1018}
+.btn-publicar.on{background:var(--blue);color:#0a1018}
 </style>
 </head>
 <body>
@@ -581,6 +606,10 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
         <button class="bg" style="padding:4px 10px;font-size:.72rem" onclick="abrirNuevoViaje()">+ Nuevo</button>
       </div>
       <div class="fp-body" id="fpBody"></div>
+      <div class="viajes-pub-section" id="viajesPubSection">
+        <div class="viajes-pub-title">🌐 Viajes disponibles para sumarse</div>
+        <div id="viajesPubList"><div style="font-size:.72rem;color:var(--text3)">Cargando...</div></div>
+      </div>
       <div class="fp-footer">
         <button class="bg" style="width:100%;padding:9px" onclick="exportarViajes()">📋 Exportar para WhatsApp</button>
       </div>
@@ -872,7 +901,7 @@ function ir(pg){
 
   if(pg==='inicio')renderInicio();
   if(pg==='mapa'){initMapV();actualizarMapV()}
-  if(pg==='flete'){initMapF();renderViajes()}
+  if(pg==='flete'){initMapF();renderViajes();cargarViajesPublicos()}
   if(pg==='simular')initMapSim();
   if(pg==='clientes')renderClientes();
   if(pg==='ventas')renderVentas();
@@ -1350,6 +1379,7 @@ function renderViajes(){
             ${fStr?`<span>📅 ${fStr}</span>`:''}
           </div>
         </div>
+        <button class="btn-publicar${vj.publico?' on':''}" onclick="togglePublicar('${vj.id}')">${vj.publico?'🌐 Publicado':'📢 Publicar'}</button>
         <button class="vbtn del" onclick="eliminarViaje('${vj.id}')">✕</button>
       </div>
       ${vj.expandido?`<div class="viaje-body">
@@ -1477,6 +1507,83 @@ function optimizarViaje(id){
     });
   });
 }
+/* ── VIAJES PÚBLICOS ─────────────────────────────────────── */
+async function togglePublicar(id){
+  const vj=viajes.find(x=>x.id===id);if(!vj)return;
+  vj.publico=!vj.publico;
+  const ownerNombre=currentUser?.nombre||currentUser?.email?.split('@')[0]||'Vendedor';
+  try{
+    await fetch(SB_URL+'/rest/v1/viajes',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SB_KEY,
+               'Authorization':'Bearer '+SB_KEY,
+               'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify({
+        id:vj.id,nombre:vj.nombre,fecha:vj.fecha||null,
+        pedido_ids:JSON.stringify(vj.pedidoIds||[]),
+        km_real:vj._kmReal||null,expandido:vj.expandido||false,
+        user_id:currentUser?.id||null,
+        publico:vj.publico,
+        owner_nombre:ownerNombre
+      })
+    });
+    renderViajes();
+    cargarViajesPublicos();
+    toast(vj.publico?'Viaje publicado — otros vendedores lo pueden ver 🌐':'Viaje despublicado');
+  }catch(e){toast('Error: '+e.message)}
+}
+
+async function cargarViajesPublicos(){
+  const list=document.getElementById('viajesPubList');
+  if(!list)return;
+  try{
+    // Traer viajes públicos de otros usuarios
+    const rows=await sbFetch('/rest/v1/viajes?select=*&publico=eq.true&user_id=neq.'+currentUser.id+'&order=fecha.asc');
+    if(!rows.length){
+      list.innerHTML='<div style="font-size:.72rem;color:var(--text3);padding:4px 0">No hay viajes publicados por otros vendedores</div>';
+      return;
+    }
+    list.innerHTML=rows.map(r=>{
+      const peds=typeof r.pedido_ids==='string'?JSON.parse(r.pedido_ids||'[]'):(r.pedido_ids||[]);
+      const f=r.fecha?new Date(r.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'';
+      const paradas=ventas.filter(v=>peds.includes(v.id));
+      const destinos=paradas.map(v=>ciudad(v.localidad)).filter(Boolean).join(' → ');
+      // Verificar si ya me sumé
+      const yaSume=viajes.some(vj=>vj.pedidoIds.some(pid=>peds.includes(pid)));
+      return `<div class="viaje-pub-card">
+        <div class="viaje-pub-header">
+          <div class="viaje-pub-info">
+            <div class="viaje-pub-nombre">🚛 ${r.nombre}</div>
+            <div class="viaje-pub-meta">${r.owner_nombre||'Vendedor'} · ${f}${r.km_real?' · '+r.km_real+'km reales':''}</div>
+          </div>
+          <span class="viaje-pub-badge">Abierto</span>
+        </div>
+        <div class="viaje-pub-body">
+          ${destinos?`<div class="viaje-pub-parada">📍 ${destinos}</div>`:''}
+          <div class="viaje-pub-parada">${paradas.length} parada${paradas.length!==1?'s':''}</div>
+          ${!yaSume?`<button class="btn-sumar" onclick="sumarseViaje('${r.id}','${r.nombre}')">+ Sumarme a este viaje</button>`:'<div style="font-size:.72rem;color:var(--green);margin-top:7px;font-weight:700">✔ Ya estás sumado</div>'}
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    list.innerHTML='<div style="font-size:.72rem;color:var(--text3)">Error cargando viajes</div>';
+  }
+}
+
+async function sumarseViaje(viajeId, nombre){
+  // Buscar si ya tengo un viaje con ese nombre o crear uno nuevo
+  let miViaje=viajes.find(v=>v.nombre===nombre+' (combinado)');
+  if(!miViaje){
+    // Crear viaje local que referencia el mismo nombre
+    const nv={id:uid(),nombre:nombre+' (mi parte)',fecha:null,pedidoIds:[],expandido:true,publico:false};
+    viajes.push(nv);
+    await saveViaje(nv);
+    miViaje=nv;
+    toast('Viaje creado — ahora agregá tus paradas al viaje "'+nv.nombre+'"');
+  }
+  renderViajes();
+}
+
 function sugerirParadas(id){
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
   const asig=new Set(viajes.flatMap(x=>x.pedidoIds));
