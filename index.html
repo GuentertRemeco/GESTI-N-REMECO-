@@ -1451,7 +1451,7 @@ function cerrarSugerModal(){
   document.getElementById('sugerModal').style.display='none';
 }
 
-function calcKm(arr){let km=0,p={lat:FLT,lng:FLN};arr.forEach(v=>{km+=dk(p.lat,p.lng,v.lat,v.lng)*FACTOR;p={lat:v.lat,lng:v.lng}});return km}let km=0,p={lat:FLT,lng:FLN};arr.forEach(v=>{km+=dk(p.lat,p.lng,v.lat,v.lng)*FACTOR;p={lat:v.lat,lng:v.lng}});return km}
+function calcKm(arr){let km=0,p={lat:FLT,lng:FLN};arr.forEach(v=>{km+=dk(p.lat,p.lng,v.lat,v.lng)*FACTOR;p={lat:v.lat,lng:v.lng}});return km}
 function exportarViaje(id){
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
   const sel=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
@@ -1887,7 +1887,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
     <div class="login-logo">
-      <div class="login-logo-text"> Remeco</div>
+      <div class="login-logo-text">🏭 Remeco</div>
       <div class="login-logo-sub">Sistema de Gestión</div>
     </div>
     <div class="login-tabs">
