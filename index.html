@@ -1622,20 +1622,25 @@ async function verRutaPublica(viajeRow){
         }
         if(pendientesPub===0&&mejorResultPub){
           gDirPub.setDirections(mejorResultPub);
-          // Redibujar marcadores en orden optimizado
+          // Los marcadores los ponemos según el orden real de los legs de la ruta
           gMkPub.forEach(m=>m.setMap(null));gMkPub=[];
-          const orden=mejorResultPub.routes[0].waypoint_order;
-          const ultimo=conCoords[conCoords.indexOf(candidato)];
-          const reordenados=[...orden.map(i=>resto[i]),ultimo];
-          reordenados.forEach((v,i)=>{
-            const m=new google.maps.Marker({
-              position:{lat:v.lat,lng:v.lng},map:gMapPub,
-              label:{text:String(i+1),color:'#fff',fontWeight:'bold'},
-              title:v.cliente,zIndex:50
-            });
-            const iw=new google.maps.InfoWindow({content:`<b>${v.cliente}</b><br>${ciudad(v.localidad)||''}`});
-            m.addListener('click',()=>iw.open(gMapPub,m));
-            gMkPub.push(m);
+          const legs=mejorResultPub.routes[0].legs;
+          // Cada leg tiene start_location — usamos eso para numerar en orden real
+          legs.forEach((leg,i)=>{
+            // Buscar la parada que corresponde al destino de este leg
+            const destLat=leg.end_location.lat();
+            const destLng=leg.end_location.lng();
+            const parada=conCoords.find(v=>Math.abs(v.lat-destLat)<0.01&&Math.abs(v.lng-destLng)<0.01);
+            if(parada){
+              const m=new google.maps.Marker({
+                position:{lat:parada.lat,lng:parada.lng},map:gMapPub,
+                label:{text:String(i+1),color:'#fff',fontWeight:'bold'},
+                title:parada.cliente,zIndex:50
+              });
+              const iw=new google.maps.InfoWindow({content:`<b>${parada.cliente}</b><br>${ciudad(parada.localidad)||''}`});
+              m.addListener('click',()=>iw.open(gMapPub,m));
+              gMkPub.push(m);
+            }
           });
           const b=new google.maps.LatLngBounds();
           b.extend({lat:FLT,lng:FLN});
