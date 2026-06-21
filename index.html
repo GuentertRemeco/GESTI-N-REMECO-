@@ -668,6 +668,31 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   </div>
 </div>
 
+<!-- ── MODAL COSTOS ENTREGA ───────────────────────────────────── -->
+<div class="overlay" id="overlayEntrega">
+  <div class="modal-sm" style="max-width:400px">
+    <h2 style="font-size:.88rem;color:var(--gold);margin-bottom:4px">✔ Marcar como Entregado</h2>
+    <p style="font-size:.72rem;color:var(--text3);margin-bottom:14px">Ingresá los costos finales para calcular la ganancia real</p>
+    <div class="fg"><label>Cliente</label>
+      <div id="entregaCli" style="padding:8px 11px;background:var(--bg3);border-radius:6px;font-size:.83rem;font-weight:700;color:var(--gold)"></div>
+    </div>
+    <div class="fg"><label>Costo producción final (ARS)</label>
+      <input id="entregaCostoP" type="number" placeholder="0"/>
+    </div>
+    <div class="fg"><label>Costo flete final (ARS)</label>
+      <input id="entregaCostoF" type="number" placeholder="0"/>
+    </div>
+    <div id="entregaGanancia" style="background:var(--bg3);border-radius:8px;padding:11px 13px;margin:10px 0;display:none">
+      <div style="font-size:.66rem;color:var(--text3);margin-bottom:3px">GANANCIA ESTIMADA</div>
+      <div id="entregaGananciaVal" style="font-size:1.3rem;font-weight:900"></div>
+    </div>
+    <div class="mact">
+      <button class="bd" onclick="cerrarEntrega()">Cancelar</button>
+      <button class="bg" onclick="confirmarEntrega()">Confirmar entrega</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── MODAL NUEVO VIAJE ──────────────────────────────────────── -->
 <div class="overlay" id="overlayViaje">
   <div class="modal-sm">
@@ -763,8 +788,60 @@ async function eliminarVenta(id){
   if(!confirm('¿Eliminar esta venta?'))return;
   try{await sbFetch('/rest/v1/ventas?id=eq.'+id,'DELETE');toast('Eliminada');cargarVentas()}catch(e){}
 }
-async function cambiarEstado(id,e){
-  try{await sbFetch('/rest/v1/ventas?id=eq.'+id,'PATCH',{estado:e});cargarVentas()}catch(e){}
+let entregaId=null;
+
+async function cambiarEstado(id,estado){
+  if(estado==='Entregado'){
+    // Abrir modal de costos antes de marcar como entregado
+    const v=ventas.find(x=>x.id===id);
+    if(!v)return;
+    entregaId=id;
+    document.getElementById('entregaCli').textContent=v.cliente;
+    document.getElementById('entregaCostoP').value=v.costo_producto||'';
+    document.getElementById('entregaCostoF').value=v.costo_flete||'';
+    calcEntregaGanancia(v.precio);
+    document.getElementById('overlayEntrega').classList.add('on');
+    // Listeners para recalcular ganancia en tiempo real
+    ['entregaCostoP','entregaCostoF'].forEach(fid=>{
+      document.getElementById(fid).oninput=()=>calcEntregaGanancia(v.precio);
+    });
+    return;
+  }
+  try{await sbFetch('/rest/v1/ventas?id=eq.'+id,'PATCH',{estado});cargarVentas()}catch(e){}
+}
+
+function calcEntregaGanancia(precio){
+  const cp=parseFloat(document.getElementById('entregaCostoP').value)||0;
+  const cf=parseFloat(document.getElementById('entregaCostoF').value)||0;
+  const gan=(precio||0)-cp-cf;
+  const el=document.getElementById('entregaGananciaVal');
+  const wrap=document.getElementById('entregaGanancia');
+  if(precio){
+    wrap.style.display='block';
+    el.textContent='$'+gan.toLocaleString('es-AR');
+    el.style.color=gan>=0?'var(--green)':'var(--red)';
+  }
+}
+
+async function confirmarEntrega(){
+  if(!entregaId)return;
+  const cp=parseFloat(document.getElementById('entregaCostoP').value)||null;
+  const cf=parseFloat(document.getElementById('entregaCostoF').value)||null;
+  try{
+    await sbFetch('/rest/v1/ventas?id=eq.'+entregaId,'PATCH',{
+      estado:'Entregado',
+      costo_producto:cp,
+      costo_flete:cf
+    });
+    cerrarEntrega();
+    cargarVentas();
+    toast('Entregado ✔ Costos actualizados');
+  }catch(e){toast('Error: '+e.message)}
+}
+
+function cerrarEntrega(){
+  document.getElementById('overlayEntrega').classList.remove('on');
+  entregaId=null;
 }
 
 /* ── NAVEGACIÓN ──────────────────────────────────────────── */
@@ -1411,13 +1488,19 @@ function sugerirParadas(id){
 
   // Calcular km actual del viaje
   const kmActual=calcKm(enViaje);
+  const LIMITE_KM=200;
 
-  // Para cada disponible, calcular cuánto agrega a la ruta
+  // Para cada disponible, calcular cuánto agrega a la ruta — solo mostrar los que desvían menos de 200km
   const sugerencias=disponibles.map(v=>{
     const kmCon=calcKm([...enViaje,v]);
     const desvio=Math.round(kmCon-kmActual);
     return{v,desvio};
-  }).sort((a,b)=>a.desvio-b.desvio).slice(0,3);
+  }).filter(s=>s.desvio<=LIMITE_KM).sort((a,b)=>a.desvio-b.desvio).slice(0,5);
+
+  if(!sugerencias.length){
+    toast('No hay clientes a menos de 200 km de desvío');
+    return;
+  }
 
   // Mostrar modal de sugerencias
   const html=sugerencias.map(({v,desvio})=>`
