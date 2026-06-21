@@ -1165,9 +1165,8 @@ function limpiarModal(){
     if(pw){pw.innerHTML='';agregarLineaProducto();}
   }catch(e){console.error('limpiarModal productos:',e)}
   document.getElementById('fCli').style.borderColor='';
-  document.getElementById('fProd').value='a';
   document.getElementById('fEstado').value='Confirmado';
-  cargarTons('');modalLat=null;modalLng=null;
+  modalLat=null;modalLng=null;
   if(gMkModal){gMkModal.setMap(null);gMkModal=null}
 }
 function abrirNueva(){
@@ -1846,7 +1845,12 @@ function buildContexto(){
       `${v.cliente} - ${v.producto==='a'?'Silo':'Autocons'} ${v.modelo||''} - $${Math.round((v.precio||0)/1000)}k - ${v.estado}`
     ).join('; ');
     const viajesStr=viajes.filter(v=>v.pedidoIds.length>0)
-      .map(v=>`${v.nombre}: ${v.pedidoIds.length} paradas`).join('; ');
+      .map(v=>{
+        const f=v.fecha?new Date(v.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'}):'sin fecha';
+        const peds=ventas.filter(x=>v.pedidoIds.includes(x.id));
+        const dest=peds.map(p=>ciudad(p.localidad)).filter(Boolean).join(', ');
+        return `${v.nombre} (${f}): ${v.pedidoIds.length} paradas${dest?' → '+dest:''}${v._kmReal?' '+v._kmReal+'km':''}`;
+      }).join('; ');
     return `Sos el asistente de Metalúrgica Remeco, empresa argentina de silos y comederos en Colonia Menonita, La Pampa. Respondé en español rioplatense, breve y directo.
 
 DATOS:
