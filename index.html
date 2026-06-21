@@ -661,6 +661,19 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 
 <!-- ── FLETES PÚBLICOS ───────────────────────────────────────── -->
 <div class="page" id="page-publico">
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+    <!-- Mapa de vista previa -->
+    <div id="mapPublico" style="height:0;transition:height .3s;flex-shrink:0"></div>
+    <!-- Panel info del viaje seleccionado -->
+    <div id="pubViajeSelInfo" style="display:none;background:#0d1e30;border-bottom:1px solid var(--blue);padding:10px 14px;flex-shrink:0">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div id="pubViajeNombre" style="font-weight:800;font-size:.85rem;color:var(--blue)"></div>
+          <div id="pubViajeMeta" style="font-size:.7rem;color:var(--text3);margin-top:2px"></div>
+        </div>
+        <button onclick="cerrarMapaPublico()" style="background:none;border:1px solid var(--border2);color:var(--text3);border-radius:6px;padding:4px 9px;font-size:.72rem;cursor:pointer">✕ Cerrar</button>
+      </div>
+    </div>
   <div style="flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch">
     <div style="margin-bottom:20px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -673,6 +686,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div style="font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--blue);margin-bottom:10px">🌐 Viajes de otros vendedores</div>
       <div id="otrosViajesPublic"></div>
     </div>
+  </div>
   </div>
 </div>
 
@@ -1530,6 +1544,83 @@ function optimizarViaje(id){
   });
 }
 /* ── PÁGINA FLETES PÚBLICOS ──────────────────────────────── */
+let gMapPub=null,gDirPub=null,gMkPub=[];
+
+function initMapPublico(){
+  if(gMapPub||!window.google)return;
+  gMapPub=new google.maps.Map(document.getElementById('mapPublico'),{
+    ...MBASE,center:{lat:FLT,lng:FLN},zoom:6
+  });
+  fabMk(gMapPub);
+  gDirPub=new google.maps.DirectionsRenderer({
+    polylineOptions:{strokeColor:'#5ab8ff',strokeWeight:5,strokeOpacity:.95},
+    suppressMarkers:true,map:gMapPub
+  });
+}
+
+async function verRutaPublica(viajeRow){
+  // Traer las ventas del viaje (son de otro usuario — solo lat/lng/nombre desde el viaje)
+  const peds=typeof viajeRow.pedido_ids==='string'?JSON.parse(viajeRow.pedido_ids||'[]'):(viajeRow.pedido_ids||[]);
+  if(!peds.length){toast('Este viaje no tiene paradas');return}
+
+  // Expandir mapa
+  const mapEl=document.getElementById('mapPublico');
+  mapEl.style.height='280px';
+  document.getElementById('pubViajeSelInfo').style.display='block';
+  document.getElementById('pubViajeNombre').textContent='🚛 '+viajeRow.nombre;
+  const f=viajeRow.fecha?new Date(viajeRow.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'long'}):'Sin fecha';
+  document.getElementById('pubViajeMeta').textContent=`${viajeRow.owner_nombre||'Vendedor'} · ${f} · ${peds.length} paradas${viajeRow.km_real?' · '+viajeRow.km_real+'km reales':''}`;
+
+  initMapPublico();
+  if(!gMapPub||!window.google)return;
+
+  // Traer coordenadas desde Supabase (ventas del otro usuario)
+  try{
+    const ventasViaje=await sbFetch('/rest/v1/ventas?select=id,cliente,localidad,lat,lng,producto,modelo&id=in.('+peds.join(',')+')');
+    const conCoords=ventasViaje.filter(v=>v.lat&&v.lng);
+    if(!conCoords.length){toast('Las paradas no tienen coordenadas');return}
+
+    // Limpiar marcadores
+    gMkPub.forEach(m=>m.setMap(null));gMkPub=[];
+
+    conCoords.forEach((v,i)=>{
+      const m=new google.maps.Marker({
+        position:{lat:v.lat,lng:v.lng},map:gMapPub,
+        label:{text:String(i+1),color:'#fff',fontWeight:'bold'},
+        title:v.cliente,zIndex:50
+      });
+      const iw=new google.maps.InfoWindow({content:`<b>${v.cliente}</b><br>${ciudad(v.localidad)||''}`});
+      m.addListener('click',()=>iw.open(gMapPub,m));
+      gMkPub.push(m);
+    });
+
+    // Dibujar ruta real
+    const last=conCoords[conCoords.length-1];
+    if(!gDir)gDir=new google.maps.DirectionsService();
+    gDir.route({
+      origin:{lat:FLT,lng:FLN},
+      destination:{lat:last.lat,lng:last.lng},
+      waypoints:conCoords.slice(0,-1).map(v=>({location:{lat:v.lat,lng:v.lng},stopover:true})),
+      travelMode:google.maps.TravelMode.DRIVING
+    },(result,status)=>{
+      if(status==='OK'){
+        gDirPub.setDirections(result);
+        const b=new google.maps.LatLngBounds();
+        b.extend({lat:FLT,lng:FLN});
+        conCoords.forEach(v=>b.extend({lat:v.lat,lng:v.lng}));
+        gMapPub.fitBounds(b);
+      }
+    });
+  }catch(e){toast('Error cargando ruta: '+e.message)}
+}
+
+function cerrarMapaPublico(){
+  document.getElementById('mapPublico').style.height='0';
+  document.getElementById('pubViajeSelInfo').style.display='none';
+  if(gDirPub)gDirPub.setDirections({routes:[]});
+  gMkPub.forEach(m=>m.setMap(null));gMkPub=[];
+}
+
 async function renderPaginaPublico(){
   // Mis viajes publicados
   const misPublic=viajes.filter(v=>v.publico&&v.pedidoIds.length>0);
@@ -1569,12 +1660,15 @@ async function renderPaginaPublico(){
       const f=r.fecha?new Date(r.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'Sin fecha';
       const vendedorVentas=ventas; // solo tenemos nuestras ventas
       const misVentasCercanas=ventas.filter(v=>v.estado!=='Entregado'&&v.lat&&v.lng&&!viajes.some(vj=>vj.pedidoIds.includes(v.id)));
+      const rStr=JSON.stringify(r);
       return `<div style="background:var(--bg2);border:1px solid var(--blue);border-radius:10px;padding:12px 14px;margin-bottom:8px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <div style="font-weight:800;font-size:.85rem;color:var(--blue)">🚛 ${r.nombre}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;cursor:pointer" onclick='verRutaPublica(${rStr})'>
+          <div>
+            <div style="font-weight:800;font-size:.85rem;color:var(--blue)">🚛 ${r.nombre} <span style="font-size:.65rem;color:var(--text3)">📍 ver ruta</span></div>
+            <div style="font-size:.72rem;color:var(--text2)">📅 ${f}${r.km_real?' · '+r.km_real+'km reales':''} · ${peds.length} parada${peds.length!==1?'s':''}</div>
+          </div>
           <span style="font-size:.62rem;background:#0d2e4a;color:var(--blue);padding:2px 8px;border-radius:10px;font-weight:700">${r.owner_nombre||'Vendedor'}</span>
         </div>
-        <div style="font-size:.72rem;color:var(--text2)">📅 ${f}${r.km_real?' · '+r.km_real+'km reales':''} · ${peds.length} parada${peds.length!==1?'s':''}</div>
         ${misVentasCercanas.length?`
         <div style="margin-top:10px;padding:9px;background:var(--bg3);border-radius:7px;border:1px solid var(--border2)">
           <div style="font-size:.66rem;color:var(--text3);margin-bottom:6px;font-weight:700">TUS CLIENTES DISPONIBLES PARA SUMAR:</div>
