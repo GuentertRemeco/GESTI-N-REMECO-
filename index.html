@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a1018">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Remeco">
 <title>Remeco – Gestión</title>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCfazpbJrCmanf7yNvFo9e68l2DvdNX7lg&libraries=places&callback=initGoogle" async defer></script>
 <style>
@@ -17,7 +21,6 @@
   --nav-h:52px;--bnav-h:64px;
   --radius:10px;--radius-sm:6px;
 }
-html,body{height:100%;height:100dvh}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);
      height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 
@@ -37,8 +40,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
 
 /* ─── PAGES ────────────────────────────────────────────────────── */
-.page{display:none;flex:1;overflow:hidden;flex-direction:column;min-height:0;width:100%;height:0}
-.page.on{display:flex;flex:1;min-height:0;width:100%;height:100%}
+.page{display:none;flex:1;overflow:hidden;flex-direction:column;min-height:0}
+.page.on{display:flex}
 
 /* ─── BOTTOM NAV (mobile) ──────────────────────────────────────── */
 .bnav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--bnav-h);
@@ -57,9 +60,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 /* ─── INICIO ───────────────────────────────────────────────────── */
 .inicio-wrap{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
 .inicio-header{margin-bottom:18px}
-.inicio-titulo{font-size:1.5rem;font-weight:900;color:var(--gold);margin-top:2px;line-height:1.2}
-.inicio-sub{font-size:.72rem;color:var(--text3);text-transform:capitalize}
-.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.inicio-titulo{font-size:1.35rem;font-weight:900;color:var(--gold)}
+.inicio-sub{font-size:.78rem;color:var(--text3);margin-top:3px}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
 .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
            padding:13px;cursor:pointer;transition:border-color .15s,transform .1s}
 .stat-card:active{transform:scale(.97)}
@@ -311,21 +314,16 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   .vbar-top{margin-bottom:6px}
 
   /* flete y simular: apilar */
-  .flete-wrap{flex-direction:column}
-  .simular-wrap{flex-direction:column-reverse}
-  .flete-panel{width:100%;max-height:55vh;border-left:none;border-bottom:1px solid var(--border);overflow-y:auto}
-  .sim-panel{width:100%;max-height:50vh;border-left:none;border-top:1px solid var(--border)}
-  #mapFlete{flex:1;min-height:200px}
-  #mapSimular{flex:1;min-height:180px}
+  .flete-wrap,.simular-wrap{flex-direction:column-reverse}
+  .flete-panel,.sim-panel{width:100%;max-height:50vh;border-left:none;border-top:1px solid var(--border)}
+  #mapFlete,#mapSimular{flex:1;min-height:180px}
 
   /* clientes: scroll horizontal */
   .cli-wrap{flex-direction:column}
-  .cli-list{width:100%;max-height:40vh;border-right:none;border-bottom:1px solid var(--border);
-            overflow-y:auto;overflow-x:hidden;display:block}
-  .cli-item{min-width:unset;border-bottom:1px solid #1a2a3a;border-right:none;flex-shrink:unset;
-            display:flex;align-items:center;gap:10px;padding:10px 14px}
-  .cli-item.sel{border-right:none;border-left:3px solid var(--gold);background:#1e3245}
-  .cli-detail{padding:12px;flex:1;overflow-y:auto}
+  .cli-list{width:100%;max-height:36vh;border-right:none;border-bottom:1px solid var(--border);
+            display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden}
+  .cli-item{min-width:150px;border-bottom:none;border-right:1px solid #1a2a3a;flex-shrink:0}
+  .cli-detail{padding:12px}
 
   /* stats grid 2 col */
   .stats-grid{grid-template-columns:repeat(2,1fr)}
@@ -344,162 +342,139 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   .vtable-wrap{display:block}
 }
 
-/* ── CHAT IA ─────────────────────────────────────────────── */
-.chat-fab{position:fixed;bottom:calc(var(--bnav-h) + 14px);right:16px;
-          width:50px;height:50px;border-radius:50%;background:var(--gold);
-          color:#111820;font-size:1.4rem;display:flex;align-items:center;
-          justify-content:center;cursor:pointer;border:none;
-          box-shadow:0 4px 20px rgba(201,168,64,.45);z-index:800;
-          transition:transform .2s}
-.chat-fab:hover{transform:scale(1.08)}
-.chat-fab.has-notif::after{content:'';position:absolute;top:4px;right:4px;
-  width:10px;height:10px;border-radius:50%;background:var(--red);border:2px solid var(--bg)}
-.chat-panel{position:fixed;bottom:calc(var(--bnav-h) + 74px);right:12px;
-            width:340px;max-width:calc(100vw - 24px);height:500px;max-height:60vh;
-            background:#15202e;border:1px solid var(--gold);border-radius:16px;
-            display:flex;flex-direction:column;z-index:1500;
-            box-shadow:0 8px 40px rgba(0,0,0,.6);
-            transform:scale(.95) translateY(10px);opacity:0;
-            pointer-events:none;transition:all .2s ease}
-.chat-panel.on{transform:scale(1) translateY(0);opacity:1;pointer-events:all}
-.chat-header{padding:12px 14px;border-bottom:1px solid var(--border);
-             display:flex;align-items:center;gap:9px;flex-shrink:0}
-.chat-avatar{width:32px;height:32px;border-radius:50%;background:var(--gold);
-             display:flex;align-items:center;justify-content:center;
-             font-size:1rem;flex-shrink:0}
-.chat-title{flex:1;min-width:0}
-.chat-title-name{font-weight:800;font-size:.83rem;color:var(--gold)}
-.chat-title-sub{font-size:.65rem;color:var(--text3);margin-top:1px}
-.chat-close{background:none;border:none;color:var(--text3);font-size:1rem;
-            cursor:pointer;padding:4px;border-radius:4px}
-.chat-close:hover{color:var(--text);background:var(--border)}
-.chat-msgs{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;
-           -webkit-overflow-scrolling:touch}
-.chat-msg{max-width:88%;padding:8px 11px;border-radius:12px;font-size:.78rem;line-height:1.45;word-break:break-word}
-.chat-msg.user{background:var(--gold);color:#111820;align-self:flex-end;border-radius:12px 12px 3px 12px;font-weight:600}
-.chat-msg.ai{background:var(--bg3);color:var(--text);align-self:flex-start;border-radius:12px 12px 12px 3px;border:1px solid var(--border)}
-.chat-msg.ai.loading{color:var(--text3);font-style:italic}
-.chat-sugs{display:flex;flex-wrap:wrap;gap:5px;padding:0 10px 8px;flex-shrink:0}
-.chat-sug{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);
-          border-radius:20px;padding:4px 10px;font-size:.68rem;cursor:pointer;
-          font-family:inherit;transition:all .15s;white-space:nowrap}
-.chat-sug:hover{border-color:var(--gold);color:var(--gold)}
-.chat-input-wrap{padding:8px 10px;border-top:1px solid var(--border);display:flex;gap:7px;flex-shrink:0}
-.chat-input{flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text);
-            border-radius:8px;padding:8px 11px;font-size:.8rem;font-family:inherit;resize:none;
-            max-height:80px;min-height:36px}
-.chat-input:focus{outline:none;border-color:var(--gold)}
-.chat-send{background:var(--gold);color:#111820;border:none;border-radius:8px;
-           padding:8px 12px;font-size:.85rem;cursor:pointer;flex-shrink:0;font-weight:700}
-.chat-send:hover{background:var(--gold2)}
-.chat-send:disabled{opacity:.4;cursor:not-allowed}
+/* ─── MEJORAS MOBILE ───────────────────────────────────────── */
+
+/* 1. Prevenir zoom en iOS al tocar inputs (requiere 16px mínimo) */
 @media(max-width:768px){
-  .chat-fab{bottom:calc(var(--bnav-h) + 14px);right:12px}
-  .chat-panel{bottom:calc(var(--bnav-h) + 70px);left:8px;right:8px;width:auto;height:55vh}
+  input,select,textarea{font-size:16px!important}
 }
 
-/* ─── LOGIN ────────────────────────────────────────────────────── */
-.login-screen{position:fixed;inset:0;background:var(--bg);z-index:9000;
-              display:none;align-items:center;justify-content:center;padding:20px}
-.login-screen.visible{display:flex}
-.login-screen.hidden{display:none!important}
-.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;
-           padding:32px 28px;width:100%;max-width:380px}
-.login-logo{text-align:center;margin-bottom:28px}
-.login-logo-text{font-size:1.6rem;font-weight:900;color:var(--gold);letter-spacing:3px;text-transform:uppercase}
-.login-logo-sub{font-size:.75rem;color:var(--text3);margin-top:4px;letter-spacing:1px}
-.login-tabs{display:flex;gap:0;margin-bottom:24px;background:var(--bg3);border-radius:8px;padding:3px}
-.login-tab{flex:1;background:none;border:none;color:var(--text3);font-size:.8rem;font-weight:700;
-           padding:8px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .15s}
-.login-tab.on{background:var(--gold);color:#111820}
-.login-fg{margin-bottom:14px}
-.login-fg label{display:block;font-size:.65rem;color:var(--text2);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-.login-fg input{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);
-                border-radius:8px;padding:10px 13px;font-size:.9rem;font-family:inherit;transition:border-color .15s}
-.login-fg input:focus{outline:none;border-color:var(--gold)}
-.login-btn{width:100%;background:var(--gold);color:#111820;border:none;border-radius:8px;
-           padding:12px;font-size:.9rem;font-weight:800;cursor:pointer;font-family:inherit;
-           margin-top:8px;transition:all .15s}
-.login-btn:hover{background:var(--gold2)}
-.login-btn:disabled{opacity:.5;cursor:not-allowed}
-.login-err{background:#2a1010;border:1px solid var(--red);color:var(--red);border-radius:7px;
-           padding:9px 12px;font-size:.76rem;margin-bottom:12px;display:none}
-.login-err.on{display:block}
-.login-nombre-fg{display:none}
-.login-nombre-fg.on{display:block}
-
-/* ─── USER BADGE (nav) ─────────────────────────────────────────── */
-.user-badge{display:flex;align-items:center;gap:7px;background:var(--bg3);
-            border:1px solid var(--border2);border-radius:8px;padding:5px 10px;cursor:pointer;
-            transition:border-color .15s;flex-shrink:0}
-.user-badge:hover{border-color:var(--gold)}
-.user-avatar{width:26px;height:26px;border-radius:50%;background:var(--gold);
-             color:#111820;font-size:.75rem;font-weight:900;display:flex;align-items:center;justify-content:center}
-.user-name{font-size:.72rem;font-weight:700;color:var(--text2);max-width:100px;
-           overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.user-menu{position:absolute;top:calc(var(--nav-h) + 4px);right:12px;
-           background:var(--bg2);border:1px solid var(--border);border-radius:10px;
-           padding:6px;z-index:2000;min-width:180px;box-shadow:0 8px 30px rgba(0,0,0,.5);
-           display:none}
-.user-menu.on{display:block}
-.user-menu-item{padding:9px 12px;border-radius:7px;cursor:pointer;font-size:.8rem;
-                color:var(--text);transition:background .15s;display:flex;align-items:center;gap:8px}
-.user-menu-item:hover{background:var(--bg3)}
-.user-menu-item.danger{color:var(--red)}
-.user-menu-sep{height:1px;background:var(--border);margin:4px 0}
-
-/* ─── VIAJES PÚBLICOS ──────────────────────────────────────────── */
-.viajes-pub-section{padding:8px 7px;border-top:1px solid var(--border)}
-.viajes-pub-title{font-size:.62rem;font-weight:800;text-transform:uppercase;
-                  letter-spacing:1.5px;color:var(--blue);margin-bottom:7px;
-                  display:flex;align-items:center;gap:6px}
-.viaje-pub-card{background:#0d1e30;border:1px solid #1e3a5a;border-radius:9px;
-                margin-bottom:7px;overflow:hidden}
-.viaje-pub-header{padding:8px 11px;display:flex;align-items:center;gap:7px}
-.viaje-pub-badge{font-size:.58rem;font-weight:800;background:#0d2e4a;color:var(--blue);
-                 padding:2px 7px;border-radius:10px;white-space:nowrap}
-.viaje-pub-info{flex:1;min-width:0}
-.viaje-pub-nombre{font-weight:800;font-size:.82rem;color:var(--blue)}
-.viaje-pub-meta{font-size:.63rem;color:var(--text3);margin-top:1px}
-.viaje-pub-body{padding:6px 11px 9px}
-.viaje-pub-parada{font-size:.72rem;color:var(--text2);padding:2px 0}
-.btn-sumar{background:#0d2e4a;border:1px solid var(--blue);color:var(--blue);
-           border-radius:6px;padding:6px 12px;font-size:.74rem;font-weight:700;
-           cursor:pointer;font-family:inherit;transition:all .15s;width:100%;margin-top:7px}
-.btn-sumar:hover{background:var(--blue);color:#0a1018}
-.btn-publicar{background:#1a2c40;border:1px solid var(--blue);color:var(--blue);
-              padding:3px 8px;font-size:.65rem;border-radius:4px;cursor:pointer;
-              transition:all .15s;font-family:inherit}
-.btn-publicar:hover{background:var(--blue);color:#0a1018}
-.btn-publicar.on{background:var(--blue);color:#0a1018}
-
+/* 2. Modal como bottom sheet en mobile */
+@keyframes slideUpSheet{
+  from{transform:translateY(50%);opacity:0}
+  to{transform:translateY(0);opacity:1}
+}
 @media(max-width:768px){
-  .cli-wrap{position:relative}
-  .cli-detail-full{position:fixed;inset:0;background:var(--bg);z-index:700;
-                   overflow-y:auto;padding:0;display:none;flex-direction:column;
-                   padding-bottom:var(--bnav-h)}
-  .cli-detail-full.on{display:flex}
-  .cli-detail-header{background:var(--bg4);border-bottom:1px solid var(--border);
-                     padding:12px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
-  .cli-back-btn{background:none;border:1px solid var(--border2);color:var(--text2);
-                border-radius:7px;padding:6px 12px;font-size:.78rem;cursor:pointer;font-family:inherit}
-  .cli-back-btn:hover{border-color:var(--gold);color:var(--gold)}
-  .cli-detail-title{font-weight:800;font-size:.95rem;color:var(--gold)}
-  .cli-detail-body{flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch}
-}
-@media(min-width:769px){
-  .cli-detail-full{display:none!important}
+  .overlay{align-items:flex-end;padding:0}
+  .modal{
+    border-radius:20px 20px 0 0;
+    max-height:92vh;
+    padding:8px 16px 24px;
+    animation:slideUpSheet .28s cubic-bezier(.32,.72,0,1)
+  }
+  .modal::before{
+    content:'';display:block;width:44px;height:4px;
+    background:var(--border2);border-radius:2px;margin:0 auto 14px
+  }
+  .modal h2{font-size:.85rem;margin-bottom:10px}
+  .modal-sm{
+    border-radius:20px 20px 0 0;
+    max-height:82vh;width:100%;max-width:100%;
+    padding:8px 18px 28px;
+    animation:slideUpSheet .25s cubic-bezier(.32,.72,0,1)
+  }
+  .modal-sm::before{
+    content:'';display:block;width:44px;height:4px;
+    background:var(--border2);border-radius:2px;margin:0 auto 14px
+  }
 }
 
-/* ─── BATERÍA CAMIÓN ───────────────────────────────────────────── */
-.bateria-wrap{display:flex;align-items:center;gap:5px;margin-top:5px}
-.bateria-label{font-size:.6rem;color:var(--text3);white-space:nowrap}
-.bateria-outer{flex:1;height:8px;background:var(--bg3);border-radius:4px;
-               border:1px solid var(--border2);overflow:hidden;position:relative}
-.bateria-inner{height:100%;border-radius:3px;transition:width .4s ease,background .3s}
-.bateria-tip{width:4px;height:12px;background:var(--border2);border-radius:0 2px 2px 0;
-             margin-left:1px;flex-shrink:0}
-.bateria-pct{font-size:.6rem;font-weight:800;white-space:nowrap;min-width:28px;text-align:right}
+/* 3. Bottom nav más cómodo */
+@media(max-width:768px){
+  :root{--bnav-h:66px}
+  .bnav{height:66px}
+  .bnav-item{padding:10px 2px 8px;gap:4px}
+  .bnav-icon{font-size:1.45rem}
+  .bnav-label{font-size:.6rem;font-weight:800;letter-spacing:.2px}
+}
+
+/* 4. Touch targets más grandes (mínimo 44px Apple HIG) */
+@media(max-width:768px){
+  .chip{padding:9px 15px;font-size:.74rem;min-height:38px}
+  .vcard-btn{padding:9px 14px;font-size:.76rem;min-height:40px}
+  .vp-del,.sim-del{padding:9px;font-size:1rem;min-width:40px;min-height:40px;display:flex;align-items:center;justify-content:center}
+  .pd-item{padding:11px 13px;min-height:48px}
+  .vp-item{padding:10px 11px;margin-bottom:6px}
+  .stat-card{padding:14px 12px}
+  .pendiente-card{padding:14px 15px;min-height:58px}
+  .viaje-prox{padding:14px 15px}
+  .cli-item{padding:13px 15px;min-height:54px}
+  .viaje-collapse{padding:8px 10px;font-size:1rem}
+  .vbtn{padding:8px 12px;font-size:.72rem}
+}
+
+/* 5. Formularios más cómodos en mobile */
+@media(max-width:768px){
+  .fg{margin-bottom:12px}
+  .fg input,.fg select,.fg textarea{padding:12px 13px;border-radius:10px}
+  .fg label{font-size:.7rem;margin-bottom:5px}
+  .mmap{height:200px;border-radius:12px}
+  .mact{gap:10px;margin-top:14px}
+  .mact button{flex:1;padding:13px;font-size:.88rem}
+  .mmhint{font-size:.72rem;margin-bottom:6px}
+}
+
+/* 6. Alturas de mapa en mobile */
+@media(max-width:768px){
+  #mapFlete{min-height:260px}
+  #mapSimular{min-height:220px}
+  .flete-panel{max-height:58vh}
+  .sim-panel{max-height:52vh}
+}
+
+/* 7. Feedback visual al tocar */
+@media(max-width:768px){
+  .pendiente-card:active{transform:scale(.98);background:var(--bg3)}
+  .viaje-prox:active{transform:scale(.98);background:var(--bg3)}
+  .chip:active{transform:scale(.94)}
+  .stat-card:active{transform:scale(.96)}
+  .bnav-item:active{opacity:.6}
+  .vcard-btn:active{background:var(--border2)}
+  .pd-item:active{background:var(--bg3)}
+}
+
+/* 8. Scroll sin rebote indeseado */
+.inicio-wrap,.vcards-wrap,.fp-body,.sim-body,
+.cli-list,.cli-detail,.cli-detail-body,.chat-msgs,
+.pedidos-disponibles{overscroll-behavior:contain}
+
+/* 9. Búsqueda en mobile */
+@media(max-width:768px){
+  .search-wrap input{padding:11px 40px 11px 38px}
+  .vbar{padding:10px 12px}
+  .vbar-chips{padding-bottom:4px;gap:6px}
+}
+
+/* 10. Login en mobile */
+@media(max-width:768px){
+  .login-box{padding:28px 20px;border-radius:20px 20px 0 0;position:fixed;bottom:0;left:0;right:0;max-width:100%}
+  .login-screen{align-items:flex-end;padding:0}
+  .login-btn{padding:14px;font-size:.95rem}
+}
+
+/* 11. Chat en mobile más cómodo */
+@media(max-width:768px){
+  .chat-panel{border-radius:20px;left:10px;right:10px;width:auto;height:58vh}
+  .chat-msg{font-size:.82rem;line-height:1.5}
+  .chat-input{font-size:16px}
+  .chat-send{min-width:44px;min-height:44px}
+  .chat-fab{width:54px;height:54px;font-size:1.5rem}
+}
+
+/* 12. Inicio en mobile */
+@media(max-width:768px){
+  .inicio-wrap{padding:14px 12px 20px}
+  .inicio-titulo{font-size:1.25rem}
+  .inicio-sub{font-size:.75rem}
+  .stats-grid{gap:8px}
+}
+
+/* 13. Cliente detail en mobile */
+@media(max-width:768px){
+  .cd-stats{gap:8px}
+  .cd-stat{padding:10px 13px;flex:1;min-width:unset}
+  .cd-vrow{padding:11px 13px}
+}
 </style>
 </head>
 <body>
@@ -512,13 +487,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <button class="ntab" onclick="ir('mapa')">🗺️ Mapa</button>
   <button class="ntab" onclick="ir('flete')">🚛 Flete</button>
   <button class="ntab" onclick="ir('simular')">🧮 Simular</button>
-  <button class="ntab" onclick="ir('publico')">🌐 Fletes</button>
   <button class="ntab" onclick="ir('clientes')">👤 Clientes</button>
   <div class="nav-right">
-    <div class="user-badge" onclick="toggleUserMenu()">
-      <div class="user-avatar" id="userAvatar">?</div>
-      <span class="user-name" id="userNameText">Usuario</span>
-    </div>
     <button class="bg" onclick="abrirNueva()" style="padding:6px 13px;font-size:.75rem">+ Nueva venta</button>
   </div>
 </nav>
@@ -540,40 +510,18 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <button class="bnav-item" id="bn-mas" onclick="ir('simular')">
     <span class="bnav-icon">🧮</span><span class="bnav-label">Simular</span>
   </button>
-  <button class="bnav-item" id="bn-publico" onclick="ir('publico')">
-    <span class="bnav-icon">🌐</span><span class="bnav-label">Fletes</span>
-  </button>
 </nav>
 
 <!-- ── INICIO ─────────────────────────────────────────────────── -->
 <div class="page on" id="page-inicio">
   <div class="inicio-wrap">
     <div class="inicio-header">
-      <div class="inicio-sub" id="inicioFecha"></div>
       <div class="inicio-titulo" id="inicioBienvenida">Remeco Gestión</div>
-      <div style="font-size:.75rem;color:var(--text3);margin-top:2px">Metalúrgica Remeco · Colonia Menonita</div>
+      <div class="inicio-sub" id="inicioFecha"></div>
     </div>
     <div class="stats-grid" id="statsGrid"></div>
-    <!-- ACCIONES RÁPIDAS -->
     <div style="margin-bottom:20px">
-      <div class="inicio-stitle">Acciones rápidas</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-        <button onclick="abrirNueva()" style="background:var(--gold);color:#111820;border:none;border-radius:10px;padding:14px 8px;font-family:inherit;cursor:pointer;font-size:.72rem;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .15s" onmouseover="this.style.background='var(--gold2)'" onmouseout="this.style.background='var(--gold)'">
-          <span style="font-size:1.3rem">➕</span>Nueva venta
-        </button>
-        <button onclick="ir('flete')" style="background:var(--bg2);border:1px solid var(--border);color:var(--text2);border-radius:10px;padding:14px 8px;font-family:inherit;cursor:pointer;font-size:.72rem;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
-          <span style="font-size:1.3rem">🚛</span>Nuevo flete
-        </button>
-        <button onclick="ir('simular')" style="background:var(--bg2);border:1px solid var(--border);color:var(--text2);border-radius:10px;padding:14px 8px;font-family:inherit;cursor:pointer;font-size:.72rem;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
-          <span style="font-size:1.3rem">🧮</span>Simular ruta
-        </button>
-      </div>
-    </div>
-    <div style="margin-bottom:20px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
-        <div class="inicio-stitle" style="margin-bottom:0">Pedidos pendientes</div>
-        <button onclick="ir('ventas')" style="background:none;border:none;color:var(--text3);font-size:.7rem;cursor:pointer;font-family:inherit">Ver todos →</button>
-      </div>
+      <div class="inicio-stitle">Pedidos pendientes</div>
       <div id="pendientesList"></div>
     </div>
     <div>
@@ -582,19 +530,22 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     </div>
     <!-- FAB móvil -->
     <button class="bg" onclick="abrirNueva()"
-      style="position:fixed;bottom:calc(var(--bnav-h) + 14px);left:16px;
+      style="position:fixed;bottom:calc(var(--bnav-h) + 14px);right:16px;
              border-radius:50px;padding:12px 20px;font-size:.82rem;
              box-shadow:0 4px 20px rgba(201,168,64,.35);z-index:800;
-             display:none;align-items:center;gap:6px" id="fabBtn">
-      ✚ Nueva venta
+             display:none" id="fabBtn">
+      + Nueva
     </button>
-  <!-- ── VENTAS ─────────────────────────────────────────────────── -->
+  </div>
+</div>
+
+<!-- ── VENTAS ─────────────────────────────────────────────────── -->
 <div class="page" id="page-ventas">
   <div class="vbar">
     <div class="vbar-top">
       <div class="search-wrap">
         <span class="search-icon">🔍</span>
-        <input id="buscar" placeholder="Buscar cliente, localidad..." oninput="onSearch(this)"/>
+        <input id="buscar" placeholder="Buscar cliente, localidad..." oninput="onSearch(this)" enterkeyhint="search" autocomplete="off"/>
         <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
       </div>
       <button class="bg" onclick="abrirNueva()" style="padding:7px 12px;font-size:.75rem;white-space:nowrap;flex-shrink:0">+ Nueva</button>
@@ -701,60 +652,6 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   </div>
 </div>
 
-<!-- ── FLETES PÚBLICOS ───────────────────────────────────────── -->
-<div class="page" id="page-publico">
-  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
-    <!-- Mapa de vista previa -->
-    <div id="mapPublico" style="height:0;transition:height .3s;flex-shrink:0"></div>
-    <!-- Panel info del viaje seleccionado -->
-    <div id="pubViajeSelInfo" style="display:none;background:#0d1e30;border-bottom:1px solid var(--blue);padding:10px 14px;flex-shrink:0">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div id="pubViajeNombre" style="font-weight:800;font-size:.85rem;color:var(--blue)"></div>
-          <div id="pubViajeMeta" style="font-size:.7rem;color:var(--text3);margin-top:2px"></div>
-        </div>
-        <button onclick="cerrarMapaPublico()" style="background:none;border:1px solid var(--border2);color:var(--text3);border-radius:6px;padding:4px 9px;font-size:.72rem;cursor:pointer">✕ Cerrar</button>
-      </div>
-    </div>
-  <div style="flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch">
-    <div style="margin-bottom:20px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold)">Mis viajes publicados</div>
-        <button class="bg" style="padding:5px 11px;font-size:.72rem" onclick="ir('flete')">+ Crear viaje</button>
-      </div>
-      <div id="misViajesPublic"></div>
-    </div>
-    <div>
-      <div style="font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--blue);margin-bottom:10px">🌐 Viajes de otros vendedores</div>
-      <div id="otrosViajesPublic"></div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- ── DETALLE CLIENTE FULLSCREEN (mobile) ───────────────────── -->
-<div class="cli-detail-full" id="cliDetailFull">
-  <div class="cli-detail-header">
-    <button class="cli-back-btn" onclick="cerrarDetalleCli()">← Volver</button>
-    <div class="cli-detail-title" id="cliDetailFullTitle"></div>
-  </div>
-  <div class="cli-detail-body" id="cliDetailFullBody"></div>
-</div>
-
-<!-- ── MODAL CAPACIDAD CAMIÓN ────────────────────────────────── -->
-<div class="overlay" id="overlayCapacidad">
-  <div class="modal-sm" style="max-width:380px">
-    <h2 style="font-size:.88rem;color:var(--yellow);margin-bottom:8px">⚠️ Camión al límite</h2>
-    <p style="font-size:.76rem;color:var(--text2);margin-bottom:12px" id="capMsg"></p>
-    <div id="capConflictos" style="background:var(--bg3);border-radius:7px;padding:9px 12px;margin-bottom:14px;font-size:.73rem;color:var(--text3)"></div>
-    <p style="font-size:.72rem;color:var(--text3);margin-bottom:14px">¿El fletero confirmó que entra igual?</p>
-    <div class="mact">
-      <button class="bd" onclick="cerrarCapacidad()">Cancelar</button>
-      <button style="background:#3a2800;border:1px solid var(--yellow);color:var(--yellow);border-radius:7px;padding:8px 14px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit" onclick="forzarAgregado()">Agregar igual</button>
-    </div>
-  </div>
-</div>
-
 <!-- ── MODAL VENTA ────────────────────────────────────────────── -->
 <div class="overlay" id="overlay">
   <div class="modal">
@@ -767,15 +664,20 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div class="fg"><label>CUIT</label><input id="fCuit" placeholder="20-12345678-9"/></div>
       <div class="fg"><label>Zona de flete</label><input id="fZona" placeholder="Ej: Rosario"/></div>
     </div>
-    <!-- PRODUCTOS MÚLTIPLES -->
-    <div id="productosWrap"></div>
-    <button type="button" onclick="agregarLineaProducto()" style="width:100%;background:var(--bg3);border:1px dashed var(--border2);color:var(--text2);border-radius:7px;padding:7px;font-size:.76rem;margin-bottom:9px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'">+ Agregar producto</button>
     <div class="frow">
-      <div class="fg"><label>Precio venta (ARS)</label><input id="fPrecio" type="number" placeholder="0"/></div>
-      <div class="fg"><label>Costo producto (ARS)</label><input id="fCostoProducto" type="number" placeholder="0"/></div>
+      <div class="fg"><label>Producto *</label>
+        <select id="fProd" onchange="cargarTons('')">
+          <option value="a">Silo Aéreo</option><option value="c">Autoconsumo</option>
+        </select>
+      </div>
+      <div class="fg"><label>Tonelaje</label><select id="fMod"></select></div>
     </div>
     <div class="frow">
-      <div class="fg"><label>Costo flete (ARS)</label><input id="fCostoFlete" type="number" placeholder="0"/></div>
+      <div class="fg"><label>Precio venta (ARS)</label><input id="fPrecio" type="number" inputmode="decimal" placeholder="0"/></div>
+      <div class="fg"><label>Costo producto (ARS)</label><input id="fCostoProducto" type="number" inputmode="decimal" placeholder="0"/></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label>Costo flete (ARS)</label><input id="fCostoFlete" type="number" inputmode="decimal" placeholder="0"/></div>
       <div class="fg"><label>Estado</label>
         <select id="fEstado">
           <option>Confirmado</option><option>En producción</option>
@@ -797,27 +699,15 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   </div>
 </div>
 
-<!-- ── MODAL COSTOS ENTREGA ───────────────────────────────────── -->
-<div class="overlay" id="overlayEntrega">
-  <div class="modal-sm" style="max-width:400px">
-    <h2 style="font-size:.88rem;color:var(--gold);margin-bottom:4px">✔ Marcar como Entregado</h2>
-    <p style="font-size:.72rem;color:var(--text3);margin-bottom:14px">Ingresá los costos finales para calcular la ganancia real</p>
-    <div class="fg"><label>Cliente</label>
-      <div id="entregaCli" style="padding:8px 11px;background:var(--bg3);border-radius:6px;font-size:.83rem;font-weight:700;color:var(--gold)"></div>
-    </div>
-    <div class="fg"><label>Costo producción final (ARS)</label>
-      <input id="entregaCostoP" type="number" placeholder="0"/>
-    </div>
-    <div class="fg"><label>Costo flete final (ARS)</label>
-      <input id="entregaCostoF" type="number" placeholder="0"/>
-    </div>
-    <div id="entregaGanancia" style="background:var(--bg3);border-radius:8px;padding:11px 13px;margin:10px 0;display:none">
-      <div style="font-size:.66rem;color:var(--text3);margin-bottom:3px">GANANCIA ESTIMADA</div>
-      <div id="entregaGananciaVal" style="font-size:1.3rem;font-weight:900"></div>
-    </div>
+<!-- ── MODAL CAPACIDAD ──────────────────────────────────────── -->
+<div class="overlay" id="overlayCapacidad">
+  <div class="modal-sm" style="max-width:360px">
+    <h2 style="color:var(--yellow);font-size:.9rem;margin-bottom:10px">⚠️ Camión al límite</h2>
+    <div id="capMsg" style="font-size:.78rem;color:var(--text2);margin-bottom:12px;line-height:1.6"></div>
+    <p style="font-size:.72rem;color:var(--text3);margin-bottom:14px">¿El fletero confirmó que entra igual?</p>
     <div class="mact">
-      <button class="bd" onclick="cerrarEntrega()">Cancelar</button>
-      <button class="bg" onclick="confirmarEntrega()">Confirmar entrega</button>
+      <button class="bd" onclick="cerrarCapacidad()">Cancelar</button>
+      <button style="background:#3a2800;border:1px solid var(--yellow);color:var(--yellow);border-radius:7px;padding:8px 14px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit" onclick="forzarAgregado()">Agregar igual</button>
     </div>
   </div>
 </div>
@@ -844,7 +734,7 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const FLT=-37.574897,FLN=-63.842515,FACTOR=1.35;
 const TONS={
   a:['6TN','10TN','16TN','22TN','28TN','30TN','40TN','50TN','60TN','62TN','72TN','80TN','100TN','120TN','140TN','150TN','175TN','200TN'],
-  c:['2tn 12 bocas','2tn 18 bocas','4tn','7tn','7tn con Alero al medio','12tn','12tn con Alero al medio','12tn con Alero grande','12tn Cambio de base','18tn con Alero al medio','18tn con Alero grande','18tn Cambio de base']
+  c:['2TN','4TN','7TN','12TN','18TN']
 };
 const ESTADOS=['Confirmado','En producción','Listo para entregar','En camino','Entregado'];
 const ECLASES=['e0','e1','e2','e3','e4'];
@@ -858,11 +748,73 @@ let gDir=null,gDirRF=null,gDirRS=null;
 let gMkModal=null,modalLat=null,modalLng=null;
 let gMkV=[],gMkF=[];
 let simParadas=[];
-let viajes=[];
+let viajes=JSON.parse(localStorage.getItem('remeco_viajes')||'[]');
 let cliSel=null,acModal=null,acSim=null;
 let filtroEstado='',filtroProd='',sortKey='fecha_desc';
 
 /* ── SUPABASE ────────────────────────────────────────────── */
+
+/* ── CAPACIDAD CAMIÓN ───────────────────────────────────────── */
+const CAPACIDAD={
+  'a':{'6tn':8,'10tn':8,'16tn':6,'22tn':6,'28tn':6,'30tn':3,'40tn':3,'50tn':3,'60tn':3,'62tn':3,'72tn':3,'80tn':2,'100tn':2,'120tn':2,'140tn':2,'150tn':1,'175tn':1,'200tn':1},
+  'c':{'2tn12':20,'2tn18':20,'4tn':20,'7tn':8,'12tn':5,'12tnconalerogrande':5,'12tnconaleroalmedio':5,'12tncambiobase':5,'12tnbasedefibra':5,'18tn':5,'18tnconalerogrande':5,'18tnconaleroalmedio':5,'18tncambiobase':5,'18tnbasedefibra':5}
+};
+
+function normMod(s){return(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\s.,\-_]/g,'')}
+
+function getCapacidadMax(producto,modelo){
+  if(!modelo)return 99;
+  const m=normMod(modelo);
+  const tabla=CAPACIDAD[producto]||{};
+  for(const[key,max]of Object.entries(tabla)){if(m.startsWith(normMod(key)))return max;}
+  const tn=parseInt(m.match(/^(\d+)tn/)?.[1]||'0');
+  if(tn){for(const[key,max]of Object.entries(tabla)){if(parseInt(normMod(key).match(/^(\d+)tn/)?.[1]||'0')===tn)return max;}}
+  return 99;
+}
+
+function calcularOcupacion(viajeId){
+  const vj=viajes.find(x=>x.id===viajeId);if(!vj)return{detalle:{},totalUnidades:0};
+  const peds=ventas.filter(v=>vj.pedidoIds.includes(v.id));
+  const detalle={};let totalUnidades=0;
+  peds.forEach(v=>{
+    let prods=[];
+    try{const raw=v.productos;prods=raw?(typeof raw==='string'?JSON.parse(raw):raw):[{tipo:v.producto,mod:v.modelo,cant:v.cantidad||1}]}catch(e){prods=[{tipo:v.producto,mod:v.modelo,cant:1}]}
+    prods.forEach(p=>{
+      const key=p.tipo+'|'+(p.mod||'');
+      if(!detalle[key])detalle[key]={tipo:p.tipo,mod:p.mod,cant:0,max:getCapacidadMax(p.tipo,p.mod)};
+      detalle[key].cant+=(p.cant||1);totalUnidades+=(p.cant||1);
+    });
+  });
+  return{detalle,totalUnidades};
+}
+
+function verificarCapacidad(viajeId,ventaId){
+  const vj=viajes.find(x=>x.id===viajeId);if(!vj)return{ok:true};
+  const venta=ventas.find(v=>v.id===ventaId);if(!venta)return{ok:true};
+  let nuevosProds=[];
+  try{const raw=venta.productos;nuevosProds=raw?(typeof raw==='string'?JSON.parse(raw):raw):[{tipo:venta.producto,mod:venta.modelo,cant:venta.cantidad||1}]}catch(e){nuevosProds=[{tipo:venta.producto,mod:venta.modelo,cant:1}]}
+  const{detalle}=calcularOcupacion(viajeId);
+  const conflictos=[];
+  nuevosProds.forEach(p=>{
+    const key=p.tipo+'|'+(p.mod||'');
+    const actual=detalle[key]?.cant||0;
+    const max=getCapacidadMax(p.tipo,p.mod);
+    if(actual+(p.cant||1)>max)conflictos.push((p.tipo==='a'?'Silo Aéreo':'Autoconsumo')+' '+(p.mod||'')+': '+actual+'/'+max);
+  });
+  return conflictos.length?{ok:false,conflictos}:{ok:true};
+}
+
+function calcBateria(viajeId){
+  const{detalle}=calcularOcupacion(viajeId);
+  const items=Object.values(detalle);
+  if(!items.length)return{pct:0,color:'var(--green)'};
+  let maxPct=0;
+  items.forEach(i=>{const p=i.max>0?(i.cant/i.max)*100:0;if(p>maxPct)maxPct=p});
+  const pct=Math.min(100,Math.round(maxPct));
+  const color=pct>=100?'var(--red)':pct>=80?'var(--yellow)':pct>=50?'#f0c040':'var(--green)';
+  return{pct,color};
+}
+
 async function sbFetch(p,m='GET',b=null){
   const o={method:m,headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=representation'}};
   if(b)o.body=JSON.stringify(b);
@@ -872,13 +824,8 @@ async function sbFetch(p,m='GET',b=null){
 }
 
 async function cargarVentas(){
-  if(!currentUser)return;
   try{
-    const uid=currentUser.id;
-    [ventas]=await Promise.all([
-      sbFetch('/rest/v1/ventas?select=*&order=created_at.desc&user_id=eq.'+uid),
-      cargarViajes()
-    ]);
+    ventas=await sbFetch('/rest/v1/ventas?select=*&order=created_at.desc');
     renderVentas();renderClientes();actualizarMapV();
     if(document.getElementById('page-inicio').classList.contains('on'))renderInicio();
   }catch(e){toast('Error: '+e.message)}
@@ -891,15 +838,12 @@ async function guardarVenta(){
     cliente:cli,
     telefono:document.getElementById('fTel').value.trim()||null,
     cuit:document.getElementById('fCuit').value.trim()||null,
-    producto:(getProductos()[0]?.tipo)||'a',
-    modelo:(getProductos()[0]?.mod)||null,
-    cantidad:(getProductos()[0]?.cant)||1,
-    productos:JSON.stringify(getProductos()),
+    producto:document.getElementById('fProd').value,
+    modelo:document.getElementById('fMod').value||null,
     precio:parseFloat(document.getElementById('fPrecio').value)||null,
     costo_producto:parseFloat(document.getElementById('fCostoProducto').value)||null,
     costo_flete:parseFloat(document.getElementById('fCostoFlete').value)||null,
     moneda:'ARS',estado:document.getElementById('fEstado').value,
-    user_id:currentUser?.id||null,
     fecha_entrega:document.getElementById('fFecha').value||null,
     localidad:document.getElementById('fLoc').value.trim()||null,
     zona:document.getElementById('fZona').value.trim()||null,
@@ -917,79 +861,18 @@ async function eliminarVenta(id){
   if(!confirm('¿Eliminar esta venta?'))return;
   try{await sbFetch('/rest/v1/ventas?id=eq.'+id,'DELETE');toast('Eliminada');cargarVentas()}catch(e){}
 }
-let entregaId=null;
-
-async function cambiarEstado(id,estado){
-  if(estado==='Entregado'){
-    // Abrir modal de costos antes de marcar como entregado
-    const v=ventas.find(x=>x.id===id);
-    if(!v)return;
-    entregaId=id;
-    document.getElementById('entregaCli').textContent=v.cliente;
-    document.getElementById('entregaCostoP').value=v.costo_producto||'';
-    document.getElementById('entregaCostoF').value=v.costo_flete||'';
-    calcEntregaGanancia(v.precio);
-    document.getElementById('overlayEntrega').classList.add('on');
-    // Listeners para recalcular ganancia en tiempo real
-    ['entregaCostoP','entregaCostoF'].forEach(fid=>{
-      document.getElementById(fid).oninput=()=>calcEntregaGanancia(v.precio);
-    });
-    return;
-  }
-  try{await sbFetch('/rest/v1/ventas?id=eq.'+id,'PATCH',{estado});cargarVentas()}catch(e){}
-}
-
-function calcEntregaGanancia(precio){
-  const cp=parseFloat(document.getElementById('entregaCostoP').value)||0;
-  const cf=parseFloat(document.getElementById('entregaCostoF').value)||0;
-  const gan=(precio||0)-cp-cf;
-  const el=document.getElementById('entregaGananciaVal');
-  const wrap=document.getElementById('entregaGanancia');
-  if(precio){
-    wrap.style.display='block';
-    el.textContent='$'+gan.toLocaleString('es-AR');
-    el.style.color=gan>=0?'var(--green)':'var(--red)';
-  }
-}
-
-async function confirmarEntrega(){
-  if(!entregaId)return;
-  const cp=parseFloat(document.getElementById('entregaCostoP').value)||null;
-  const cf=parseFloat(document.getElementById('entregaCostoF').value)||null;
-  try{
-    await sbFetch('/rest/v1/ventas?id=eq.'+entregaId,'PATCH',{
-      estado:'Entregado',
-      costo_producto:cp,
-      costo_flete:cf
-    });
-    cerrarEntrega();
-    cargarVentas();
-    toast('Entregado ✔ Costos actualizados');
-  }catch(e){toast('Error: '+e.message)}
-}
-
-function cerrarEntrega(){
-  document.getElementById('overlayEntrega').classList.remove('on');
-  entregaId=null;
+async function cambiarEstado(id,e){
+  try{await sbFetch('/rest/v1/ventas?id=eq.'+id,'PATCH',{estado:e});cargarVentas()}catch(e){}
 }
 
 /* ── NAVEGACIÓN ──────────────────────────────────────────── */
-const BNAV_MAP={inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes',publico:'bn-publico'};
+const BNAV_MAP={inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes'};
 
 function ir(pg){
-  console.log('[ir] navegando a:', pg, '| ventas:', ventas.length);
-  document.querySelectorAll('.page').forEach(p=>{p.classList.remove('on');});
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.bnav-item').forEach(t=>t.classList.remove('on'));
-  const targetPage=document.getElementById('page-'+pg);
-  console.log('[ir] targetPage encontrada:', !!targetPage);
-  if(!targetPage){console.error('[ir] NO SE ENCONTRÓ page-'+pg);return;}
-  targetPage.classList.add('on');
-  // Forzar visibilidad y altura
-  targetPage.style.display='flex';
-  targetPage.style.flex='1';
-  targetPage.style.height='100%';
-  console.log('[ir] display después:', window.getComputedStyle(targetPage).display, '| height:', window.getComputedStyle(targetPage).height);
+  document.getElementById('page-'+pg).classList.add('on');
 
   // top nav
   document.querySelectorAll('.ntab').forEach(t=>{
@@ -1011,7 +894,6 @@ function ir(pg){
   if(pg==='inicio')renderInicio();
   if(pg==='mapa'){initMapV();actualizarMapV()}
   if(pg==='flete'){initMapF();renderViajes()}
-  if(pg==='publico')renderPaginaPublico();
   if(pg==='simular')initMapSim();
   if(pg==='clientes')renderClientes();
   if(pg==='ventas')renderVentas();
@@ -1046,84 +928,10 @@ function toggleSort(key){
   else document.getElementById('sortSel').value=key+'_asc';
   renderVentas();
 }
-function cargarTons(v,idx=0){
-  const wrap=document.getElementById('productosWrap');
-  const linea=wrap.querySelectorAll('.prod-linea')[idx];
-  if(!linea)return;
-  const prod=linea.querySelector('.prod-tipo').value;
-  const modSel=linea.querySelector('.prod-mod');
-  modSel.innerHTML='<option value="">-- Seleccioná --</option>'+TONS[prod].map(t=>`<option${t===v?' selected':''}>${t}</option>`).join('');
-  actualizarFibra(idx);
-}
-
-function actualizarFibra(idx){
-  const wrap=document.getElementById('productosWrap');
-  const linea=wrap.querySelectorAll('.prod-linea')[idx];
-  if(!linea)return;
-  const prod=linea.querySelector('.prod-tipo').value;
-  const mod=linea.querySelector('.prod-mod').value;
-  const fibraWrap=linea.querySelector('.fibra-wrap');
-  // Mostrar opción base fibra solo para autoconsumo 12tn o 18tn
-  const esFibrable=prod==='c'&&(mod.startsWith('12tn')||mod.startsWith('18tn'));
-  fibraWrap.style.display=esFibrable?'flex':'none';
-}
-
-function agregarLineaProducto(datos=null){
-  const wrap=document.getElementById('productosWrap');
-  const idx=wrap.querySelectorAll('.prod-linea').length;
-  const div=document.createElement('div');
-  div.className='prod-linea';
-  div.style.cssText='background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 11px;margin-bottom:7px';
-  div.innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
-      <span style="font-size:.66rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.5px">Producto ${idx+1}</span>
-      ${idx>0?`<button type="button" onclick="this.closest('.prod-linea').remove();renumerarLineas()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.85rem">✕</button>`:''}
-    </div>
-    <div style="display:flex;gap:7px;margin-bottom:6px">
-      <select class="prod-tipo" onchange="cargarTons('',${idx})" style="flex:1;background:var(--bg);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:7px 9px;font-size:.8rem;font-family:inherit">
-        <option value="a">Silo Aéreo</option>
-        <option value="c">Autoconsumo</option>
-      </select>
-      <select class="prod-mod" onchange="actualizarFibra(${idx})" style="flex:1.5;background:var(--bg);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:7px 9px;font-size:.8rem;font-family:inherit">
-        <option value="">-- Tonelaje --</option>
-      </select>
-      <input class="prod-cant" type="number" min="1" value="1" placeholder="Cant." style="width:60px;background:var(--bg);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:7px 8px;font-size:.8rem;font-family:inherit;text-align:center"/>
-    </div>
-    <div class="fibra-wrap" style="display:none;align-items:center;gap:8px;padding:6px 9px;background:var(--bg);border:1px solid var(--border2);border-radius:6px">
-      <input class="prod-fibra" type="checkbox" id="fibra-${idx}" style="width:16px;height:16px;accent-color:var(--gold)"/>
-      <label for="fibra-${idx}" style="font-size:.76rem;color:var(--text2);cursor:pointer">🌿 Base de fibra</label>
-    </div>`;
-  wrap.appendChild(div);
-  // Cargar tonelajes según tipo
-  cargarTons('',idx);
-  // Si hay datos previos, setear valores
-  if(datos){
-    div.querySelector('.prod-tipo').value=datos.tipo||'a';
-    cargarTons(datos.mod||'',idx);
-    div.querySelector('.prod-cant').value=datos.cant||1;
-    if(datos.fibra)div.querySelector('.prod-fibra').checked=true;
-  }
-}
-
-function renumerarLineas(){
-  document.querySelectorAll('.prod-linea').forEach((l,i)=>{
-    const titulo=l.querySelector('span');
-    if(titulo)titulo.textContent='Producto '+(i+1);
-  });
-}
-
-function getProductos(){
-  try{
-    const lineas=document.querySelectorAll('.prod-linea');
-    return Array.from(lineas).map(l=>{
-      const tipo=l.querySelector('.prod-tipo')?.value||'a';
-      const mod=l.querySelector('.prod-mod')?.value||'';
-      const cant=parseInt(l.querySelector('.prod-cant')?.value)||1;
-      const fibra=l.querySelector('.prod-fibra')?.checked||false;
-      const modFinal=fibra&&mod?mod+' Base de fibra':mod;
-      return{tipo,mod:modFinal,cant};
-    }).filter(p=>p.mod);
-  }catch(e){return[]}
+function cargarTons(v){
+  const p=document.getElementById('fProd').value;
+  const s=document.getElementById('fMod');
+  s.innerHTML='<option value="">-- Seleccioná --</option>'+TONS[p].map(t=>`<option${t===v?' selected':''}>${t}</option>`).join('');
 }
 
 /* ── RENDER VENTAS ───────────────────────────────────────── */
@@ -1170,7 +978,7 @@ function renderTabla(f){
           ${v.telefono?`<div style="color:var(--blue);font-size:.7rem">📞 ${v.telefono}</div>`:''}
           ${v.cuit?`<div style="color:var(--text2);font-size:.68rem">CUIT: ${v.cuit}</div>`:''}</td>
       <td><span class="ptag ${v.producto==='a'?'pa':'pc-tag'}">${v.producto==='a'?'Aéreo':'Autocons.'}</span>
-          ${v.modelo?`<div style="font-size:.67rem;color:var(--text2);margin-top:2px">${v.modelo}${(v.cantidad||1)>1?' <b style=color:var(--gold)>x'+v.cantidad+'</b>':''}</div>`:((v.cantidad||1)>1?`<div style="font-size:.67rem;color:var(--gold);font-weight:800">x${v.cantidad}</div>`:'')}</td>
+          ${v.modelo?`<div style="font-size:.67rem;color:var(--text2);margin-top:2px">${v.modelo}</div>`:''}</td>
       <td><div style="color:var(--text2);font-size:.75rem">${v.localidad||'—'}</div>
           ${v.zona?`<div style="color:var(--gold);font-size:.67rem;font-weight:600">📦 ${v.zona}</div>`:''}</td>
       <td style="font-weight:800;color:var(--gold);font-size:.78rem">${v.precio?'$'+Number(v.precio).toLocaleString('es-AR'):'—'}</td>
@@ -1200,33 +1008,33 @@ function renderCards(f){
     const ei=Math.max(0,ESTADOS.indexOf(v.estado));
     const fecha=v.fecha_entrega?new Date(v.fecha_entrega+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'Sin fecha';
     const ganancia=v.precio?(v.precio-(v.costo_producto||0)-(v.costo_flete||0)):null;
-    let prods=[];try{prods=v.productos?JSON.parse(v.productos):[{tipo:v.producto,mod:v.modelo,cant:v.cantidad||1}]}catch(e){prods=[{tipo:v.producto,mod:v.modelo,cant:1}]}
-    return `<div class="vcard" style="margin-bottom:8px">
-      <div style="padding:12px 13px 10px">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px">
-          <div style="font-weight:800;font-size:.92rem;flex:1;min-width:0">${v.cliente}</div>
-          <div style="font-weight:900;color:var(--gold);font-size:.9rem;white-space:nowrap;flex-shrink:0">${v.precio?'$'+Number(v.precio).toLocaleString('es-AR'):'—'}</div>
+    return `<div class="vcard">
+      <div class="vcard-header">
+        <div class="vcard-main">
+          <div class="vcard-name">${v.cliente}</div>
+          <div class="vcard-prod">
+            <span class="ptag ${v.producto==='a'?'pa':'pc-tag'}">${v.producto==='a'?'Aéreo':'Autocons.'}</span>
+            ${v.modelo?`<span style="font-size:.7rem;color:var(--text2)">${v.modelo}</span>`:''}
+          </div>
+          ${v.localidad||v.zona?`<div class="vcard-loc">📍 ${[v.localidad,v.zona].filter(Boolean).join(' · ')}</div>`:''}
         </div>
-        ${prods.map(p=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap">
-          <span class="ptag ${p.tipo==='a'?'pa':'pc-tag'}">${p.tipo==='a'?'Silo Aéreo':'Autoconsumo'}</span>
-          ${p.mod?`<span style="font-size:.8rem;color:var(--text);font-weight:600">${p.mod}</span>`:''}
-          ${(p.cant||1)>1?`<span style="font-size:.72rem;font-weight:800;color:var(--gold);background:var(--bg3);padding:1px 7px;border-radius:4px">x${p.cant}</span>`:''}
-        </div>`).join('')}
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
-          <div style="font-size:.72rem;color:var(--text3)">${[ciudad(v.localidad),v.zona].filter(Boolean).map(x=>'📍'+x).join(' ')}</div>
-          ${ganancia!==null?`<div style="font-size:.73rem;font-weight:800;color:${ganancia>=0?'var(--green)':'var(--red)'}">${ganancia>=0?'+':''}$${ganancia.toLocaleString('es-AR')}</div>`:''}
+        <div class="vcard-right">
+          <div class="vcard-price">${v.precio?'$'+Number(v.precio).toLocaleString('es-AR'):'—'}</div>
+          <div class="${ECLASES[ei]} etag" style="font-size:.6rem">
+            ${ESTADO_ICONS[ei]}
+            <select class="estado-select" onchange="cambiarEstado('${v.id}',this.value)">
+              ${ESTADOS.map(e=>`<option${e===v.estado?' selected':''}>${e}</option>`).join('')}
+            </select>
+          </div>
+          ${ganancia!==null?`<div style="font-size:.68rem;font-weight:800;color:${ganancia>=0?'var(--green)':'var(--red)'}">
+            ${ganancia>=0?'+':''}$${ganancia.toLocaleString('es-AR')}
+          </div>`:''}
         </div>
       </div>
-      <div style="padding:8px 13px;border-top:1px solid var(--border);background:#0d1824;display:flex;align-items:center;gap:8px">
-        <div class="${ECLASES[ei]} etag" style="flex-shrink:0;font-size:.62rem">
-          ${ESTADO_ICONS[ei]}
-          <select class="estado-select" onchange="cambiarEstado('${v.id}',this.value)">
-            ${ESTADOS.map(e=>`<option${e===v.estado?' selected':''}>${e}</option>`).join('')}
-          </select>
-        </div>
-        <div style="font-size:.67rem;color:var(--text3);flex:1">📅 ${fecha}</div>
-        <div style="display:flex;gap:5px;flex-shrink:0">
-          <button class="vcard-btn" onclick="abrirEditar('${v.id}')">✎</button>
+      <div class="vcard-footer">
+        <div class="vcard-date">📅 ${fecha}${v.telefono?` · 📞 ${v.telefono}`:''}</div>
+        <div class="vcard-actions">
+          <button class="vcard-btn" onclick="abrirEditar('${v.id}')">✎ Editar</button>
           ${v.telefono?`<button class="vcard-btn" onclick="wa('${v.telefono}')">💬</button>`:''}
           <button class="vcard-btn danger" onclick="eliminarVenta('${v.id}')">✕</button>
         </div>
@@ -1241,8 +1049,8 @@ function renderInicio(){
   document.getElementById('inicioFecha').textContent=
     ahora.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const h=ahora.getHours();
-  const saludo=h<12?'Buenos días 🌅':h<18?'Buenas tardes ☀️':'Buenas noches 🌙';
-  document.getElementById('inicioBienvenida').textContent=saludo;
+  document.getElementById('inicioBienvenida').textContent=
+    (h<12?'Buenos días':h<18?'Buenas tardes':'Buenas noches')+' — Remeco';
 
   const pendientes=ventas.filter(v=>v.estado!=='Entregado');
   const entregados=ventas.filter(v=>v.estado==='Entregado');
@@ -1253,27 +1061,19 @@ function renderInicio(){
   const rentMes=vMes.reduce((s,v)=>s+(v.precio||0)-(v.costo_producto||0)-(v.costo_flete||0),0);
   const clientes=new Set(ventas.map(v=>v.cliente)).size;
 
-  const margen=totMes>0?Math.round((rentMes/totMes)*100):0;
-  const mesNombre=new Date().toLocaleDateString('es-AR',{month:'long'}).toUpperCase();
-  const viajesActivos=viajes.filter(v=>v.pedidoIds.length>0).length;
-  const sg=document.getElementById('statsGrid');
-  sg.innerHTML='';
-  const stats=[
-    {html:'<div class="stat-val">$'+(totMes/1000000).toFixed(1)+'M</div><div style="font-size:.62rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:2px">FACTURADO · '+mesNombre+'</div><div class="stat-sub">'+vMes.length+' venta'+(vMes.length!==1?'s':'')+' este mes</div>',span:2,pg:'ventas',color:''},
-    {html:'<div class="stat-val" style="color:'+(rentMes>=0?'var(--green)':'var(--red)')+'">$'+(rentMes/1000000).toFixed(1)+'M</div><div style="font-size:.62rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:2px">RENTABILIDAD</div><div class="stat-sub" style="color:'+(rentMes>=0?'#3a8a5a':'var(--red)')+'">'+margen+'% de margen</div>',span:1,pg:'',color:rentMes>=0?'#2a6a30':'#5a2020'},
-    {html:'<div class="stat-val" style="font-size:1.4rem">'+pendientes.length+'</div><div class="stat-label">Pedidos pendientes</div><div class="stat-sub">'+entregados.length+' entregado'+(entregados.length!==1?'s':'')+'</div>',span:1,pg:'ventas',color:''},
-    {html:'<div class="stat-val" style="font-size:1.4rem">'+viajesActivos+'</div><div class="stat-label">Viajes activos</div>',span:1,pg:'flete',color:''},
-    {html:'<div class="stat-val" style="font-size:1.4rem">'+clientes+'</div><div class="stat-label">Clientes activos</div>',span:1,pg:'clientes',color:''},
-  ];
-  stats.forEach(function(s){
-    var d=document.createElement('div');
-    d.className='stat-card';
-    d.innerHTML=s.html;
-    if(s.span>1)d.style.gridColumn='span '+s.span;
-    if(s.color)d.style.borderColor=s.color;
-    if(s.pg){var pg=s.pg;d.style.cursor='pointer';d.addEventListener('click',function(){ir(pg);});}
-    sg.appendChild(d);
-  });
+  document.getElementById('statsGrid').innerHTML=[
+    {val:ventas.length,label:'Ventas totales',sub:vMes.length+' este mes',pg:'ventas'},
+    {val:pendientes.length,label:'Pendientes',sub:entregados.length+' entregados',pg:'ventas'},
+    {val:'$'+(totMes/1000000).toFixed(1)+'M',label:'Facturado mes',pg:'ventas'},
+    {val:clientes,label:'Clientes activos',pg:'clientes'},
+    {val:viajes.filter(v=>v.pedidoIds.length>0).length,label:'Viajes activos',pg:'flete'},
+    {val:'$'+(rentMes/1000000).toFixed(1)+'M',label:'Rentabilidad mes',color:rentMes>=0?'var(--green)':'var(--red)'},
+  ].map(s=>`
+    <div class="stat-card" ${s.pg?`onclick="ir('${s.pg}')"`:''}">
+      <div class="stat-val" ${s.color?`style="color:${s.color};font-size:1.3rem"`:''}>${s.val}</div>
+      <div class="stat-label">${s.label}</div>
+      ${s.sub?`<div class="stat-sub">${s.sub}</div>`:''}
+    </div>`).join('');
 
   const disp=ventas.filter(v=>v.estado!=='Entregado').slice(0,5);
   document.getElementById('pendientesList').innerHTML=disp.length
@@ -1281,7 +1081,7 @@ function renderInicio(){
       <div class="pendiente-card" onclick="ir('ventas')">
         <div class="pc-info">
           <div class="pc-cli">${v.cliente}</div>
-          <div class="pc-sub">${v.producto==='a'?'Silo Aéreo':'Autoconsumo'}${v.modelo?' · '+v.modelo:''} · ${ciudad(v.localidad)}</div>
+          <div class="pc-sub">${v.producto==='a'?'Silo Aéreo':'Autoconsumo'}${v.modelo?' · '+v.modelo:''} · ${v.localidad||''}</div>
         </div>
         <span class="${ECLASES[ei]} etag">${ESTADO_ICONS[ei]} ${v.estado}</span>
       </div>`}).join('')
@@ -1303,14 +1103,10 @@ function renderInicio(){
 function limpiarModal(){
   ['fCli','fTel','fCuit','fPrecio','fCostoProducto','fCostoFlete','fFecha','fLoc','fZona','fNot']
     .forEach(i=>document.getElementById(i).value='');
-  // Inicializar productos (solo si el modal está visible)
-  try{
-    const pw=document.getElementById('productosWrap');
-    if(pw){pw.innerHTML='';agregarLineaProducto();}
-  }catch(e){console.error('limpiarModal productos:',e)}
   document.getElementById('fCli').style.borderColor='';
+  document.getElementById('fProd').value='a';
   document.getElementById('fEstado').value='Confirmado';
-  modalLat=null;modalLng=null;
+  cargarTons('');modalLat=null;modalLng=null;
   if(gMkModal){gMkModal.setMap(null);gMkModal=null}
 }
 function abrirNueva(){
@@ -1326,13 +1122,7 @@ function abrirEditar(id){
   document.getElementById('fCli').style.borderColor='';
   document.getElementById('fTel').value=v.telefono||'';
   document.getElementById('fCuit').value=v.cuit||'';
-  // Cargar productos
-  const pw2=document.getElementById('productosWrap');
-  if(pw2){
-    pw2.innerHTML='';
-    const prods=v.productos?JSON.parse(v.productos):[{tipo:v.producto||'a',mod:v.modelo||'',cant:v.cantidad||1}];
-    prods.forEach(p=>agregarLineaProducto(p));
-  }
+  document.getElementById('fProd').value=v.producto||'a';cargarTons(v.modelo||'');
   document.getElementById('fPrecio').value=v.precio||'';
   document.getElementById('fCostoProducto').value=v.costo_producto||'';
   document.getElementById('fCostoFlete').value=v.costo_flete||'';
@@ -1418,160 +1208,7 @@ function initMapF(){
   fabMk(gMapF);
   gDirRF=new google.maps.DirectionsRenderer({polylineOptions:{strokeColor:'#f0c840',strokeWeight:5,strokeOpacity:.95},suppressMarkers:true,map:gMapF});
 }
-
-/* ── CAPACIDAD CAMIÓN ───────────────────────────────────────── */
-const CAPACIDAD={
-  // Silo Aéreo (producto 'a') — clave: inicio del modelo en minúsculas
-  'a':{
-    '6tn':8,'10tn':8,'16tn':6,'22tn':6,'28tn':6,
-    '30tn':3,'40tn':3,'50tn':3,'60tn':3,'62tn':3,'72tn':3,
-    '80tn':2,'100tn':2,'120tn':2,'140tn':2,
-    '150tn':1,'175tn':1,'200tn':1
-  },
-  // Autoconsumo (producto 'c') — todas las variantes de 12tn y 18tn tienen max 5
-  'c':{
-    '2tn12':20,'2tn18':20,'4tn':20,
-    '7tn':8,
-    // Todas las variantes de 12tn
-    '12tnconalerogrande':5,'12tnconaleroalmedio':5,'12tncambiobase':5,'12tnbasedefibra':5,'12tn':5,
-    // Todas las variantes de 18tn
-    '18tnconalerogrande':5,'18tnconaleroalmedio':5,'18tncambiobase':5,'18tnbasedefibra':5,'18tn':5
-  }
-};
-
-function normMod(s){
-  // Normalizar modelo: minúsculas, sin espacios/puntos/tildes/guiones/comas
-  return (s||'').toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/[\s.,\-_]/g,'');
-}
-
-function getCapacidadMax(producto,modelo){
-  if(!modelo)return 99;
-  const m=normMod(modelo);
-  const tabla=CAPACIDAD[producto]||{};
-  // Buscar clave exacta o que sea prefijo del modelo
-  for(const [key,max] of Object.entries(tabla)){
-    const k=normMod(key);
-    if(m.startsWith(k)||m===k)return max;
-  }
-  // Fallback por tonelaje numérico
-  const tnMatch=m.match(/^(\d+)tn/);
-  if(tnMatch){
-    const tn=parseInt(tnMatch[1]);
-    for(const [key,max] of Object.entries(tabla)){
-      const ktn=parseInt(normMod(key).match(/^(\d+)tn/)?.[1]||'0');
-      if(ktn===tn)return max;
-    }
-  }
-  return 99;
-}
-
-function calcularOcupacion(viajeId){
-  const vj=viajes.find(x=>x.id===viajeId);if(!vj)return{items:[],total:0,detalle:{}};
-  const peds=ventas.filter(v=>vj.pedidoIds.includes(v.id));
-  const detalle={};
-  let totalUnidades=0;
-  peds.forEach(v=>{
-    let prods=[];
-    try{const raw=v.productos;prods=raw?(typeof raw==='string'?JSON.parse(raw):raw):[{tipo:v.producto,mod:v.modelo,cant:v.cantidad||1}]}catch(e){prods=[{tipo:v.producto,mod:v.modelo,cant:1}]}
-    prods.forEach(p=>{
-      const key=p.tipo+'|'+(p.mod||'');
-      if(!detalle[key])detalle[key]={tipo:p.tipo,mod:p.mod,cant:0,max:getCapacidadMax(p.tipo,p.mod)};
-      detalle[key].cant+=(p.cant||1);
-      totalUnidades+=(p.cant||1);
-    });
-  });
-  return{detalle,totalUnidades};
-}
-
-function verificarCapacidad(viajeId,ventaId){
-  // Retorna {ok:true} si hay lugar, o {ok:false, msg, detalle} si no hay
-  const vj=viajes.find(x=>x.id===viajeId);if(!vj)return{ok:true};
-  const venta=ventas.find(v=>v.id===ventaId);if(!venta)return{ok:true};
-  
-  let nuevosProds=[];
-  try{nuevosProds=venta.productos?JSON.parse(venta.productos):[{tipo:venta.producto,mod:venta.modelo,cant:venta.cantidad||1}]}catch(e){nuevosProds=[{tipo:venta.producto,mod:venta.modelo,cant:1}]}
-  
-  const {detalle}=calcularOcupacion(viajeId);
-  const conflictos=[];
-  
-  nuevosProds.forEach(p=>{
-    const key=p.tipo+'|'+(p.mod||'');
-    const actual=detalle[key]?.cant||0;
-    const max=getCapacidadMax(p.tipo,p.mod);
-    const nuevo=(p.cant||1);
-    if(actual+nuevo>max){
-      conflictos.push(`${p.tipo==='a'?'Silo Aéreo':'Autoconsumo'} ${p.mod||''}: ${actual}/${max} → quiere agregar ${nuevo}`);
-    }
-  });
-  
-  if(conflictos.length){
-    return{ok:false,conflictos};
-  }
-  return{ok:true};
-}
-
-
-function calcBateria(viajeId){
-  const{detalle}=calcularOcupacion(viajeId);
-  const items=Object.values(detalle);
-  if(!items.length)return{pct:0,color:'var(--green)',txt:'Vacío'};
-  // El modelo más ocupado define el % de la batería
-  let maxPct=0;
-  items.forEach(i=>{const p=i.max>0?(i.cant/i.max)*100:0;if(p>maxPct)maxPct=p});
-  const pct=Math.min(100,Math.round(maxPct));
-  const color=pct>=100?'var(--red)':pct>=80?'var(--yellow)':pct>=50?'#f0c040':'var(--green)';
-  const txt=pct>=100?'Lleno':pct>=80?'Casi lleno':pct>=50?'Mitad':'Disponible';
-  return{pct,color,txt};
-}
-
-async function saveViaje(vj){
-  // Limpiar km si no tiene pedidos
-  if(!vj.pedidoIds.length) delete vj._kmReal;
-  // Snapshot de paradas para que otros usuarios puedan ver la ruta
-  const paradaSnap=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng)
-    .map(v=>({id:v.id,cliente:v.cliente,localidad:v.localidad,lat:v.lat,lng:v.lng,
-              producto:v.producto,modelo:v.modelo}));
-  const data={
-    id:vj.id, nombre:vj.nombre, fecha:vj.fecha||null,
-    pedido_ids:JSON.stringify(vj.pedidoIds||[]),
-    paradas_snap:JSON.stringify(paradaSnap),
-    km_real:vj._kmReal||null, expandido:vj.expandido||false,
-    user_id:currentUser?.id||null
-  };
-  try{
-    // Upsert: inserta si no existe, actualiza si existe
-    await fetch(SB_URL+'/rest/v1/viajes',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'apikey':SB_KEY,
-        'Authorization':'Bearer '+SB_KEY,
-        'Prefer':'resolution=merge-duplicates,return=minimal'
-      },
-      body:JSON.stringify(data)
-    });
-  }catch(e){console.error('saveViaje:',e)}
-}
-async function saveViajes(){
-  viajes.forEach(v=>{if(!v.pedidoIds.length)delete v._kmReal});
-  await Promise.all(viajes.map(vj=>saveViaje(vj)));
-}
-async function cargarViajes(){
-  if(!currentUser)return;
-  try{
-    const rows=await sbFetch('/rest/v1/viajes?select=*&order=created_at.asc&user_id=eq.'+currentUser.id);
-    viajes=rows.map(r=>({
-      id:r.id,nombre:r.nombre,fecha:r.fecha||null,
-      pedidoIds:typeof r.pedido_ids==='string'?JSON.parse(r.pedido_ids||'[]'):(r.pedido_ids||[]),
-      paradasSnap:typeof r.paradas_snap==='string'?JSON.parse(r.paradas_snap||'[]'):(r.paradas_snap||[]),
-      _kmReal:r.km_real||undefined,
-      expandido:r.expandido||false,
-      publico:r.publico||false
-    }));
-  }catch(e){console.error('cargarViajes:',e)}
-}
+function saveViajes(){localStorage.setItem('remeco_viajes',JSON.stringify(viajes))}
 function abrirNuevoViaje(){
   document.getElementById('viajeNombre').value='';document.getElementById('viajeFecha').value='';
   document.getElementById('overlayViaje').classList.add('on');
@@ -1581,9 +1218,8 @@ function cerrarNuevoViaje(){document.getElementById('overlayViaje').classList.re
 function crearViaje(){
   const nom=document.getElementById('viajeNombre').value.trim();
   if(!nom){document.getElementById('viajeNombre').style.borderColor='var(--red)';return}
-  const nv={id:uid(),nombre:nom,fecha:document.getElementById('viajeFecha').value||null,pedidoIds:[],expandido:true};
-  viajes.push(nv);
-  saveViaje(nv);cerrarNuevoViaje();renderViajes();toast('Viaje creado ✔');
+  viajes.push({id:uid(),nombre:nom,fecha:document.getElementById('viajeFecha').value||null,pedidoIds:[],expandido:true});
+  saveViajes();cerrarNuevoViaje();renderViajes();toast('Viaje creado ✔');
 }
 function renderViajes(){
   const body=document.getElementById('fpBody');
@@ -1612,24 +1248,20 @@ function renderViajes(){
           ${(()=>{
             const bat=calcBateria(vj.id);
             const{detalle}=calcularOcupacion(vj.id);
-            const detalleItems=Object.values(detalle).filter(i=>i.cant>0);
-            return `<div style="margin-top:5px">
-              <div class="bateria-wrap">
-                <span style="font-size:.6rem;color:var(--text3);white-space:nowrap">Camión</span>
-                <div class="bateria-outer">
-                  <div class="bateria-inner" style="width:${bat.pct}%;background:${bat.color}"></div>
-                </div>
-                <div class="bateria-pct" style="color:${bat.color}">${bat.pct}%</div>
-              </div>
-              ${detalleItems.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
-                ${detalleItems.map(i=>`<span style="font-size:.6rem;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:1px 6px;color:${i.cant>=i.max?'var(--red)':'var(--text3)'}">
-                  ${i.tipo==='a'?'Aéreo':'Autocons.'} ${i.mod?i.mod.split(' ')[0]:''}tn ${i.cant}/${i.max}
-                </span>`).join('')}
-              </div>`:''}
-            </div>`;
+            const items=Object.values(detalle).filter(i=>i.cant>0);
+            return '<div style="margin-top:4px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">'+
+              '<div style="flex:1;height:7px;background:var(--bg3);border-radius:4px;border:1px solid var(--border2);overflow:hidden">'+
+                '<div style="height:100%;border-radius:3px;background:'+bat.color+';width:'+bat.pct+'%;transition:width .4s"></div>'+
+              '</div>'+
+              '<span style="font-size:.6rem;font-weight:800;color:'+bat.color+';white-space:nowrap">'+bat.pct+'%</span>'+
+            '</div>'+
+            (items.length?'<div style="display:flex;gap:4px;flex-wrap:wrap">'+
+              items.map(i=>'<span style="font-size:.58rem;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;padding:1px 5px;color:'+(i.cant>=i.max?'var(--red)':'var(--text3)')+'">'+
+                (i.tipo==='a'?'Aéreo':'Autocons.')+' '+(i.mod||'').split(' ')[0]+' '+i.cant+'/'+i.max+'</span>').join('')+
+            '</div>':'')+
+            '</div>';
           })()}
         </div>
-        <button class="btn-publicar${vj.publico?' on':''}" onclick="togglePublicar('${vj.id}')">${vj.publico?'🌐 Publicado':'📢 Publicar'}</button>
         <button class="vbtn del" onclick="eliminarViaje('${vj.id}')">✕</button>
       </div>
       ${vj.expandido?`<div class="viaje-body">
@@ -1637,29 +1269,27 @@ function renderViajes(){
           <div class="vp-num">${i+1}</div>
           <div class="vp-info">
             <div class="vp-cli">${v.cliente}</div>
-            <div class="vp-sub">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${ciudad(v.localidad)}</div>
+            <div class="vp-sub">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${v.localidad||''}</div>
           </div>
           <button class="vp-del" onclick="quitarPedido('${vj.id}','${v.id}')">✕</button>
         </div>`).join(''):'<div style="font-size:.72rem;color:var(--text3);padding:4px 0">Sin pedidos aún</div>'}
         ${libres.length?`<div class="agregar-section">
           <div class="agregar-title">+ Agregar pedido</div>
           <div class="pedidos-disponibles">${libres.map(v=>`<div class="pd-item" onclick="agregarPedido('${vj.id}','${v.id}')">
-            <div class="pd-info"><div class="pd-cli">${v.cliente}</div><div class="pd-sub">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${ciudad(v.localidad)}</div></div>
+            <div class="pd-info"><div class="pd-cli">${v.cliente}</div><div class="pd-sub">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${v.localidad||''}</div></div>
             <span style="font-size:.68rem;color:var(--gold);font-weight:700">+ agregar</span>
           </div>`).join('')}</div>
         </div>`:''}
         <div class="viaje-actions">
           <button class="bv" style="flex:1;font-size:.72rem;padding:6px" onclick="exportarViaje('${vj.id}')">📋 Exportar</button>
-          <button class="bd" style="font-size:.72rem;padding:6px" onclick="sugerirParadas('${vj.id}')">💡 Sugerir</button>
           <button class="bd" style="font-size:.72rem;padding:6px" onclick="optimizarViaje('${vj.id}')">⚡ Optimizar</button>
         </div>
       </div>`:''}
     </div>`;
   }).join('');
   gMkF.forEach(m=>m.setMap(null));gMkF=[];
-  // Solo redibujar si hay exactamente uno expandido (para no perder la ruta al agregar/quitar pedidos)
-  const expandidos=viajes.filter(v=>v.expandido&&v.pedidoIds.length>0);
-  if(expandidos.length===1) calcularRutaViaje(expandidos[0].id);
+  const primerExpandido=viajes.find(v=>v.expandido&&v.pedidoIds.length>0);
+  if(primerExpandido)calcularRutaViaje(primerExpandido.id);
 }
 function calcularRutaViaje(id){
   if(!gMapF||!gDir)return;
@@ -1683,7 +1313,7 @@ function calcularRutaViaje(id){
     if(status==='OK'){
       gDirRF.setDirections(result);
       const km=Math.round(result.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
-      vj._kmReal=km;saveViaje(vj);
+      vj._kmReal=km;saveViajes();
       toast(`Ruta: ${km.toLocaleString('es-AR')} km ✔`);
       const b=new google.maps.LatLngBounds();
       b.extend({lat:FLT,lng:FLN});sel.forEach(v=>b.extend({lat:v.lat,lng:v.lng}));
@@ -1691,50 +1321,33 @@ function calcularRutaViaje(id){
     }
   });
 }
-function toggleViaje(id){
-  const v=viajes.find(x=>x.id===id);if(!v)return;
-  const abriendo=!v.expandido;
-  // Si estamos abriendo, colapsar todos los demás
-  if(abriendo) viajes.forEach(vj=>{ if(vj.id!==id) vj.expandido=false; });
-  v.expandido=abriendo;
-  viajes.forEach(vj=>saveViaje(vj));renderViajes();
-  // Limpiar ruta anterior del mapa
-  if(gDirRF) gDirRF.setDirections({routes:[]});
-  gMkF.forEach(m=>m.setMap(null));gMkF=[];
-  if(abriendo&&v.pedidoIds.length) calcularRutaViaje(id);
-}
-async function eliminarViaje(id){
-  if(!confirm('¿Eliminar?'))return;
-  viajes=viajes.filter(x=>x.id!==id);
-  try{await sbFetch('/rest/v1/viajes?id=eq.'+id,'DELETE')}catch(e){}
-  renderViajes();
-}
-let _capPendiente={vid:null,pid:null};
-function cerrarCapacidad(){document.getElementById('overlayCapacidad').classList.remove('on');_capPendiente={vid:null,pid:null}}
-function forzarAgregado(){
-  const{vid,pid}=_capPendiente;
-  cerrarCapacidad();
-  const v=viajes.find(x=>x.id===vid);
-  if(!v||v.pedidoIds.includes(pid))return;
-  v.pedidoIds.push(pid);saveViaje(v);renderViajes();calcularRutaViaje(vid);
-  toast('Agregado igual ✔');
-}
+function toggleViaje(id){const v=viajes.find(x=>x.id===id);if(!v)return;v.expandido=!v.expandido;saveViajes();renderViajes();if(v.expandido&&v.pedidoIds.length)calcularRutaViaje(id)}
+function eliminarViaje(id){if(!confirm('¿Eliminar?'))return;viajes=viajes.filter(x=>x.id!==id);saveViajes();renderViajes()}
+let _capPend={vid:null,pid:null};
 
 function agregarPedido(vid,pid){
   const v=viajes.find(x=>x.id===vid);
   if(!v||v.pedidoIds.includes(pid))return;
-  // Verificar capacidad
   const check=verificarCapacidad(vid,pid);
   if(!check.ok){
-    _capPendiente={vid,pid};
-    document.getElementById('capMsg').textContent='Este pedido supera la capacidad del camión:';
-    document.getElementById('capConflictos').innerHTML=check.conflictos.map(c=>`<div>⚠️ ${c}</div>`).join('');
+    _capPend={vid,pid};
+    document.getElementById('capMsg').innerHTML=check.conflictos.map(c=>'⚠️ '+c).join('<br>');
     document.getElementById('overlayCapacidad').classList.add('on');
     return;
   }
-  v.pedidoIds.push(pid);saveViaje(v);renderViajes();calcularRutaViaje(vid);
+  v.pedidoIds.push(pid);saveViajes();renderViajes();calcularRutaViaje(vid);
 }
-function quitarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v)return;v.pedidoIds=v.pedidoIds.filter(x=>x!==pid);delete v._kmReal;saveViaje(v);renderViajes()}
+
+function forzarAgregado(){
+  const{vid,pid}=_capPend;
+  cerrarCapacidad();
+  const v=viajes.find(x=>x.id===vid);
+  if(!v||v.pedidoIds.includes(pid))return;
+  v.pedidoIds.push(pid);saveViajes();renderViajes();calcularRutaViaje(vid);
+  toast('Agregado igual ✔');
+}
+function cerrarCapacidad(){document.getElementById('overlayCapacidad').classList.remove('on');_capPend={vid:null,pid:null};}
+function quitarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v)return;v.pedidoIds=v.pedidoIds.filter(x=>x!==pid);delete v._kmReal;saveViajes();renderViajes()}
 function optimizarViaje(id){
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
   const sel=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
@@ -1772,7 +1385,7 @@ function optimizarViaje(id){
         if(mejorIds){
           vj.pedidoIds=mejorIds;
           vj._kmReal=mejorKm;
-          saveViaje(vj);renderViajes();calcularRutaViaje(id);
+          saveViajes();renderViajes();calcularRutaViaje(id);
           toast("Ruta optimizada: "+mejorKm.toLocaleString("es-AR")+" km ⚡");
         }else{
           toast("No se pudo calcular la ruta. Revisá la conexión.");
@@ -1781,365 +1394,6 @@ function optimizarViaje(id){
     });
   });
 }
-/* ── PÁGINA FLETES PÚBLICOS ──────────────────────────────── */
-let gMapPub=null,gDirPub=null,gMkPub=[];
-
-function initMapPublico(){
-  if(gMapPub||!window.google)return;
-  gMapPub=new google.maps.Map(document.getElementById('mapPublico'),{
-    ...MBASE,center:{lat:FLT,lng:FLN},zoom:6
-  });
-  fabMk(gMapPub);
-  gDirPub=new google.maps.DirectionsRenderer({
-    polylineOptions:{strokeColor:'#5ab8ff',strokeWeight:5,strokeOpacity:.95},
-    suppressMarkers:true,map:gMapPub
-  });
-}
-
-async function verRutaPublica(viajeRow){
-  // Traer las ventas del viaje (son de otro usuario — solo lat/lng/nombre desde el viaje)
-  const peds=typeof viajeRow.pedido_ids==='string'?JSON.parse(viajeRow.pedido_ids||'[]'):(viajeRow.pedido_ids||[]);
-  if(!peds.length){toast('Este viaje no tiene paradas');return}
-
-  // Expandir mapa
-  const mapEl=document.getElementById('mapPublico');
-  mapEl.style.height='280px';
-  document.getElementById('pubViajeSelInfo').style.display='block';
-  document.getElementById('pubViajeNombre').textContent='🚛 '+viajeRow.nombre;
-  const f=viajeRow.fecha?new Date(viajeRow.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'long'}):'Sin fecha';
-  document.getElementById('pubViajeMeta').textContent=`${viajeRow.owner_nombre||'Vendedor'} · ${f} · ${peds.length} paradas${viajeRow.km_real?' · '+viajeRow.km_real+'km reales':''}`;
-
-  initMapPublico();
-  if(!gMapPub||!window.google)return;
-
-  // Usar paradas_snap del viaje (no necesita acceso a ventas de otro usuario)
-  try{
-    const snapRaw=typeof viajeRow.paradas_snap==='string'?JSON.parse(viajeRow.paradas_snap||'[]'):(viajeRow.paradas_snap||[]);
-    const conCoords=snapRaw.filter(v=>v.lat&&v.lng);
-    if(!conCoords.length){toast('Las paradas no tienen coordenadas');return}
-
-    // Limpiar marcadores
-    gMkPub.forEach(m=>m.setMap(null));gMkPub=[];
-
-    conCoords.forEach((v,i)=>{
-      const m=new google.maps.Marker({
-        position:{lat:v.lat,lng:v.lng},map:gMapPub,
-        label:{text:String(i+1),color:'#fff',fontWeight:'bold'},
-        title:v.cliente,zIndex:50
-      });
-      const iw=new google.maps.InfoWindow({content:`<b>${v.cliente}</b><br>${ciudad(v.localidad)||''}`});
-      m.addListener('click',()=>iw.open(gMapPub,m));
-      gMkPub.push(m);
-    });
-
-    // Dibujar ruta real optimizada
-    if(!gDir)gDir=new google.maps.DirectionsService();
-    // Probar todas las combinaciones de destino final para encontrar la ruta más corta
-    let mejorKmPub=Infinity, mejorResultPub=null, pendientesPub=conCoords.length;
-    conCoords.forEach((candidato,idx)=>{
-      const resto=conCoords.filter((_,i)=>i!==idx);
-      gDir.route({
-        origin:{lat:FLT,lng:FLN},
-        destination:{lat:candidato.lat,lng:candidato.lng},
-        waypoints:resto.map(v=>({location:{lat:v.lat,lng:v.lng},stopover:true})),
-        optimizeWaypoints:true,
-        travelMode:google.maps.TravelMode.DRIVING
-      },(result,status)=>{
-        pendientesPub--;
-        if(status==='OK'){
-          const km=result.routes[0].legs.reduce((s,l)=>s+l.distance.value,0);
-          if(km<mejorKmPub){mejorKmPub=km;mejorResultPub=result;}
-        }
-        if(pendientesPub===0&&mejorResultPub){
-          gDirPub.setDirections(mejorResultPub);
-          // Los marcadores los ponemos según el orden real de los legs de la ruta
-          gMkPub.forEach(m=>m.setMap(null));gMkPub=[];
-          const legs=mejorResultPub.routes[0].legs;
-          // Cada leg tiene start_location — usamos eso para numerar en orden real
-          legs.forEach((leg,i)=>{
-            // Buscar la parada que corresponde al destino de este leg
-            const destLat=leg.end_location.lat();
-            const destLng=leg.end_location.lng();
-            const parada=conCoords.find(v=>Math.abs(v.lat-destLat)<0.01&&Math.abs(v.lng-destLng)<0.01);
-            if(parada){
-              const m=new google.maps.Marker({
-                position:{lat:parada.lat,lng:parada.lng},map:gMapPub,
-                label:{text:String(i+1),color:'#fff',fontWeight:'bold'},
-                title:parada.cliente,zIndex:50
-              });
-              const iw=new google.maps.InfoWindow({content:`<b>${parada.cliente}</b><br>${ciudad(parada.localidad)||''}`});
-              m.addListener('click',()=>iw.open(gMapPub,m));
-              gMkPub.push(m);
-            }
-          });
-          const b=new google.maps.LatLngBounds();
-          b.extend({lat:FLT,lng:FLN});
-          conCoords.forEach(v=>b.extend({lat:v.lat,lng:v.lng}));
-          gMapPub.fitBounds(b);
-        }
-      });
-    });
-  }catch(e){toast('Error cargando ruta: '+e.message)}
-}
-
-function cerrarMapaPublico(){
-  document.getElementById('mapPublico').style.height='0';
-  document.getElementById('pubViajeSelInfo').style.display='none';
-  if(gDirPub)gDirPub.setDirections({routes:[]});
-  gMkPub.forEach(m=>m.setMap(null));gMkPub=[];
-}
-
-async function renderPaginaPublico(){
-  // Mis viajes publicados
-  const misPublic=viajes.filter(v=>v.publico&&v.pedidoIds.length>0);
-  const misEl=document.getElementById('misViajesPublic');
-  if(misEl){
-    if(!misPublic.length){
-      misEl.innerHTML='<div style="font-size:.78rem;color:var(--text3);padding:10px;background:var(--bg2);border-radius:8px">No tenés viajes publicados. Andá a Flete y tocá "📢 Publicar" en un viaje.</div>';
-    }else{
-      misEl.innerHTML=misPublic.map(vj=>{
-        const f=vj.fecha?new Date(vj.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'Sin fecha';
-        const peds=ventas.filter(v=>vj.pedidoIds.includes(v.id));
-        const dest=peds.map(v=>ciudad(v.localidad)).filter(Boolean).join(' → ');
-        return `<div style="background:var(--bg2);border:1px solid var(--gold);border-radius:10px;padding:12px 14px;margin-bottom:8px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div style="font-weight:800;font-size:.85rem;color:var(--gold)">🚛 ${vj.nombre}</div>
-            <span style="font-size:.62rem;background:#1a3a20;color:var(--green);padding:2px 8px;border-radius:10px;font-weight:700">🌐 Publicado</span>
-          </div>
-          <div style="font-size:.72rem;color:var(--text2)">📅 ${f} · ${peds.length} parada${peds.length!==1?'s':''}${vj._kmReal?' · '+vj._kmReal+'km':''}</div>
-          ${dest?`<div style="font-size:.72rem;color:var(--text3);margin-top:3px">📍 ${dest}</div>`:''}
-          <button onclick="togglePublicar('${vj.id}');renderPaginaPublico()" style="margin-top:8px;background:#2a1010;border:1px solid var(--red);color:var(--red);border-radius:6px;padding:5px 11px;font-size:.7rem;cursor:pointer;font-family:inherit">Despublicar</button>
-        </div>`;
-      }).join('');
-    }
-  }
-
-  // Viajes de otros vendedores
-  const otrosEl=document.getElementById('otrosViajesPublic');
-  if(!otrosEl)return;
-  try{
-    const rows=await sbFetch('/rest/v1/viajes?select=*&publico=eq.true&user_id=neq.'+currentUser.id+'&order=fecha.asc');
-    if(!rows.length){
-      otrosEl.innerHTML='<div style="font-size:.78rem;color:var(--text3);padding:10px;background:var(--bg2);border-radius:8px">Ningún vendedor tiene viajes publicados todavía.</div>';
-      return;
-    }
-    otrosEl.innerHTML=rows.map(r=>{
-      const peds=typeof r.pedido_ids==='string'?JSON.parse(r.pedido_ids||'[]'):(r.pedido_ids||[]);
-      const f=r.fecha?new Date(r.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'Sin fecha';
-      const vendedorVentas=ventas; // solo tenemos nuestras ventas
-      const misVentasCercanas=ventas.filter(v=>v.estado!=='Entregado'&&v.lat&&v.lng&&!viajes.some(vj=>vj.pedidoIds.includes(v.id)));
-      const rStr=JSON.stringify(r);
-      return `<div style="background:var(--bg2);border:1px solid var(--blue);border-radius:10px;padding:12px 14px;margin-bottom:8px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;cursor:pointer" onclick='verRutaPublica(${rStr})'>
-          <div>
-            <div style="font-weight:800;font-size:.85rem;color:var(--blue)">🚛 ${r.nombre} <span style="font-size:.65rem;color:var(--text3)">📍 ver ruta</span></div>
-            <div style="font-size:.72rem;color:var(--text2)">📅 ${f}${r.km_real?' · '+r.km_real+'km reales':''} · ${peds.length} parada${peds.length!==1?'s':''}</div>
-          </div>
-          <span style="font-size:.62rem;background:#0d2e4a;color:var(--blue);padding:2px 8px;border-radius:10px;font-weight:700">${r.owner_nombre||'Vendedor'}</span>
-        </div>
-        ${misVentasCercanas.length?`
-        <div style="margin-top:10px;padding:9px;background:var(--bg3);border-radius:7px;border:1px solid var(--border2)">
-          <div style="font-size:.66rem;color:var(--text3);margin-bottom:6px;font-weight:700">TUS CLIENTES DISPONIBLES PARA SUMAR:</div>
-          ${misVentasCercanas.slice(0,3).map(v=>`
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
-              <div>
-                <div style="font-size:.76rem;font-weight:700">${v.cliente}</div>
-                <div style="font-size:.67rem;color:var(--text3)">${ciudad(v.localidad)||'—'}</div>
-              </div>
-              <button onclick="sumarClienteAViaje('${r.id}','${r.nombre}','${v.id}')" style="background:var(--bg3);border:1px solid var(--blue);color:var(--blue);border-radius:5px;padding:4px 9px;font-size:.68rem;cursor:pointer;font-family:inherit;transition:all .15s">+ Sumar</button>
-            </div>`).join('')}
-          ${misVentasCercanas.length>3?`<div style="font-size:.68rem;color:var(--text3);margin-top:5px">y ${misVentasCercanas.length-3} más en Flete...</div>`:''}
-        </div>`:'<div style="font-size:.72rem;color:var(--text3);margin-top:7px">No tenés clientes disponibles sin asignar.</div>'}
-      </div>`;
-    }).join('');
-  }catch(e){
-    otrosEl.innerHTML='<div style="font-size:.72rem;color:var(--red)">Error cargando viajes</div>';
-  }
-}
-
-async function sumarClienteAViaje(viajeIdOtro, nombreViaje, miVentaId){
-  // Buscar si ya tengo un viaje vinculado a este o crear uno nuevo
-  const nombreMio=nombreViaje+' (mi parte)';
-  let miViaje=viajes.find(v=>v.nombre===nombreMio);
-  if(!miViaje){
-    const nv={id:uid(),nombre:nombreMio,fecha:null,pedidoIds:[miVentaId],expandido:true,publico:false};
-    viajes.push(nv);
-    await saveViaje(nv);
-    toast('¡Sumado! Tu cliente quedó en "'+nombreMio+'"');
-  }else{
-    if(!miViaje.pedidoIds.includes(miVentaId)){
-      miViaje.pedidoIds.push(miVentaId);
-      await saveViaje(miViaje);
-      toast('Cliente agregado al viaje ✔');
-    }else{
-      toast('Este cliente ya está en el viaje');
-    }
-  }
-  renderPaginaPublico();
-}
-
-/* ── VIAJES PÚBLICOS ─────────────────────────────────────── */
-async function togglePublicar(id){
-  const vj=viajes.find(x=>x.id===id);if(!vj)return;
-  vj.publico=!vj.publico;
-  const ownerNombre=currentUser?.nombre||currentUser?.email?.split('@')[0]||'Vendedor';
-  // Armar snapshot de paradas con coordenadas reales
-  const paradaSnap=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng)
-    .map(v=>({id:v.id,cliente:v.cliente,localidad:v.localidad,lat:v.lat,lng:v.lng,
-              producto:v.producto,modelo:v.modelo}));
-  try{
-    await fetch(SB_URL+'/rest/v1/viajes',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','apikey':SB_KEY,
-               'Authorization':'Bearer '+SB_KEY,
-               'Prefer':'resolution=merge-duplicates,return=minimal'},
-      body:JSON.stringify({
-        id:vj.id,nombre:vj.nombre,fecha:vj.fecha||null,
-        pedido_ids:JSON.stringify(vj.pedidoIds||[]),
-        paradas_snap:JSON.stringify(paradaSnap),
-        km_real:vj._kmReal||null,expandido:vj.expandido||false,
-        user_id:currentUser?.id||null,
-        publico:vj.publico,
-        owner_nombre:ownerNombre
-      })
-    });
-    renderViajes();
-    cargarViajesPublicos();
-    toast(vj.publico?'Viaje publicado ✔ — otros lo pueden ver 🌐':'Viaje despublicado');
-  }catch(e){toast('Error: '+e.message)}
-}
-
-async function cargarViajesPublicos(){
-  const list=document.getElementById('viajesPubList');
-  if(!list)return;
-  try{
-    // Traer viajes públicos de otros usuarios
-    const rows=await sbFetch('/rest/v1/viajes?select=*&publico=eq.true&user_id=neq.'+currentUser.id+'&order=fecha.asc');
-    if(!rows.length){
-      list.innerHTML='<div style="font-size:.72rem;color:var(--text3);padding:4px 0">No hay viajes publicados por otros vendedores</div>';
-      return;
-    }
-    list.innerHTML=rows.map(r=>{
-      const peds=typeof r.pedido_ids==='string'?JSON.parse(r.pedido_ids||'[]'):(r.pedido_ids||[]);
-      const f=r.fecha?new Date(r.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'';
-      const paradas=ventas.filter(v=>peds.includes(v.id));
-      const destinos=paradas.map(v=>ciudad(v.localidad)).filter(Boolean).join(' → ');
-      // Verificar si ya me sumé
-      const yaSume=viajes.some(vj=>vj.pedidoIds.some(pid=>peds.includes(pid)));
-      return `<div class="viaje-pub-card">
-        <div class="viaje-pub-header">
-          <div class="viaje-pub-info">
-            <div class="viaje-pub-nombre">🚛 ${r.nombre}</div>
-            <div class="viaje-pub-meta">${r.owner_nombre||'Vendedor'} · ${f}${r.km_real?' · '+r.km_real+'km reales':''}</div>
-          </div>
-          <span class="viaje-pub-badge">Abierto</span>
-        </div>
-        <div class="viaje-pub-body">
-          ${destinos?`<div class="viaje-pub-parada">📍 ${destinos}</div>`:''}
-          <div class="viaje-pub-parada">${paradas.length} parada${paradas.length!==1?'s':''}</div>
-          ${!yaSume?`<button class="btn-sumar" onclick="sumarseViaje('${r.id}','${r.nombre}')">+ Sumarme a este viaje</button>`:'<div style="font-size:.72rem;color:var(--green);margin-top:7px;font-weight:700">✔ Ya estás sumado</div>'}
-        </div>
-      </div>`;
-    }).join('');
-  }catch(e){
-    list.innerHTML='<div style="font-size:.72rem;color:var(--text3)">Error cargando viajes</div>';
-  }
-}
-
-async function sumarseViaje(viajeId, nombre){
-  // Buscar si ya tengo un viaje con ese nombre o crear uno nuevo
-  let miViaje=viajes.find(v=>v.nombre===nombre+' (combinado)');
-  if(!miViaje){
-    // Crear viaje local que referencia el mismo nombre
-    const nv={id:uid(),nombre:nombre+' (mi parte)',fecha:null,pedidoIds:[],expandido:true,publico:false};
-    viajes.push(nv);
-    await saveViaje(nv);
-    miViaje=nv;
-    toast('Viaje creado — ahora agregá tus paradas al viaje "'+nv.nombre+'"');
-  }
-  renderViajes();
-}
-
-function distPuntoASegmento(px,py,ax,ay,bx,by){
-  // Distancia mínima de un punto P a un segmento AB (en grados, aprox)
-  const dx=bx-ax,dy=by-ay;
-  if(dx===0&&dy===0)return dk(py,px,ay,ax);
-  const t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/(dx*dx+dy*dy)));
-  return dk(py,px,ay+t*dy,ax+t*dx);
-}
-
-function distanciaALaRuta(v,paradas){
-  // Calcular la distancia mínima del cliente a cualquier segmento de la ruta
-  // La ruta va: fábrica → parada1 → parada2 → ... → paradaN
-  const puntos=[{lat:FLT,lng:FLN},...paradas];
-  let minDist=Infinity;
-  for(let i=0;i<puntos.length-1;i++){
-    const d=distPuntoASegmento(v.lng,v.lat,puntos[i].lng,puntos[i].lat,puntos[i+1].lng,puntos[i+1].lat);
-    if(d<minDist)minDist=d;
-  }
-  return minDist;
-}
-
-function sugerirParadas(id){
-  const vj=viajes.find(x=>x.id===id);if(!vj)return;
-  const asig=new Set(viajes.flatMap(x=>x.pedidoIds));
-  const enViaje=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
-  const disponibles=ventas.filter(v=>!asig.has(v.id)&&v.lat&&v.lng&&v.estado!=='Entregado');
-  if(!disponibles.length){toast('No hay pedidos disponibles para agregar');return}
-  if(!enViaje.length){toast('Primero agregá al menos una parada al viaje');return}
-
-  const LIMITE_KM=200;
-
-  // Medir distancia de cada cliente disponible a la ruta real (no a la fábrica)
-  const sugerencias=disponibles.map(v=>{
-    const distRuta=Math.round(distanciaALaRuta(v,enViaje));
-    // También calcular cuánto km suma al viaje total
-    const kmActual=calcKm(enViaje);
-    const kmCon=calcKm([...enViaje,v]);
-    const desvio=Math.round(kmCon-kmActual);
-    return{v,distRuta,desvio};
-  }).filter(s=>s.distRuta<=LIMITE_KM).sort((a,b)=>a.distRuta-b.distRuta).slice(0,5);
-
-  if(!sugerencias.length){
-    toast('No hay clientes a menos de 200 km de la ruta');
-    return;
-  }
-
-  // Mostrar modal de sugerencias
-  const html=sugerencias.map(({v,distRuta,desvio})=>`
-    <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px">
-      <div style="flex:1;min-width:0">
-        <div style="font-weight:700;font-size:.82rem">${v.cliente}</div>
-        <div style="font-size:.7rem;color:var(--text2)">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${ciudad(v.localidad)}</div>
-        <div style="margin-top:3px;display:flex;gap:8px">
-          <span style="font-size:.68rem;color:${distRuta<50?'var(--green)':'var(--yellow)'};font-weight:700">📍 ${distRuta} km de la ruta</span>
-          <span style="font-size:.68rem;color:var(--text3)">+${desvio} km totales</span>
-        </div>
-      </div>
-      <button class="bg" style="padding:5px 11px;font-size:.72rem;flex-shrink:0" onclick="agregarSugerida('${id}','${v.id}')">+ Agregar</button>
-    </div>`).join('');
-
-  document.getElementById('sugerModal').innerHTML=`
-    <div style="background:#15202e;border:1px solid var(--gold);border-radius:14px;padding:18px;width:100%;max-width:420px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <div style="font-size:.85rem;font-weight:800;color:var(--gold)">💡 Paradas sugeridas</div>
-        <button onclick="cerrarSugerModal()" style="background:none;border:none;color:var(--text3);font-size:1.1rem;cursor:pointer">✕</button>
-      </div>
-      <div style="font-size:.72rem;color:var(--text3);margin-bottom:12px">Clientes disponibles ordenados por menor desvío de ruta:</div>
-      ${html}
-    </div>`;
-  document.getElementById('sugerModal').style.display='flex';
-}
-
-function agregarSugerida(vid,pid){
-  agregarPedido(vid,pid);
-  cerrarSugerModal();
-  toast('Parada agregada ✔');
-}
-function cerrarSugerModal(){
-  document.getElementById('sugerModal').style.display='none';
-}
-
 function calcKm(arr){let km=0,p={lat:FLT,lng:FLN};arr.forEach(v=>{km+=dk(p.lat,p.lng,v.lat,v.lng)*FACTOR;p={lat:v.lat,lng:v.lng}});return km}
 function exportarViaje(id){
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
@@ -2251,12 +1505,6 @@ function renderClientes(){
     </div>`).join('');
   if(cliSel)verCli(cliSel);
 }
-function cerrarDetalleCli(){
-  document.getElementById('cliDetailFull').classList.remove('on');
-  cliSel=null;
-  document.querySelectorAll('.cli-item').forEach(el=>el.classList.remove('sel'));
-}
-
 function verCli(nombre){
   cliSel=nombre;
   document.querySelectorAll('.cli-item').forEach(el=>el.classList.toggle('sel',el.querySelector('.cli-name')?.textContent===nombre));
@@ -2268,13 +1516,7 @@ function verCli(nombre){
   const rent=tV-tCP-tCF;
   const margen=tV>0?((rent/tV)*100).toFixed(1):0;
   const ent=cvs.filter(v=>v.estado==='Entregado').length;
-  const isMob=window.innerWidth<=768;
-  const targetEl=isMob?document.getElementById('cliDetailFullBody'):document.getElementById('cliDetail');
-  if(isMob){
-    document.getElementById('cliDetailFullTitle').textContent=nombre;
-    document.getElementById('cliDetailFull').classList.add('on');
-  }
-  targetEl.innerHTML=`
+  document.getElementById('cliDetail').innerHTML=`
     <div class="cd-name">${nombre}</div>
     <div style="margin-top:5px;margin-bottom:12px;display:flex;flex-direction:column;gap:5px">
       ${tel?`<div style="color:var(--blue);font-size:.83rem">📞 <a href="tel:${tel}" style="color:var(--blue);text-decoration:none">${tel}</a>
@@ -2318,8 +1560,8 @@ function wa(tel){if(!tel){alert('Sin teléfono');return}window.open('https://wa.
 function dk(a,b,c,d){const R=6371,r=Math.PI/180,dL=(c-a)*r,dl=(d-b)*r,x=Math.sin(dL/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin(dl/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
 function norm(s){return(s||'').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ')}
-function ciudad(s){if(!s)return '';const p=s.split(',');return p[0].trim()}
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2500)}
+function toast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity='0',2500);if(err)vibrar([30,50,30]);else vibrar(30)}
+function vibrar(ms=30){try{if(navigator.vibrate)navigator.vibrate(ms)}catch(e){}}
 
 /* ── INIT ────────────────────────────────────────────────── */
 // Mostrar FAB en móvil cuando estamos en inicio
@@ -2327,315 +1569,33 @@ const isMobile=()=>window.innerWidth<=768;
 window.addEventListener('load',()=>{if(isMobile())document.getElementById('fabBtn').style.display='block'});
 window.addEventListener('resize',()=>{
   const fab=document.getElementById('fabBtn');
-  if(fab)fab.style.display=(isMobile()&&document.getElementById('page-inicio').classList.contains('on'))?'flex':'none';
+  if(fab)fab.style.display=(isMobile()&&document.getElementById('page-inicio').classList.contains('on'))?'block':'none';
 });
 
+cargarVentas();
 
-/* ── AUTH ────────────────────────────────────────────────── */
-let currentUser=null;
-let loginMode='login';
-
-function setLoginTab(mode){
-  loginMode=mode;
-  const esLogin=mode==='login';
-  document.getElementById('loginTitulo').textContent=esLogin?'Iniciar sesión':'Crear cuenta';
-  document.getElementById('loginBtn').textContent=esLogin?'Ingresar':'Crear cuenta';
-  document.getElementById('loginNombreFg').classList.toggle('on',!esLogin);
-  document.getElementById('loginSwitch').innerHTML=esLogin
-    ?'¿No tenés cuenta? <span style="color:var(--gold);font-weight:700">Registrarse</span>'
-    :'¿Ya tenés cuenta? <span style="color:var(--gold);font-weight:700">Iniciar sesión</span>';
-  document.getElementById('loginErr').classList.remove('on');
-}
-
-function toggleRegistro(){
-  setLoginTab(loginMode==='login'?'registro':'login');
-}
-
-async function doLogin(){
-  const email=document.getElementById('loginEmail').value.trim();
-  const pass=document.getElementById('loginPass').value;
-  const nombre=document.getElementById('loginNombre').value.trim();
-  const err=document.getElementById('loginErr');
-  const btn=document.getElementById('loginBtn');
-  if(!email||!pass){err.textContent='Completá email y contraseña';err.classList.add('on');return}
-  if(loginMode==='registro'&&!nombre){err.textContent='Ingresá tu nombre';err.classList.add('on');return}
-  btn.disabled=true;btn.textContent='Cargando...';err.classList.remove('on');
-  try{
-    let res,data;
-    if(loginMode==='login'){
-      res=await fetch(SB_URL+'/auth/v1/token?grant_type=password',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','apikey':SB_KEY},
-        body:JSON.stringify({email,password:pass})
-      });
-      data=await res.json();
-      if(!res.ok)throw new Error(data.error_description||data.msg||'Error al iniciar sesión');
-      currentUser={id:data.user.id,email:data.user.email,token:data.access_token,
-                   nombre:data.user.user_metadata?.nombre||email.split('@')[0]};
-    }else{
-      res=await fetch(SB_URL+'/auth/v1/signup',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','apikey':SB_KEY},
-        body:JSON.stringify({email,password:pass,data:{nombre}})
-      });
-      data=await res.json();
-      if(!res.ok)throw new Error(data.error_description||data.msg||'Error al registrarse');
-      if(!data.access_token)throw new Error('Error al crear cuenta');
-      currentUser={id:data.user.id,email:data.user.email,token:data.access_token,nombre};
-    }
-    localStorage.setItem('remeco_session',JSON.stringify(currentUser));
-    iniciarApp();
-  }catch(e){
-    err.textContent=e.message;err.classList.add('on');
-    btn.disabled=false;btn.textContent=loginMode==='login'?'Ingresar':'Crear cuenta';
-  }
-}
-
-function cerrarSesion(){
-  currentUser=null;
-  localStorage.removeItem('remeco_session');
-  document.getElementById('userMenu').classList.remove('on');
-  document.getElementById('loginScreen').classList.add('visible');
-  document.getElementById('loginEmail').value='';
-  document.getElementById('loginPass').value='';
-  document.getElementById('loginErr').classList.remove('on');
-  ventas=[];viajes=[];
-  setLoginTab('login');
-}
-
-function toggleUserMenu(){
-  document.getElementById('userMenu').classList.toggle('on');
-}
-
-document.addEventListener('click',e=>{
-  const menu=document.getElementById('userMenu');
-  if(menu&&menu.classList.contains('on')&&!e.target.closest('.user-badge')&&!e.target.closest('.user-menu'))
-    menu.classList.remove('on');
+/* ── CERRAR MODAL TOCANDO EL FONDO ── */
+document.querySelectorAll('.overlay').forEach(ov=>{
+  ov.addEventListener('click',e=>{
+    if(e.target!==ov)return;
+    if(ov.id==='overlay')cerrarModal();
+    if(ov.id==='overlayViaje')cerrarNuevoViaje();
+  });
 });
 
-function iniciarApp(){
-  try{
-    const u=currentUser;
-    document.getElementById('loginScreen').classList.remove('visible');
-    const inicial=(u.nombre||u.email)[0].toUpperCase();
-    document.getElementById('userAvatar').textContent=inicial;
-    document.getElementById('userNameText').textContent=u.nombre||u.email.split('@')[0];
-    document.getElementById('userMenuNombre').textContent=u.nombre||'';
-    document.getElementById('userMenuEmail').textContent=u.email;
-    cargarVentas();
-  }catch(e){console.error('iniciarApp:',e)}
-}
-
-// Verificar sesión guardada cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded',()=>{
-  const saved=localStorage.getItem('remeco_session');
-  if(saved){
-    try{currentUser=JSON.parse(saved);iniciarApp()}
-    catch(e){localStorage.removeItem('remeco_session')}
-  }
-  // Si no hay sesión, mostrar login
-  if(!currentUser){
-    document.getElementById('loginScreen').classList.add('visible');
-  }
-});
-
-
-/* ── CHAT IA ─────────────────────────────────────────────── */
-let chatAbierto=false;
-let chatHistorial=[];
-
-function toggleChat(){
-  chatAbierto=!chatAbierto;
-  document.getElementById('chatPanel').classList.toggle('on',chatAbierto);
-  document.getElementById('chatFab').textContent=chatAbierto?'✕':'🤖';
-  if(chatAbierto)document.getElementById('chatInput').focus();
-}
-
-function sendSug(el){
-  document.getElementById('chatInput').value=el.textContent.replace(/^[^\w]+/,'').trim();
-  document.getElementById('chatSugs').style.display='none';
-  enviarChat();
-}
-
-function buildContexto(){
-  try{
-    const mes=new Date().getMonth();
-    const anio=new Date().getFullYear();
-    const vMes=ventas.filter(v=>{const d=new Date(v.created_at);return d.getMonth()===mes&&d.getFullYear()===anio});
-    const pendientes=ventas.filter(v=>v.estado!=='Entregado');
-    const totMes=vMes.reduce((s,v)=>s+(v.precio||0),0);
-    const rentMes=vMes.reduce((s,v)=>s+(v.precio||0)-(v.costo_producto||0)-(v.costo_flete||0),0);
-    const porCliente={};
-    ventas.forEach(v=>{
-      if(!porCliente[v.cliente])porCliente[v.cliente]={rent:0};
-      porCliente[v.cliente].rent+=(v.precio||0)-(v.costo_producto||0)-(v.costo_flete||0);
-    });
-    const topCli=Object.entries(porCliente).sort((a,b)=>b[1].rent-a[1].rent).slice(0,3)
-      .map(([n,d])=>n+': $'+Math.round(d.rent/1000)+'k').join(', ');
-    const ultVentas=ventas.slice(0,8).map(v=>
-      `${v.cliente} - ${v.producto==='a'?'Silo':'Autocons'} ${v.modelo||''} - $${Math.round((v.precio||0)/1000)}k - ${v.estado}`
-    ).join('; ');
-    const viajesStr=viajes.filter(v=>v.pedidoIds.length>0)
-      .map(v=>{
-        const f=v.fecha?new Date(v.fecha+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'}):'sin fecha';
-        const peds=ventas.filter(x=>v.pedidoIds.includes(x.id));
-        const dest=peds.map(p=>ciudad(p.localidad)).filter(Boolean).join(', ');
-        return `${v.nombre} (${f}): ${v.pedidoIds.length} paradas${dest?' → '+dest:''}${v._kmReal?' '+v._kmReal+'km':''}`;
-      }).join('; ');
-    return `Sos el asistente de Metalúrgica Remeco, empresa argentina de silos y comederos en Colonia Menonita, La Pampa. Respondé en español rioplatense, breve y directo.
-
-DATOS:
-Ventas totales: ${ventas.length} | Este mes: ${vMes.length} por $${Math.round(totMes/1000)}k | Rentabilidad mes: $${Math.round(rentMes/1000)}k | Pendientes: ${pendientes.length} | Top clientes: ${topCli||'ninguno'} | Viajes: ${viajesStr||'ninguno'}
-
-Últimas ventas: ${ultVentas||'ninguna'}`;
-  }catch(e){
-    return 'Sos el asistente de Metalúrgica Remeco. Respondé en español argentino.';
-  }
-}
-
-const WORKER_URL='https://remeco-ai.guentergerherd.workers.dev';
-
-async function enviarChat(){
-  const input=document.getElementById('chatInput');
-  const msg=input.value.trim();
-  if(!msg)return;
-  input.value='';
-  input.style.height='auto';
-
-  document.getElementById('chatSugs').style.display='none';
-  agregarMsgChat('user',msg);
-  chatHistorial.push({role:'user',content:msg});
-
-  const loaderId='loader-'+Date.now();
-  agregarMsgChat('ai','Escribiendo...','loading',loaderId);
-  document.getElementById('chatSend').disabled=true;
-
-  try{
-    const res=await fetch(WORKER_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'gpt-4o-mini',
-        max_tokens:1000,
-        messages:[
-          {role:'system',content:buildContexto()},
-          ...chatHistorial
-        ]
-      })
-    });
-    const data=await res.json();
-    const texto=data.choices?.[0]?.message?.content||(data.error?'Error: '+data.error.message:'Sin respuesta');
-
-    const loaderEl=document.getElementById(loaderId);
-    if(loaderEl){loaderEl.textContent=texto;loaderEl.classList.remove('loading')}
-
-    chatHistorial.push({role:'assistant',content:texto});
-    if(chatHistorial.length>20)chatHistorial=chatHistorial.slice(-20);
-
-  }catch(e){
-    const loaderEl=document.getElementById(loaderId);
-    if(loaderEl){loaderEl.textContent='Error de conexión. Intentá de nuevo.';loaderEl.classList.remove('loading')}
-  }
-
-  document.getElementById('chatSend').disabled=false;
-  scrollChatAbajo();
-}
-
-function agregarMsgChat(role,texto,extraClass='',id=''){
-  const msgs=document.getElementById('chatMsgs');
-  const div=document.createElement('div');
-  div.className='chat-msg '+role+(extraClass?' '+extraClass:'');
-  div.textContent=texto;
-  if(id)div.id=id;
-  msgs.appendChild(div);
-  scrollChatAbajo();
-}
-
-function scrollChatAbajo(){
-  const msgs=document.getElementById('chatMsgs');
-  msgs.scrollTop=msgs.scrollHeight;
-}
-
-// Auto-resize textarea
-document.addEventListener('DOMContentLoaded',()=>{
-  const ta=document.getElementById('chatInput');
-  if(ta)ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,80)+'px'});
-
-  // Login event listeners
-  document.getElementById('loginBtn')?.addEventListener('click',doLogin);
-  document.getElementById('loginPass')?.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
-});
-
+/* ── VIBRACIÓN EN ACCIONES CLAVE ── */
+const _guardar=guardarVenta;
+guardarVenta=async function(){
+  const antes=ventas.length;
+  await _guardar.apply(this,arguments);
+  if(ventas.length!==antes||editId)vibrar(40);
+};
+const _cambiar=cambiarEstado;
+cambiarEstado=async function(){vibrar(25);return _cambiar.apply(this,arguments)};
+const _crearViaje=crearViaje;
+crearViaje=function(){_crearViaje.apply(this,arguments);vibrar(40)};
+const _agregarPedido=agregarPedido;
+agregarPedido=function(){_agregarPedido.apply(this,arguments);vibrar(25)};
 </script>
-
-<!-- ── MODAL SUGERENCIAS ────────────────────────────────────── -->
-<div id="sugerModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:6000;align-items:center;justify-content:center;padding:16px"></div>
-
-<!-- ── CHAT IA ─────────────────────────────────────────────── -->
-<button class="chat-fab" id="chatFab" onclick="toggleChat()" title="Asistente IA">🤖</button>
-<div class="chat-panel" id="chatPanel">
-  <div class="chat-header">
-    <div class="chat-avatar">🤖</div>
-    <div class="chat-title">
-      <div class="chat-title-name">Asistente Remeco</div>
-      <div class="chat-title-sub">IA · Conoce tus ventas y viajes</div>
-    </div>
-    <button class="chat-close" onclick="toggleChat()">✕</button>
-  </div>
-  <div class="chat-msgs" id="chatMsgs">
-    <div class="chat-msg ai">¡Hola! Soy tu asistente. Conozco tus ventas, clientes y viajes. ¿En qué te ayudo?</div>
-  </div>
-  <div class="chat-sugs" id="chatSugs">
-    <button class="chat-sug" onclick="sendSug(this)">📊 ¿Cuánto vendí este mes?</button>
-    <button class="chat-sug" onclick="sendSug(this)">🏆 ¿Cuál es mi cliente más rentable?</button>
-    <button class="chat-sug" onclick="sendSug(this)">📦 ¿Qué pedidos están pendientes?</button>
-    <button class="chat-sug" onclick="sendSug(this)">🚛 ¿Qué viajes tengo programados?</button>
-  </div>
-  <div class="chat-input-wrap">
-    <textarea class="chat-input" id="chatInput" placeholder="Preguntá lo que quieras..." rows="1"
-      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarChat()}"></textarea>
-    <button class="chat-send" id="chatSend" onclick="enviarChat()">➤</button>
-  </div>
-</div>
-
-
-<!-- ── PANTALLA DE LOGIN ──────────────────────────────────────── -->
-<div class="login-screen" id="loginScreen">
-  <div class="login-box">
-    <div class="login-logo">
-      <div class="login-logo-text">🏭 Remeco</div>
-      <div class="login-logo-sub">Sistema de Gestión</div>
-    </div>
-    <div id="loginModo" style="margin-bottom:18px">
-      <div id="loginTitulo" style="font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:4px">Iniciar sesión</div>
-    </div>
-    <div class="login-err" id="loginErr"></div>
-    <div class="login-nombre-fg" id="loginNombreFg">
-      <div class="login-fg"><label>Tu nombre</label><input id="loginNombre" placeholder="Ej: Gerardo"/></div>
-    </div>
-    <div class="login-fg"><label>Email</label><input id="loginEmail" type="email" placeholder="tu@email.com"/></div>
-    <div class="login-fg"><label>Contraseña</label><input id="loginPass" type="password" placeholder="Mínimo 6 caracteres"/></div>
-    <button class="login-btn" id="loginBtn">Ingresar</button>
-    <div style="text-align:center;margin-top:14px">
-      <span id="loginSwitch" style="font-size:.73rem;color:var(--text3);cursor:pointer" 
-            onclick="toggleRegistro()">¿No tenés cuenta? <span style="color:var(--gold);font-weight:700">Registrarse</span></span>
-    </div>
-  </div>
-</div>
-
-<!-- ── MENÚ DE USUARIO ─────────────────────────────────────────── -->
-<div class="user-menu" id="userMenu">
-  <div class="user-menu-item" style="pointer-events:none;opacity:.6">
-    <span>👤</span><span id="userMenuNombre">Usuario</span>
-  </div>
-  <div class="user-menu-item" style="pointer-events:none;opacity:.6;font-size:.7rem">
-    <span>✉️</span><span id="userMenuEmail"></span>
-  </div>
-  <div class="user-menu-sep"></div>
-  <div class="user-menu-item danger" onclick="cerrarSesion()">
-    <span>🚪</span><span>Cerrar sesión</span>
-  </div>
-</div>
-
 </body>
 </html>
