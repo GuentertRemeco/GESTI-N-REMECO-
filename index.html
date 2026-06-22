@@ -977,14 +977,17 @@ function cerrarEntrega(){
 const BNAV_MAP={inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes',publico:'bn-publico'};
 
 function ir(pg){
-  console.log('[ir] navegando a:', pg);
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  console.log('[ir] navegando a:', pg, '| ventas:', ventas.length);
+  document.querySelectorAll('.page').forEach(p=>{p.classList.remove('on');});
   document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.bnav-item').forEach(t=>t.classList.remove('on'));
   const targetPage=document.getElementById('page-'+pg);
-  console.log('[ir] targetPage:', targetPage, 'display antes:', targetPage?.style.display);
-  targetPage?.classList.add('on');
-  console.log('[ir] clases después:', targetPage?.className);
+  console.log('[ir] targetPage encontrada:', !!targetPage);
+  if(!targetPage){console.error('[ir] NO SE ENCONTRÓ page-'+pg);return;}
+  targetPage.classList.add('on');
+  // Forzar visibilidad
+  targetPage.style.display='flex';
+  console.log('[ir] display después:', window.getComputedStyle(targetPage).display, '| height:', window.getComputedStyle(targetPage).height);
 
   // top nav
   document.querySelectorAll('.ntab').forEach(t=>{
