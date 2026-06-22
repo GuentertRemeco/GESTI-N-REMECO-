@@ -1244,30 +1244,24 @@ function renderInicio(){
   const margen=totMes>0?Math.round((rentMes/totMes)*100):0;
   const mesNombre=new Date().toLocaleDateString('es-AR',{month:'long'}).toUpperCase();
   const viajesActivos=viajes.filter(v=>v.pedidoIds.length>0).length;
-  document.getElementById('statsGrid').innerHTML=
-    '<div class="stat-card" onclick="ir('ventas')" style="grid-column:span 2">'+
-      '<div style="font-size:.62rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">FACTURADO · '+mesNombre+'</div>'+
-      '<div class="stat-val">$'+(totMes/1000000).toFixed(1)+'M</div>'+
-      '<div class="stat-sub">'+vMes.length+' venta'+(vMes.length!==1?'s':'')+' este mes</div>'+
-    '</div>'+
-    '<div class="stat-card" style="grid-column:span 1;border-color:'+(rentMes>=0?'#2a6a30':'#5a2020')+'">'+
-      '<div style="font-size:.62rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">RENTABILIDAD</div>'+
-      '<div class="stat-val" style="color:'+(rentMes>=0?'var(--green)':'var(--red)')+'">$'+(rentMes/1000000).toFixed(1)+'M</div>'+
-      '<div class="stat-sub" style="color:'+(rentMes>=0?'#3a8a5a':'var(--red)')+'">'+margen+'% de margen</div>'+
-    '</div>'+
-    '<div class="stat-card" onclick="ir('ventas')">'+
-      '<div class="stat-val" style="font-size:1.4rem">'+pendientes.length+'</div>'+
-      '<div class="stat-label">Pedidos pendientes</div>'+
-      '<div class="stat-sub">'+entregados.length+' entregado'+(entregados.length!==1?'s':'')+'</div>'+
-    '</div>'+
-    '<div class="stat-card" onclick="ir('flete')">'+
-      '<div class="stat-val" style="font-size:1.4rem">'+viajesActivos+'</div>'+
-      '<div class="stat-label">Viajes activos</div>'+
-    '</div>'+
-    '<div class="stat-card" onclick="ir('clientes')">'+
-      '<div class="stat-val" style="font-size:1.4rem">'+clientes+'</div>'+
-      '<div class="stat-label">Clientes activos</div>'+
-    '</div>';
+  const sg=document.getElementById('statsGrid');
+  sg.innerHTML='';
+  const stats=[
+    {html:'<div class="stat-val">$'+(totMes/1000000).toFixed(1)+'M</div><div style="font-size:.62rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:2px">FACTURADO · '+mesNombre+'</div><div class="stat-sub">'+vMes.length+' venta'+(vMes.length!==1?'s':'')+' este mes</div>',span:2,pg:'ventas',color:''},
+    {html:'<div class="stat-val" style="color:'+(rentMes>=0?'var(--green)':'var(--red)')+'">$'+(rentMes/1000000).toFixed(1)+'M</div><div style="font-size:.62rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:2px">RENTABILIDAD</div><div class="stat-sub" style="color:'+(rentMes>=0?'#3a8a5a':'var(--red)')+'">'+margen+'% de margen</div>',span:1,pg:'',color:rentMes>=0?'#2a6a30':'#5a2020'},
+    {html:'<div class="stat-val" style="font-size:1.4rem">'+pendientes.length+'</div><div class="stat-label">Pedidos pendientes</div><div class="stat-sub">'+entregados.length+' entregado'+(entregados.length!==1?'s':'')+'</div>',span:1,pg:'ventas',color:''},
+    {html:'<div class="stat-val" style="font-size:1.4rem">'+viajesActivos+'</div><div class="stat-label">Viajes activos</div>',span:1,pg:'flete',color:''},
+    {html:'<div class="stat-val" style="font-size:1.4rem">'+clientes+'</div><div class="stat-label">Clientes activos</div>',span:1,pg:'clientes',color:''},
+  ];
+  stats.forEach(function(s){
+    var d=document.createElement('div');
+    d.className='stat-card';
+    d.innerHTML=s.html;
+    if(s.span>1)d.style.gridColumn='span '+s.span;
+    if(s.color)d.style.borderColor=s.color;
+    if(s.pg){var pg=s.pg;d.style.cursor='pointer';d.addEventListener('click',function(){ir(pg);});}
+    sg.appendChild(d);
+  });
 
   const disp=ventas.filter(v=>v.estado!=='Entregado').slice(0,5);
   document.getElementById('pendientesList').innerHTML=disp.length
