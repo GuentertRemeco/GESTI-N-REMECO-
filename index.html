@@ -36,7 +36,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
 
 /* ─── PAGES ────────────────────────────────────────────────────── */
-.page{display:none;flex:1;overflow:hidden;flex-direction:column;min-height:0}
+.page{display:none;flex:1;overflow:hidden;flex-direction:column;min-height:0;position:relative;z-index:1}
 .page.on{display:flex}
 
 /* ─── BOTTOM NAV (mobile) ──────────────────────────────────────── */
@@ -400,6 +400,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 /* ─── LOGIN ────────────────────────────────────────────────────── */
 .login-screen{position:fixed;inset:0;background:var(--bg);z-index:9000;
               display:flex;align-items:center;justify-content:center;padding:20px}
+.login-screen.hidden{display:none!important}
 .login-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;
            padding:32px 28px;width:100%;max-width:380px}
 .login-logo{text-align:center;margin-bottom:28px}
@@ -2384,6 +2385,7 @@ function cerrarSesion(){
   localStorage.removeItem('remeco_session');
   document.getElementById('userMenu').classList.remove('on');
   document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginScreen').classList.remove('hidden');
   document.getElementById('loginEmail').value='';
   document.getElementById('loginPass').value='';
   document.getElementById('loginErr').classList.remove('on');
@@ -2405,6 +2407,7 @@ function iniciarApp(){
   try{
     const u=currentUser;
     document.getElementById('loginScreen').style.display='none';
+    document.getElementById('loginScreen').classList.add('hidden');
     const inicial=(u.nombre||u.email)[0].toUpperCase();
     document.getElementById('userAvatar').textContent=inicial;
     document.getElementById('userNameText').textContent=u.nombre||u.email.split('@')[0];
@@ -2586,7 +2589,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
     <div class="login-logo">
-      <div class="login-logo-text">🏭 Remeco</div>
+      <div class="login-logo-text"> Remeco</div>
       <div class="login-logo-sub">Sistema de Gestión</div>
     </div>
     <div id="loginModo" style="margin-bottom:18px">
