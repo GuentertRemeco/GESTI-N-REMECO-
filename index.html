@@ -628,10 +628,6 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
         <button class="bg" style="padding:4px 10px;font-size:.72rem" onclick="abrirNuevoViaje()">+ Nuevo</button>
       </div>
       <div class="fp-body" id="fpBody"></div>
-      <div class="viajes-pub-section" id="viajesPubSection">
-        <div class="viajes-pub-title">🌐 Viajes disponibles para sumarse</div>
-        <div id="viajesPubList"><div style="font-size:.72rem;color:var(--text3)">Cargando...</div></div>
-      </div>
       <div class="fp-footer">
         <button class="bg" style="width:100%;padding:9px" onclick="exportarViajes()">📋 Exportar para WhatsApp</button>
       </div>
@@ -963,7 +959,7 @@ function ir(pg){
 
   if(pg==='inicio')renderInicio();
   if(pg==='mapa'){initMapV();actualizarMapV()}
-  if(pg==='flete'){initMapF();renderViajes();cargarViajesPublicos()}
+  if(pg==='flete'){initMapF();renderViajes()}
   if(pg==='publico')renderPaginaPublico();
   if(pg==='simular')initMapSim();
   if(pg==='clientes')renderClientes();
@@ -1854,6 +1850,26 @@ async function sumarseViaje(viajeId, nombre){
   renderViajes();
 }
 
+function distPuntoASegmento(px,py,ax,ay,bx,by){
+  // Distancia mínima de un punto P a un segmento AB (en grados, aprox)
+  const dx=bx-ax,dy=by-ay;
+  if(dx===0&&dy===0)return dk(py,px,ay,ax);
+  const t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/(dx*dx+dy*dy)));
+  return dk(py,px,ay+t*dy,ax+t*dx);
+}
+
+function distanciaALaRuta(v,paradas){
+  // Calcular la distancia mínima del cliente a cualquier segmento de la ruta
+  // La ruta va: fábrica → parada1 → parada2 → ... → paradaN
+  const puntos=[{lat:FLT,lng:FLN},...paradas];
+  let minDist=Infinity;
+  for(let i=0;i<puntos.length-1;i++){
+    const d=distPuntoASegmento(v.lng,v.lat,puntos[i].lng,puntos[i].lat,puntos[i+1].lng,puntos[i+1].lat);
+    if(d<minDist)minDist=d;
+  }
+  return minDist;
+}
+
 function sugerirParadas(id){
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
   const asig=new Set(viajes.flatMap(x=>x.pedidoIds));
@@ -1862,29 +1878,33 @@ function sugerirParadas(id){
   if(!disponibles.length){toast('No hay pedidos disponibles para agregar');return}
   if(!enViaje.length){toast('Primero agregá al menos una parada al viaje');return}
 
-  // Calcular km actual del viaje
-  const kmActual=calcKm(enViaje);
   const LIMITE_KM=200;
 
-  // Para cada disponible, calcular cuánto agrega a la ruta — solo mostrar los que desvían menos de 200km
+  // Medir distancia de cada cliente disponible a la ruta real (no a la fábrica)
   const sugerencias=disponibles.map(v=>{
+    const distRuta=Math.round(distanciaALaRuta(v,enViaje));
+    // También calcular cuánto km suma al viaje total
+    const kmActual=calcKm(enViaje);
     const kmCon=calcKm([...enViaje,v]);
     const desvio=Math.round(kmCon-kmActual);
-    return{v,desvio};
-  }).filter(s=>s.desvio<=LIMITE_KM).sort((a,b)=>a.desvio-b.desvio).slice(0,5);
+    return{v,distRuta,desvio};
+  }).filter(s=>s.distRuta<=LIMITE_KM).sort((a,b)=>a.distRuta-b.distRuta).slice(0,5);
 
   if(!sugerencias.length){
-    toast('No hay clientes a menos de 200 km de desvío');
+    toast('No hay clientes a menos de 200 km de la ruta');
     return;
   }
 
   // Mostrar modal de sugerencias
-  const html=sugerencias.map(({v,desvio})=>`
+  const html=sugerencias.map(({v,distRuta,desvio})=>`
     <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px">
       <div style="flex:1;min-width:0">
         <div style="font-weight:700;font-size:.82rem">${v.cliente}</div>
         <div style="font-size:.7rem;color:var(--text2)">${v.producto==='a'?'Aéreo':'Autocons.'}${v.modelo?' · '+v.modelo:''} · ${ciudad(v.localidad)}</div>
-        <div style="font-size:.7rem;color:${desvio<100?'var(--green)':'var(--yellow)'};font-weight:700;margin-top:2px">+${desvio} km de desvío</div>
+        <div style="margin-top:3px;display:flex;gap:8px">
+          <span style="font-size:.68rem;color:${distRuta<50?'var(--green)':'var(--yellow)'};font-weight:700">📍 ${distRuta} km de la ruta</span>
+          <span style="font-size:.68rem;color:var(--text3)">+${desvio} km totales</span>
+        </div>
       </div>
       <button class="bg" style="padding:5px 11px;font-size:.72rem;flex-shrink:0" onclick="agregarSugerida('${id}','${v.id}')">+ Agregar</button>
     </div>`).join('');
