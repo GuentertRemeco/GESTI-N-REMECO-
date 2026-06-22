@@ -1242,32 +1242,32 @@ function renderInicio(){
   const clientes=new Set(ventas.map(v=>v.cliente)).size;
 
   const margen=totMes>0?Math.round((rentMes/totMes)*100):0;
-  document.getElementById('statsGrid').innerHTML=`
-    <!-- 2 stats grandes -->
-    <div class="stat-card" onclick="ir('ventas')" style="grid-column:span 2">
-      <div style="font-size:.62rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">FACTURADO · ${new Date().toLocaleDateString('es-AR',{month:'long'}).toUpperCase()}</div>
-      <div class="stat-val">$${(totMes/1000000).toFixed(1)}M</div>
-      <div class="stat-sub">${vMes.length} venta${vMes.length!==1?'s':''} este mes</div>
-    </div>
-    <div class="stat-card" style="grid-column:span 1;border-color:${rentMes>=0?'#2a6a30':'#5a2020'}">
-      <div style="font-size:.62rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">RENTABILIDAD</div>
-      <div class="stat-val" style="color:${rentMes>=0?'var(--green)':'var(--red)'}">$${(rentMes/1000000).toFixed(1)}M</div>
-      <div class="stat-sub" style="color:${rentMes>=0?'#3a8a5a':'var(--red)'}">${margen}% de margen</div>
-    </div>
-    <!-- 3 stats chicas -->
-    <div class="stat-card" onclick="ir('ventas')">
-      <div class="stat-val" style="font-size:1.4rem">${pendientes.length}</div>
-      <div class="stat-label">Pedidos pendientes</div>
-      <div class="stat-sub">${entregados.length} entregado${entregados.length!==1?'s':''}</div>
-    </div>
-    <div class="stat-card" onclick="ir('flete')">
-      <div class="stat-val" style="font-size:1.4rem">${viajes.filter(v=>v.pedidoIds.length>0).length}</div>
-      <div class="stat-label">Viajes activos</div>
-    </div>
-    <div class="stat-card" onclick="ir('clientes')">
-      <div class="stat-val" style="font-size:1.4rem">${clientes}</div>
-      <div class="stat-label">Clientes activos</div>
-    </div>`;
+  const mesNombre=new Date().toLocaleDateString('es-AR',{month:'long'}).toUpperCase();
+  const viajesActivos=viajes.filter(v=>v.pedidoIds.length>0).length;
+  document.getElementById('statsGrid').innerHTML=
+    '<div class="stat-card" onclick="ir('ventas')" style="grid-column:span 2">'+
+      '<div style="font-size:.62rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">FACTURADO · '+mesNombre+'</div>'+
+      '<div class="stat-val">$'+(totMes/1000000).toFixed(1)+'M</div>'+
+      '<div class="stat-sub">'+vMes.length+' venta'+(vMes.length!==1?'s':'')+' este mes</div>'+
+    '</div>'+
+    '<div class="stat-card" style="grid-column:span 1;border-color:'+(rentMes>=0?'#2a6a30':'#5a2020')+'">'+
+      '<div style="font-size:.62rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">RENTABILIDAD</div>'+
+      '<div class="stat-val" style="color:'+(rentMes>=0?'var(--green)':'var(--red)')+'">$'+(rentMes/1000000).toFixed(1)+'M</div>'+
+      '<div class="stat-sub" style="color:'+(rentMes>=0?'#3a8a5a':'var(--red)')+'">'+margen+'% de margen</div>'+
+    '</div>'+
+    '<div class="stat-card" onclick="ir('ventas')">'+
+      '<div class="stat-val" style="font-size:1.4rem">'+pendientes.length+'</div>'+
+      '<div class="stat-label">Pedidos pendientes</div>'+
+      '<div class="stat-sub">'+entregados.length+' entregado'+(entregados.length!==1?'s':'')+'</div>'+
+    '</div>'+
+    '<div class="stat-card" onclick="ir('flete')">'+
+      '<div class="stat-val" style="font-size:1.4rem">'+viajesActivos+'</div>'+
+      '<div class="stat-label">Viajes activos</div>'+
+    '</div>'+
+    '<div class="stat-card" onclick="ir('clientes')">'+
+      '<div class="stat-val" style="font-size:1.4rem">'+clientes+'</div>'+
+      '<div class="stat-label">Clientes activos</div>'+
+    '</div>';
 
   const disp=ventas.filter(v=>v.estado!=='Entregado').slice(0,5);
   document.getElementById('pendientesList').innerHTML=disp.length
@@ -2331,11 +2331,18 @@ let loginMode='login';
 
 function setLoginTab(mode){
   loginMode=mode;
-  document.getElementById('tabLogin').classList.toggle('on',mode==='login');
-  document.getElementById('tabReg').classList.toggle('on',mode==='registro');
-  document.getElementById('loginBtn').textContent=mode==='login'?'Ingresar':'Crear cuenta';
-  document.getElementById('loginNombreFg').classList.toggle('on',mode==='registro');
+  const esLogin=mode==='login';
+  document.getElementById('loginTitulo').textContent=esLogin?'Iniciar sesión':'Crear cuenta';
+  document.getElementById('loginBtn').textContent=esLogin?'Ingresar':'Crear cuenta';
+  document.getElementById('loginNombreFg').classList.toggle('on',!esLogin);
+  document.getElementById('loginSwitch').innerHTML=esLogin
+    ?'¿No tenés cuenta? <span style="color:var(--gold);font-weight:700">Registrarse</span>'
+    :'¿Ya tenés cuenta? <span style="color:var(--gold);font-weight:700">Iniciar sesión</span>';
   document.getElementById('loginErr').classList.remove('on');
+}
+
+function toggleRegistro(){
+  setLoginTab(loginMode==='login'?'registro':'login');
 }
 
 async function doLogin(){
@@ -2544,8 +2551,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(ta)ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,80)+'px'});
 
   // Login event listeners
-  document.getElementById('tabLogin')?.addEventListener('click',()=>setLoginTab('login'));
-  document.getElementById('tabReg')?.addEventListener('click',()=>setLoginTab('registro'));
   document.getElementById('loginBtn')?.addEventListener('click',doLogin);
   document.getElementById('loginPass')?.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 });
@@ -2590,9 +2595,8 @@ document.addEventListener('DOMContentLoaded',()=>{
       <div class="login-logo-text">🏭 Remeco</div>
       <div class="login-logo-sub">Sistema de Gestión</div>
     </div>
-    <div class="login-tabs">
-      <button class="login-tab on" id="tabLogin">Iniciar sesión</button>
-      <button class="login-tab" id="tabReg">Registrarse</button>
+    <div id="loginModo" style="margin-bottom:18px">
+      <div id="loginTitulo" style="font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:4px">Iniciar sesión</div>
     </div>
     <div class="login-err" id="loginErr"></div>
     <div class="login-nombre-fg" id="loginNombreFg">
@@ -2601,6 +2605,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     <div class="login-fg"><label>Email</label><input id="loginEmail" type="email" placeholder="tu@email.com"/></div>
     <div class="login-fg"><label>Contraseña</label><input id="loginPass" type="password" placeholder="Mínimo 6 caracteres"/></div>
     <button class="login-btn" id="loginBtn">Ingresar</button>
+    <div style="text-align:center;margin-top:14px">
+      <span id="loginSwitch" style="font-size:.73rem;color:var(--text3);cursor:pointer" 
+            onclick="toggleRegistro()">¿No tenés cuenta? <span style="color:var(--gold);font-weight:700">Registrarse</span></span>
+    </div>
   </div>
 </div>
 
