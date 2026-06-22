@@ -1393,24 +1393,43 @@ const CAPACIDAD={
     '80tn':2,'100tn':2,'120tn':2,'140tn':2,
     '150tn':1,'175tn':1,'200tn':1
   },
-  // Autoconsumo (producto 'c') — clave: inicio del modelo en minúsculas
+  // Autoconsumo (producto 'c') — todas las variantes de 12tn y 18tn tienen max 5
   'c':{
     '2tn12':20,'2tn18':20,'4tn':20,
     '7tn':8,
-    '12tn':5,
-    '18tn':5
+    // Todas las variantes de 12tn
+    '12tnconalerogrande':5,'12tnconaleroalmedio':5,'12tncambiobase':5,'12tnbasedefibra':5,'12tn':5,
+    // Todas las variantes de 18tn
+    '18tnconalerogrande':5,'18tnconaleroalmedio':5,'18tncambiobase':5,'18tnbasedefibra':5,'18tn':5
   }
 };
 
+function normMod(s){
+  // Normalizar modelo: minúsculas, sin espacios/puntos/tildes/guiones/comas
+  return (s||'').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[\s.,\-_]/g,'');
+}
+
 function getCapacidadMax(producto,modelo){
   if(!modelo)return 99;
-  const m=modelo.toLowerCase().replace(/\s+/g,'');
+  const m=normMod(modelo);
   const tabla=CAPACIDAD[producto]||{};
-  // Buscar la clave que matchee el inicio del modelo
+  // Buscar clave exacta o que sea prefijo del modelo
   for(const [key,max] of Object.entries(tabla)){
-    if(m.startsWith(key))return max;
+    const k=normMod(key);
+    if(m.startsWith(k)||m===k)return max;
   }
-  return 99; // si no encuentra, sin límite
+  // Fallback por tonelaje numérico
+  const tnMatch=m.match(/^(\d+)tn/);
+  if(tnMatch){
+    const tn=parseInt(tnMatch[1]);
+    for(const [key,max] of Object.entries(tabla)){
+      const ktn=parseInt(normMod(key).match(/^(\d+)tn/)?.[1]||'0');
+      if(ktn===tn)return max;
+    }
+  }
+  return 99;
 }
 
 function calcularOcupacion(viajeId){
@@ -1420,7 +1439,7 @@ function calcularOcupacion(viajeId){
   let totalUnidades=0;
   peds.forEach(v=>{
     let prods=[];
-    try{prods=v.productos?JSON.parse(v.productos):[{tipo:v.producto,mod:v.modelo,cant:v.cantidad||1}]}catch(e){prods=[{tipo:v.producto,mod:v.modelo,cant:1}]}
+    try{const raw=v.productos;prods=raw?(typeof raw==='string'?JSON.parse(raw):raw):[{tipo:v.producto,mod:v.modelo,cant:v.cantidad||1}]}catch(e){prods=[{tipo:v.producto,mod:v.modelo,cant:1}]}
     prods.forEach(p=>{
       const key=p.tipo+'|'+(p.mod||'');
       if(!detalle[key])detalle[key]={tipo:p.tipo,mod:p.mod,cant:0,max:getCapacidadMax(p.tipo,p.mod)};
