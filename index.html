@@ -699,19 +699,6 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   </div>
 </div>
 
-<!-- ── MODAL CAPACIDAD ──────────────────────────────────────── -->
-<div class="overlay" id="overlayCapacidad">
-  <div class="modal-sm" style="max-width:360px">
-    <h2 style="color:var(--yellow);font-size:.9rem;margin-bottom:10px">⚠️ Camión al límite</h2>
-    <div id="capMsg" style="font-size:.78rem;color:var(--text2);margin-bottom:12px;line-height:1.6"></div>
-    <p style="font-size:.72rem;color:var(--text3);margin-bottom:14px">¿El fletero confirmó que entra igual?</p>
-    <div class="mact">
-      <button class="bd" onclick="cerrarCapacidad()">Cancelar</button>
-      <button style="background:#3a2800;border:1px solid var(--yellow);color:var(--yellow);border-radius:7px;padding:8px 14px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit" onclick="forzarAgregado()">Agregar igual</button>
-    </div>
-  </div>
-</div>
-
 <!-- ── MODAL NUEVO VIAJE ──────────────────────────────────────── -->
 <div class="overlay" id="overlayViaje">
   <div class="modal-sm">
@@ -748,73 +735,11 @@ let gDir=null,gDirRF=null,gDirRS=null;
 let gMkModal=null,modalLat=null,modalLng=null;
 let gMkV=[],gMkF=[];
 let simParadas=[];
-let viajes=[];
+let viajes=JSON.parse(localStorage.getItem('remeco_viajes')||'[]');
 let cliSel=null,acModal=null,acSim=null;
 let filtroEstado='',filtroProd='',sortKey='fecha_desc';
 
 /* ── SUPABASE ────────────────────────────────────────────── */
-
-/* ── CAPACIDAD CAMIÓN ───────────────────────────────────────── */
-const CAPACIDAD={
-  'a':{'6tn':8,'10tn':8,'16tn':6,'22tn':6,'28tn':6,'30tn':3,'40tn':3,'50tn':3,'60tn':3,'62tn':3,'72tn':3,'80tn':2,'100tn':2,'120tn':2,'140tn':2,'150tn':1,'175tn':1,'200tn':1},
-  'c':{'2tn12':20,'2tn18':20,'4tn':20,'7tn':8,'12tn':5,'12tnconalerogrande':5,'12tnconaleroalmedio':5,'12tncambiobase':5,'12tnbasedefibra':5,'18tn':5,'18tnconalerogrande':5,'18tnconaleroalmedio':5,'18tncambiobase':5,'18tnbasedefibra':5}
-};
-
-function normMod(s){return(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\s.,\-_]/g,'')}
-
-function getCapacidadMax(producto,modelo){
-  if(!modelo)return 99;
-  const m=normMod(modelo);
-  const tabla=CAPACIDAD[producto]||{};
-  for(const[key,max]of Object.entries(tabla)){if(m.startsWith(normMod(key)))return max;}
-  const tn=parseInt(m.match(/^(\d+)tn/)?.[1]||'0');
-  if(tn){for(const[key,max]of Object.entries(tabla)){if(parseInt(normMod(key).match(/^(\d+)tn/)?.[1]||'0')===tn)return max;}}
-  return 99;
-}
-
-function calcularOcupacion(viajeId){
-  const vj=viajes.find(x=>x.id===viajeId);if(!vj)return{detalle:{},totalUnidades:0};
-  const peds=ventas.filter(v=>vj.pedidoIds.includes(v.id));
-  const detalle={};let totalUnidades=0;
-  peds.forEach(v=>{
-    let prods=[];
-    try{const raw=v.productos;prods=raw?(typeof raw==='string'?JSON.parse(raw):raw):[{tipo:v.producto,mod:v.modelo,cant:v.cantidad||1}]}catch(e){prods=[{tipo:v.producto,mod:v.modelo,cant:1}]}
-    prods.forEach(p=>{
-      const key=p.tipo+'|'+(p.mod||'');
-      if(!detalle[key])detalle[key]={tipo:p.tipo,mod:p.mod,cant:0,max:getCapacidadMax(p.tipo,p.mod)};
-      detalle[key].cant+=(p.cant||1);totalUnidades+=(p.cant||1);
-    });
-  });
-  return{detalle,totalUnidades};
-}
-
-function verificarCapacidad(viajeId,ventaId){
-  const vj=viajes.find(x=>x.id===viajeId);if(!vj)return{ok:true};
-  const venta=ventas.find(v=>v.id===ventaId);if(!venta)return{ok:true};
-  let nuevosProds=[];
-  try{const raw=venta.productos;nuevosProds=raw?(typeof raw==='string'?JSON.parse(raw):raw):[{tipo:venta.producto,mod:venta.modelo,cant:venta.cantidad||1}]}catch(e){nuevosProds=[{tipo:venta.producto,mod:venta.modelo,cant:1}]}
-  const{detalle}=calcularOcupacion(viajeId);
-  const conflictos=[];
-  nuevosProds.forEach(p=>{
-    const key=p.tipo+'|'+(p.mod||'');
-    const actual=detalle[key]?.cant||0;
-    const max=getCapacidadMax(p.tipo,p.mod);
-    if(actual+(p.cant||1)>max)conflictos.push((p.tipo==='a'?'Silo Aéreo':'Autoconsumo')+' '+(p.mod||'')+': '+actual+'/'+max);
-  });
-  return conflictos.length?{ok:false,conflictos}:{ok:true};
-}
-
-function calcBateria(viajeId){
-  const{detalle}=calcularOcupacion(viajeId);
-  const items=Object.values(detalle);
-  if(!items.length)return{pct:0,color:'var(--green)'};
-  let maxPct=0;
-  items.forEach(i=>{const p=i.max>0?(i.cant/i.max)*100:0;if(p>maxPct)maxPct=p});
-  const pct=Math.min(100,Math.round(maxPct));
-  const color=pct>=100?'var(--red)':pct>=80?'var(--yellow)':pct>=50?'#f0c040':'var(--green)';
-  return{pct,color};
-}
-
 async function sbFetch(p,m='GET',b=null){
   const o={method:m,headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=representation'}};
   if(b)o.body=JSON.stringify(b);
@@ -1208,46 +1133,7 @@ function initMapF(){
   fabMk(gMapF);
   gDirRF=new google.maps.DirectionsRenderer({polylineOptions:{strokeColor:'#f0c840',strokeWeight:5,strokeOpacity:.95},suppressMarkers:true,map:gMapF});
 }
-async function saveViajes(){
-  // Guardar cada viaje modificado en Supabase
-  // Se llama después de modificar el array viajes
-}
-
-async function saveViaje(vj){
-  const ownerNombre=currentUser?.nombre||currentUser?.email?.split('@')[0]||'Vendedor';
-  const paradaSnap=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng)
-    .map(v=>({id:v.id,cliente:v.cliente,localidad:v.localidad,lat:v.lat,lng:v.lng,producto:v.producto,modelo:v.modelo}));
-  try{
-    await fetch(SB_URL+'/rest/v1/viajes',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'resolution=merge-duplicates,return=minimal'},
-      body:JSON.stringify({
-        id:vj.id,nombre:vj.nombre,fecha:vj.fecha||null,
-        pedido_ids:JSON.stringify(vj.pedidoIds||[]),
-        paradas_snap:JSON.stringify(paradaSnap),
-        km_real:vj._kmReal||null,expandido:vj.expandido||false,
-        publico:vj.publico||false,
-        owner_nombre:ownerNombre,
-        user_id:currentUser?.id||null
-      })
-    });
-  }catch(e){console.error('saveViaje:',e)}
-}
-
-async function cargarViajes(){
-  if(!currentUser)return;
-  try{
-    const rows=await sbFetch('/rest/v1/viajes?select=*&order=created_at.asc&user_id=eq.'+currentUser.id);
-    viajes=rows.map(r=>({
-      id:r.id,nombre:r.nombre,fecha:r.fecha||null,
-      pedidoIds:typeof r.pedido_ids==='string'?JSON.parse(r.pedido_ids||'[]'):(r.pedido_ids||[]),
-      paradasSnap:typeof r.paradas_snap==='string'?JSON.parse(r.paradas_snap||'[]'):(r.paradas_snap||[]),
-      _kmReal:r.km_real||undefined,
-      expandido:r.expandido||false,
-      publico:r.publico||false
-    }));
-  }catch(e){console.error('cargarViajes:',e)}
-}
+function saveViajes(){localStorage.setItem('remeco_viajes',JSON.stringify(viajes))}
 function abrirNuevoViaje(){
   document.getElementById('viajeNombre').value='';document.getElementById('viajeFecha').value='';
   document.getElementById('overlayViaje').classList.add('on');
@@ -1258,7 +1144,7 @@ function crearViaje(){
   const nom=document.getElementById('viajeNombre').value.trim();
   if(!nom){document.getElementById('viajeNombre').style.borderColor='var(--red)';return}
   viajes.push({id:uid(),nombre:nom,fecha:document.getElementById('viajeFecha').value||null,pedidoIds:[],expandido:true});
-  saveViaje(viajes[viajes.length-1]);cerrarNuevoViaje();renderViajes();toast('Viaje creado ✔');
+  saveViajes();cerrarNuevoViaje();renderViajes();toast('Viaje creado ✔');
 }
 function renderViajes(){
   const body=document.getElementById('fpBody');
@@ -1284,22 +1170,6 @@ function renderViajes(){
             <span class="viaje-km">${kmStr}</span>
             ${fStr?`<span>📅 ${fStr}</span>`:''}
           </div>
-          ${(()=>{
-            const bat=calcBateria(vj.id);
-            const{detalle}=calcularOcupacion(vj.id);
-            const items=Object.values(detalle).filter(i=>i.cant>0);
-            return '<div style="margin-top:4px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">'+
-              '<div style="flex:1;height:7px;background:var(--bg3);border-radius:4px;border:1px solid var(--border2);overflow:hidden">'+
-                '<div style="height:100%;border-radius:3px;background:'+bat.color+';width:'+bat.pct+'%;transition:width .4s"></div>'+
-              '</div>'+
-              '<span style="font-size:.6rem;font-weight:800;color:'+bat.color+';white-space:nowrap">'+bat.pct+'%</span>'+
-            '</div>'+
-            (items.length?'<div style="display:flex;gap:4px;flex-wrap:wrap">'+
-              items.map(i=>'<span style="font-size:.58rem;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;padding:1px 5px;color:'+(i.cant>=i.max?'var(--red)':'var(--text3)')+'">'+
-                (i.tipo==='a'?'Aéreo':'Autocons.')+' '+(i.mod||'').split(' ')[0]+' '+i.cant+'/'+i.max+'</span>').join('')+
-            '</div>':'')+
-            '</div>';
-          })()}
         </div>
         <button class="vbtn del" onclick="eliminarViaje('${vj.id}')">✕</button>
       </div>
@@ -1352,7 +1222,7 @@ function calcularRutaViaje(id){
     if(status==='OK'){
       gDirRF.setDirections(result);
       const km=Math.round(result.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
-      vj._kmReal=km;saveViaje(vj);
+      vj._kmReal=km;saveViajes();
       toast(`Ruta: ${km.toLocaleString('es-AR')} km ✔`);
       const b=new google.maps.LatLngBounds();
       b.extend({lat:FLT,lng:FLN});sel.forEach(v=>b.extend({lat:v.lat,lng:v.lng}));
@@ -1360,35 +1230,10 @@ function calcularRutaViaje(id){
     }
   });
 }
-function toggleViaje(id){const v=viajes.find(x=>x.id===id);if(!v)return;v.expandido=!v.expandido;saveViaje(v);renderViajes();if(v.expandido&&v.pedidoIds.length)calcularRutaViaje(id)}
-function eliminarViaje(id){if(!confirm('¿Eliminar?'))return;viajes=viajes.filter(x=>x.id!==id);
-  try{await sbFetch('/rest/v1/viajes?id=eq.'+id,'DELETE')}catch(e){}
-  renderViajes()}
-let _capPend={vid:null,pid:null};
-
-function agregarPedido(vid,pid){
-  const v=viajes.find(x=>x.id===vid);
-  if(!v||v.pedidoIds.includes(pid))return;
-  const check=verificarCapacidad(vid,pid);
-  if(!check.ok){
-    _capPend={vid,pid};
-    document.getElementById('capMsg').innerHTML=check.conflictos.map(c=>'⚠️ '+c).join('<br>');
-    document.getElementById('overlayCapacidad').classList.add('on');
-    return;
-  }
-  v.pedidoIds.push(pid);saveViaje(v);renderViajes();calcularRutaViaje(vid);
-}
-
-function forzarAgregado(){
-  const{vid,pid}=_capPend;
-  cerrarCapacidad();
-  const v=viajes.find(x=>x.id===vid);
-  if(!v||v.pedidoIds.includes(pid))return;
-  v.pedidoIds.push(pid);saveViaje(v);renderViajes();calcularRutaViaje(vid);
-  toast('Agregado igual ✔');
-}
-function cerrarCapacidad(){document.getElementById('overlayCapacidad').classList.remove('on');_capPend={vid:null,pid:null};}
-function quitarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v)return;v.pedidoIds=v.pedidoIds.filter(x=>x!==pid);delete v._kmReal;saveViaje(v);renderViajes()}
+function toggleViaje(id){const v=viajes.find(x=>x.id===id);if(!v)return;v.expandido=!v.expandido;saveViajes();renderViajes();if(v.expandido&&v.pedidoIds.length)calcularRutaViaje(id)}
+function eliminarViaje(id){if(!confirm('¿Eliminar?'))return;viajes=viajes.filter(x=>x.id!==id);saveViajes();renderViajes()}
+function agregarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v||v.pedidoIds.includes(pid))return;v.pedidoIds.push(pid);saveViajes();renderViajes();calcularRutaViaje(vid)}
+function quitarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v)return;v.pedidoIds=v.pedidoIds.filter(x=>x!==pid);delete v._kmReal;saveViajes();renderViajes()}
 function optimizarViaje(id){
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
   const sel=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
@@ -1426,7 +1271,7 @@ function optimizarViaje(id){
         if(mejorIds){
           vj.pedidoIds=mejorIds;
           vj._kmReal=mejorKm;
-          saveViaje(vj);renderViajes();calcularRutaViaje(id);
+          saveViajes();renderViajes();calcularRutaViaje(id);
           toast("Ruta optimizada: "+mejorKm.toLocaleString("es-AR")+" km ⚡");
         }else{
           toast("No se pudo calcular la ruta. Revisá la conexión.");
