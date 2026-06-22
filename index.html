@@ -36,7 +36,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
 
 /* ─── PAGES ────────────────────────────────────────────────────── */
-.page{display:none;flex:1;overflow:hidden;flex-direction:column;min-height:0;position:relative;z-index:1}
+.page{display:none;flex:1;overflow:hidden;flex-direction:column;min-height:0}
 .page.on{display:flex}
 
 /* ─── BOTTOM NAV (mobile) ──────────────────────────────────────── */
@@ -2417,11 +2417,16 @@ function iniciarApp(){
   }catch(e){console.error('iniciarApp:',e)}
 }
 
-window.addEventListener('load',()=>{
+// Verificar sesión guardada cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded',()=>{
   const saved=localStorage.getItem('remeco_session');
   if(saved){
     try{currentUser=JSON.parse(saved);iniciarApp()}
     catch(e){localStorage.removeItem('remeco_session')}
+  }
+  // Si no hay sesión, mostrar login
+  if(!currentUser){
+    document.getElementById('loginScreen').style.display='flex';
   }
 });
 
@@ -2586,7 +2591,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 
 <!-- ── PANTALLA DE LOGIN ──────────────────────────────────────── -->
-<div class="login-screen" id="loginScreen">
+<div class="login-screen" id="loginScreen" style="display:none">
   <div class="login-box">
     <div class="login-logo">
       <div class="login-logo-text"> Remeco</div>
