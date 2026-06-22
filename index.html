@@ -699,6 +699,9 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   </div>
 </div>
 
+<!-- ── MODAL SUGERENCIAS ─────────────────────────────────────── -->
+<div id="sugerModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:6000;align-items:center;justify-content:center;padding:16px"></div>
+
 <!-- ── MODAL NUEVO VIAJE ──────────────────────────────────────── -->
 <div class="overlay" id="overlayViaje">
   <div class="modal-sm">
@@ -1191,6 +1194,7 @@ function renderViajes(){
         </div>`:''}
         <div class="viaje-actions">
           <button class="bv" style="flex:1;font-size:.72rem;padding:6px" onclick="exportarViaje('${vj.id}')">📋 Exportar</button>
+          <button class="bd" style="font-size:.72rem;padding:6px" onclick="sugerirParadas('${vj.id}')">💡 Sugerir</button>
           <button class="bd" style="font-size:.72rem;padding:6px" onclick="optimizarViaje('${vj.id}')">⚡ Optimizar</button>
         </div>
       </div>`:''}
@@ -1234,6 +1238,65 @@ function toggleViaje(id){const v=viajes.find(x=>x.id===id);if(!v)return;v.expand
 function eliminarViaje(id){if(!confirm('¿Eliminar?'))return;viajes=viajes.filter(x=>x.id!==id);saveViajes();renderViajes()}
 function agregarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v||v.pedidoIds.includes(pid))return;v.pedidoIds.push(pid);saveViajes();renderViajes();calcularRutaViaje(vid)}
 function quitarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v)return;v.pedidoIds=v.pedidoIds.filter(x=>x!==pid);delete v._kmReal;saveViajes();renderViajes()}
+function dk(lat1,lng1,lat2,lng2){
+  const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function distPuntoASegmento(px,py,ax,ay,bx,by){
+  const dx=bx-ax,dy=by-ay;
+  if(dx===0&&dy===0)return dk(py,px,ay,ax);
+  const t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/(dx*dx+dy*dy)));
+  return dk(py,px,ay+t*dy,ax+t*dx);
+}
+
+function distanciaALaRuta(v,paradas){
+  const puntos=[{lat:FLT,lng:FLN},...paradas];
+  let minDist=Infinity;
+  for(let i=0;i<puntos.length-1;i++){
+    const d=distPuntoASegmento(v.lng,v.lat,puntos[i].lng,puntos[i].lat,puntos[i+1].lng,puntos[i+1].lat);
+    if(d<minDist)minDist=d;
+  }
+  return minDist;
+}
+
+function sugerirParadas(id){
+  const vj=viajes.find(x=>x.id===id);if(!vj)return;
+  const asig=new Set(viajes.flatMap(x=>x.pedidoIds));
+  const enViaje=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
+  const disponibles=ventas.filter(v=>!asig.has(v.id)&&v.lat&&v.lng&&v.estado!=='Entregado');
+  if(!disponibles.length){toast('No hay pedidos disponibles');return}
+  if(!enViaje.length){toast('Primero agregá al menos una parada');return}
+  const LIMITE=200;
+  const sugerencias=disponibles.map(v=>{
+    const dist=Math.round(distanciaALaRuta(v,enViaje));
+    return{v,dist};
+  }).filter(s=>s.dist<=LIMITE).sort((a,b)=>a.dist-b.dist).slice(0,5);
+  if(!sugerencias.length){toast('No hay clientes a menos de 200 km de la ruta');return}
+  const html=sugerencias.map(({v,dist})=>
+    '<div style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px">'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-weight:700;font-size:.82rem">'+v.cliente+'</div>'+
+        '<div style="font-size:.7rem;color:var(--text2)">'+(v.producto==='a'?'Aéreo':'Autocons.')+(v.modelo?' · '+v.modelo:'')+(v.localidad?' · '+v.localidad:'')+'</div>'+
+        '<div style="font-size:.7rem;color:'+(dist<50?'var(--green)':'var(--yellow)')+';font-weight:700;margin-top:2px">📍 '+dist+' km de la ruta</div>'+
+      '</div>'+
+      '<button class="bg" style="padding:5px 11px;font-size:.72rem;flex-shrink:0" onclick="agregarPedido(''+id+'',''+v.id+'');cerrarSugerModal()">+ Agregar</button>'+
+    '</div>'
+  ).join('');
+  document.getElementById('sugerModal').innerHTML=
+    '<div style="background:#15202e;border:1px solid var(--gold);border-radius:14px;padding:18px;width:100%;max-width:420px">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'+
+        '<div style="font-size:.85rem;font-weight:800;color:var(--gold)">💡 Paradas sugeridas</div>'+
+        '<button onclick="cerrarSugerModal()" style="background:none;border:none;color:var(--text3);font-size:1.1rem;cursor:pointer">✕</button>'+
+      '</div>'+
+      '<div style="font-size:.72rem;color:var(--text3);margin-bottom:12px">Clientes a menos de 200 km de la ruta actual:</div>'+
+      html+
+    '</div>';
+  document.getElementById('sugerModal').style.display='flex';
+}
+function cerrarSugerModal(){document.getElementById('sugerModal').style.display='none'}
+
 function optimizarViaje(id){
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
   const sel=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
