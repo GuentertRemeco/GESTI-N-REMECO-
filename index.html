@@ -487,6 +487,16 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 @media(min-width:769px){
   .cli-detail-full{display:none!important}
 }
+
+/* ─── BATERÍA CAMIÓN ───────────────────────────────────────────── */
+.bateria-wrap{display:flex;align-items:center;gap:5px;margin-top:5px}
+.bateria-label{font-size:.6rem;color:var(--text3);white-space:nowrap}
+.bateria-outer{flex:1;height:8px;background:var(--bg3);border-radius:4px;
+               border:1px solid var(--border2);overflow:hidden;position:relative}
+.bateria-inner{height:100%;border-radius:3px;transition:width .4s ease,background .3s}
+.bateria-tip{width:4px;height:12px;background:var(--border2);border-radius:0 2px 2px 0;
+             margin-left:1px;flex-shrink:0}
+.bateria-pct{font-size:.6rem;font-weight:800;white-space:nowrap;min-width:28px;text-align:right}
 </style>
 </head>
 <body>
@@ -711,6 +721,20 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <div class="cli-detail-title" id="cliDetailFullTitle"></div>
   </div>
   <div class="cli-detail-body" id="cliDetailFullBody"></div>
+</div>
+
+<!-- ── MODAL CAPACIDAD CAMIÓN ────────────────────────────────── -->
+<div class="overlay" id="overlayCapacidad">
+  <div class="modal-sm" style="max-width:380px">
+    <h2 style="font-size:.88rem;color:var(--yellow);margin-bottom:8px">⚠️ Camión al límite</h2>
+    <p style="font-size:.76rem;color:var(--text2);margin-bottom:12px" id="capMsg"></p>
+    <div id="capConflictos" style="background:var(--bg3);border-radius:7px;padding:9px 12px;margin-bottom:14px;font-size:.73rem;color:var(--text3)"></div>
+    <p style="font-size:.72rem;color:var(--text3);margin-bottom:14px">¿El fletero confirmó que entra igual?</p>
+    <div class="mact">
+      <button class="bd" onclick="cerrarCapacidad()">Cancelar</button>
+      <button style="background:#3a2800;border:1px solid var(--yellow);color:var(--yellow);border-radius:7px;padding:8px 14px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit" onclick="forzarAgregado()">Agregar igual</button>
+    </div>
+  </div>
 </div>
 
 <!-- ── MODAL VENTA ────────────────────────────────────────────── -->
@@ -1359,6 +1383,95 @@ function initMapF(){
   fabMk(gMapF);
   gDirRF=new google.maps.DirectionsRenderer({polylineOptions:{strokeColor:'#f0c840',strokeWeight:5,strokeOpacity:.95},suppressMarkers:true,map:gMapF});
 }
+
+/* ── CAPACIDAD CAMIÓN ───────────────────────────────────────── */
+const CAPACIDAD={
+  // Silo Aéreo (producto 'a') — clave: inicio del modelo en minúsculas
+  'a':{
+    '6tn':8,'10tn':8,'16tn':6,'22tn':6,'28tn':6,
+    '30tn':3,'40tn':3,'50tn':3,'60tn':3,'62tn':3,'72tn':3,
+    '80tn':2,'100tn':2,'120tn':2,'140tn':2,
+    '150tn':1,'175tn':1,'200tn':1
+  },
+  // Autoconsumo (producto 'c') — clave: inicio del modelo en minúsculas
+  'c':{
+    '2tn12':20,'2tn18':20,'4tn':20,
+    '7tn':8,
+    '12tn':5,
+    '18tn':5
+  }
+};
+
+function getCapacidadMax(producto,modelo){
+  if(!modelo)return 99;
+  const m=modelo.toLowerCase().replace(/\s+/g,'');
+  const tabla=CAPACIDAD[producto]||{};
+  // Buscar la clave que matchee el inicio del modelo
+  for(const [key,max] of Object.entries(tabla)){
+    if(m.startsWith(key))return max;
+  }
+  return 99; // si no encuentra, sin límite
+}
+
+function calcularOcupacion(viajeId){
+  const vj=viajes.find(x=>x.id===viajeId);if(!vj)return{items:[],total:0,detalle:{}};
+  const peds=ventas.filter(v=>vj.pedidoIds.includes(v.id));
+  const detalle={};
+  let totalUnidades=0;
+  peds.forEach(v=>{
+    let prods=[];
+    try{prods=v.productos?JSON.parse(v.productos):[{tipo:v.producto,mod:v.modelo,cant:v.cantidad||1}]}catch(e){prods=[{tipo:v.producto,mod:v.modelo,cant:1}]}
+    prods.forEach(p=>{
+      const key=p.tipo+'|'+(p.mod||'');
+      if(!detalle[key])detalle[key]={tipo:p.tipo,mod:p.mod,cant:0,max:getCapacidadMax(p.tipo,p.mod)};
+      detalle[key].cant+=(p.cant||1);
+      totalUnidades+=(p.cant||1);
+    });
+  });
+  return{detalle,totalUnidades};
+}
+
+function verificarCapacidad(viajeId,ventaId){
+  // Retorna {ok:true} si hay lugar, o {ok:false, msg, detalle} si no hay
+  const vj=viajes.find(x=>x.id===viajeId);if(!vj)return{ok:true};
+  const venta=ventas.find(v=>v.id===ventaId);if(!venta)return{ok:true};
+  
+  let nuevosProds=[];
+  try{nuevosProds=venta.productos?JSON.parse(venta.productos):[{tipo:venta.producto,mod:venta.modelo,cant:venta.cantidad||1}]}catch(e){nuevosProds=[{tipo:venta.producto,mod:venta.modelo,cant:1}]}
+  
+  const {detalle}=calcularOcupacion(viajeId);
+  const conflictos=[];
+  
+  nuevosProds.forEach(p=>{
+    const key=p.tipo+'|'+(p.mod||'');
+    const actual=detalle[key]?.cant||0;
+    const max=getCapacidadMax(p.tipo,p.mod);
+    const nuevo=(p.cant||1);
+    if(actual+nuevo>max){
+      conflictos.push(`${p.tipo==='a'?'Silo Aéreo':'Autoconsumo'} ${p.mod||''}: ${actual}/${max} → quiere agregar ${nuevo}`);
+    }
+  });
+  
+  if(conflictos.length){
+    return{ok:false,conflictos};
+  }
+  return{ok:true};
+}
+
+
+function calcBateria(viajeId){
+  const{detalle}=calcularOcupacion(viajeId);
+  const items=Object.values(detalle);
+  if(!items.length)return{pct:0,color:'var(--green)',txt:'Vacío'};
+  // El modelo más ocupado define el % de la batería
+  let maxPct=0;
+  items.forEach(i=>{const p=i.max>0?(i.cant/i.max)*100:0;if(p>maxPct)maxPct=p});
+  const pct=Math.min(100,Math.round(maxPct));
+  const color=pct>=100?'var(--red)':pct>=80?'var(--yellow)':pct>=50?'#f0c040':'var(--green)';
+  const txt=pct>=100?'Lleno':pct>=80?'Casi lleno':pct>=50?'Mitad':'Disponible';
+  return{pct,color,txt};
+}
+
 async function saveViaje(vj){
   // Limpiar km si no tiene pedidos
   if(!vj.pedidoIds.length) delete vj._kmReal;
@@ -1442,6 +1555,16 @@ function renderViajes(){
             <span class="viaje-km">${kmStr}</span>
             ${fStr?`<span>📅 ${fStr}</span>`:''}
           </div>
+          ${(()=>{
+            const bat=calcBateria(vj.id);
+            return `<div class="bateria-wrap">
+              <div class="bateria-outer">
+                <div class="bateria-inner" style="width:${bat.pct}%;background:${bat.color}"></div>
+              </div>
+              <div class="bateria-tip"></div>
+              <div class="bateria-pct" style="color:${bat.color}">${bat.pct}%</div>
+            </div>`;
+          })()}
         </div>
         <button class="btn-publicar${vj.publico?' on':''}" onclick="togglePublicar('${vj.id}')">${vj.publico?'🌐 Publicado':'📢 Publicar'}</button>
         <button class="vbtn del" onclick="eliminarViaje('${vj.id}')">✕</button>
@@ -1523,7 +1646,31 @@ async function eliminarViaje(id){
   try{await sbFetch('/rest/v1/viajes?id=eq.'+id,'DELETE')}catch(e){}
   renderViajes();
 }
-function agregarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v||v.pedidoIds.includes(pid))return;v.pedidoIds.push(pid);saveViaje(v);renderViajes();calcularRutaViaje(vid)}
+let _capPendiente={vid:null,pid:null};
+function cerrarCapacidad(){document.getElementById('overlayCapacidad').classList.remove('on');_capPendiente={vid:null,pid:null}}
+function forzarAgregado(){
+  const{vid,pid}=_capPendiente;
+  cerrarCapacidad();
+  const v=viajes.find(x=>x.id===vid);
+  if(!v||v.pedidoIds.includes(pid))return;
+  v.pedidoIds.push(pid);saveViaje(v);renderViajes();calcularRutaViaje(vid);
+  toast('Agregado igual ✔');
+}
+
+function agregarPedido(vid,pid){
+  const v=viajes.find(x=>x.id===vid);
+  if(!v||v.pedidoIds.includes(pid))return;
+  // Verificar capacidad
+  const check=verificarCapacidad(vid,pid);
+  if(!check.ok){
+    _capPendiente={vid,pid};
+    document.getElementById('capMsg').textContent='Este pedido supera la capacidad del camión:';
+    document.getElementById('capConflictos').innerHTML=check.conflictos.map(c=>`<div>⚠️ ${c}</div>`).join('');
+    document.getElementById('overlayCapacidad').classList.add('on');
+    return;
+  }
+  v.pedidoIds.push(pid);saveViaje(v);renderViajes();calcularRutaViaje(vid);
+}
 function quitarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v)return;v.pedidoIds=v.pedidoIds.filter(x=>x!==pid);delete v._kmReal;saveViaje(v);renderViajes()}
 function optimizarViaje(id){
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
