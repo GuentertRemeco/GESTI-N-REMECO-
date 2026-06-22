@@ -748,7 +748,7 @@ let gDir=null,gDirRF=null,gDirRS=null;
 let gMkModal=null,modalLat=null,modalLng=null;
 let gMkV=[],gMkF=[];
 let simParadas=[];
-let viajes=JSON.parse(localStorage.getItem('remeco_viajes')||'[]');
+let viajes=[];
 let cliSel=null,acModal=null,acSim=null;
 let filtroEstado='',filtroProd='',sortKey='fecha_desc';
 
@@ -1208,7 +1208,46 @@ function initMapF(){
   fabMk(gMapF);
   gDirRF=new google.maps.DirectionsRenderer({polylineOptions:{strokeColor:'#f0c840',strokeWeight:5,strokeOpacity:.95},suppressMarkers:true,map:gMapF});
 }
-function saveViajes(){localStorage.setItem('remeco_viajes',JSON.stringify(viajes))}
+async function saveViajes(){
+  // Guardar cada viaje modificado en Supabase
+  // Se llama después de modificar el array viajes
+}
+
+async function saveViaje(vj){
+  const ownerNombre=currentUser?.nombre||currentUser?.email?.split('@')[0]||'Vendedor';
+  const paradaSnap=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng)
+    .map(v=>({id:v.id,cliente:v.cliente,localidad:v.localidad,lat:v.lat,lng:v.lng,producto:v.producto,modelo:v.modelo}));
+  try{
+    await fetch(SB_URL+'/rest/v1/viajes',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify({
+        id:vj.id,nombre:vj.nombre,fecha:vj.fecha||null,
+        pedido_ids:JSON.stringify(vj.pedidoIds||[]),
+        paradas_snap:JSON.stringify(paradaSnap),
+        km_real:vj._kmReal||null,expandido:vj.expandido||false,
+        publico:vj.publico||false,
+        owner_nombre:ownerNombre,
+        user_id:currentUser?.id||null
+      })
+    });
+  }catch(e){console.error('saveViaje:',e)}
+}
+
+async function cargarViajes(){
+  if(!currentUser)return;
+  try{
+    const rows=await sbFetch('/rest/v1/viajes?select=*&order=created_at.asc&user_id=eq.'+currentUser.id);
+    viajes=rows.map(r=>({
+      id:r.id,nombre:r.nombre,fecha:r.fecha||null,
+      pedidoIds:typeof r.pedido_ids==='string'?JSON.parse(r.pedido_ids||'[]'):(r.pedido_ids||[]),
+      paradasSnap:typeof r.paradas_snap==='string'?JSON.parse(r.paradas_snap||'[]'):(r.paradas_snap||[]),
+      _kmReal:r.km_real||undefined,
+      expandido:r.expandido||false,
+      publico:r.publico||false
+    }));
+  }catch(e){console.error('cargarViajes:',e)}
+}
 function abrirNuevoViaje(){
   document.getElementById('viajeNombre').value='';document.getElementById('viajeFecha').value='';
   document.getElementById('overlayViaje').classList.add('on');
@@ -1219,7 +1258,7 @@ function crearViaje(){
   const nom=document.getElementById('viajeNombre').value.trim();
   if(!nom){document.getElementById('viajeNombre').style.borderColor='var(--red)';return}
   viajes.push({id:uid(),nombre:nom,fecha:document.getElementById('viajeFecha').value||null,pedidoIds:[],expandido:true});
-  saveViajes();cerrarNuevoViaje();renderViajes();toast('Viaje creado ✔');
+  saveViaje(viajes[viajes.length-1]);cerrarNuevoViaje();renderViajes();toast('Viaje creado ✔');
 }
 function renderViajes(){
   const body=document.getElementById('fpBody');
@@ -1313,7 +1352,7 @@ function calcularRutaViaje(id){
     if(status==='OK'){
       gDirRF.setDirections(result);
       const km=Math.round(result.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
-      vj._kmReal=km;saveViajes();
+      vj._kmReal=km;saveViaje(vj);
       toast(`Ruta: ${km.toLocaleString('es-AR')} km ✔`);
       const b=new google.maps.LatLngBounds();
       b.extend({lat:FLT,lng:FLN});sel.forEach(v=>b.extend({lat:v.lat,lng:v.lng}));
@@ -1321,8 +1360,10 @@ function calcularRutaViaje(id){
     }
   });
 }
-function toggleViaje(id){const v=viajes.find(x=>x.id===id);if(!v)return;v.expandido=!v.expandido;saveViajes();renderViajes();if(v.expandido&&v.pedidoIds.length)calcularRutaViaje(id)}
-function eliminarViaje(id){if(!confirm('¿Eliminar?'))return;viajes=viajes.filter(x=>x.id!==id);saveViajes();renderViajes()}
+function toggleViaje(id){const v=viajes.find(x=>x.id===id);if(!v)return;v.expandido=!v.expandido;saveViaje(v);renderViajes();if(v.expandido&&v.pedidoIds.length)calcularRutaViaje(id)}
+function eliminarViaje(id){if(!confirm('¿Eliminar?'))return;viajes=viajes.filter(x=>x.id!==id);
+  try{await sbFetch('/rest/v1/viajes?id=eq.'+id,'DELETE')}catch(e){}
+  renderViajes()}
 let _capPend={vid:null,pid:null};
 
 function agregarPedido(vid,pid){
@@ -1335,7 +1376,7 @@ function agregarPedido(vid,pid){
     document.getElementById('overlayCapacidad').classList.add('on');
     return;
   }
-  v.pedidoIds.push(pid);saveViajes();renderViajes();calcularRutaViaje(vid);
+  v.pedidoIds.push(pid);saveViaje(v);renderViajes();calcularRutaViaje(vid);
 }
 
 function forzarAgregado(){
@@ -1343,11 +1384,11 @@ function forzarAgregado(){
   cerrarCapacidad();
   const v=viajes.find(x=>x.id===vid);
   if(!v||v.pedidoIds.includes(pid))return;
-  v.pedidoIds.push(pid);saveViajes();renderViajes();calcularRutaViaje(vid);
+  v.pedidoIds.push(pid);saveViaje(v);renderViajes();calcularRutaViaje(vid);
   toast('Agregado igual ✔');
 }
 function cerrarCapacidad(){document.getElementById('overlayCapacidad').classList.remove('on');_capPend={vid:null,pid:null};}
-function quitarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v)return;v.pedidoIds=v.pedidoIds.filter(x=>x!==pid);delete v._kmReal;saveViajes();renderViajes()}
+function quitarPedido(vid,pid){const v=viajes.find(x=>x.id===vid);if(!v)return;v.pedidoIds=v.pedidoIds.filter(x=>x!==pid);delete v._kmReal;saveViaje(v);renderViajes()}
 function optimizarViaje(id){
   const vj=viajes.find(x=>x.id===id);if(!vj)return;
   const sel=ventas.filter(v=>vj.pedidoIds.includes(v.id)&&v.lat&&v.lng);
@@ -1385,7 +1426,7 @@ function optimizarViaje(id){
         if(mejorIds){
           vj.pedidoIds=mejorIds;
           vj._kmReal=mejorKm;
-          saveViajes();renderViajes();calcularRutaViaje(id);
+          saveViaje(vj);renderViajes();calcularRutaViaje(id);
           toast("Ruta optimizada: "+mejorKm.toLocaleString("es-AR")+" km ⚡");
         }else{
           toast("No se pudo calcular la ruta. Revisá la conexión.");
