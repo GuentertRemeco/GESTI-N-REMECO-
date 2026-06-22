@@ -469,6 +469,24 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
               transition:all .15s;font-family:inherit}
 .btn-publicar:hover{background:var(--blue);color:#0a1018}
 .btn-publicar.on{background:var(--blue);color:#0a1018}
+
+@media(max-width:768px){
+  .cli-wrap{position:relative}
+  .cli-detail-full{position:fixed;inset:0;background:var(--bg);z-index:700;
+                   overflow-y:auto;padding:0;display:none;flex-direction:column;
+                   padding-bottom:var(--bnav-h)}
+  .cli-detail-full.on{display:flex}
+  .cli-detail-header{background:var(--bg4);border-bottom:1px solid var(--border);
+                     padding:12px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+  .cli-back-btn{background:none;border:1px solid var(--border2);color:var(--text2);
+                border-radius:7px;padding:6px 12px;font-size:.78rem;cursor:pointer;font-family:inherit}
+  .cli-back-btn:hover{border-color:var(--gold);color:var(--gold)}
+  .cli-detail-title{font-weight:800;font-size:.95rem;color:var(--gold)}
+  .cli-detail-body{flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch}
+}
+@media(min-width:769px){
+  .cli-detail-full{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -688,6 +706,15 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     </div>
   </div>
   </div>
+</div>
+
+<!-- ── DETALLE CLIENTE FULLSCREEN (mobile) ───────────────────── -->
+<div class="cli-detail-full" id="cliDetailFull">
+  <div class="cli-detail-header">
+    <button class="cli-back-btn" onclick="cerrarDetalleCli()">← Volver</button>
+    <div class="cli-detail-title" id="cliDetailFullTitle"></div>
+  </div>
+  <div class="cli-detail-body" id="cliDetailFullBody"></div>
 </div>
 
 <!-- ── MODAL VENTA ────────────────────────────────────────────── -->
@@ -1126,36 +1153,33 @@ function renderCards(f){
     const ei=Math.max(0,ESTADOS.indexOf(v.estado));
     const fecha=v.fecha_entrega?new Date(v.fecha_entrega+'T12:00').toLocaleDateString('es-AR',{day:'2-digit',month:'short'}):'Sin fecha';
     const ganancia=v.precio?(v.precio-(v.costo_producto||0)-(v.costo_flete||0)):null;
-    return `<div class="vcard">
-      <div class="vcard-header">
-        <div class="vcard-main">
-          <div class="vcard-name">${v.cliente}</div>
-          <div class="vcard-prod" style="flex-wrap:wrap;gap:4px">
-            ${(v.productos?JSON.parse(v.productos):[{tipo:v.producto,mod:v.modelo,cant:v.cantidad||1}]).map(p=>`
-              <span class="ptag ${p.tipo==='a'?'pa':'pc-tag'}" style="margin-bottom:2px">${p.tipo==='a'?'Aéreo':'Autocons.'}</span>
-              ${p.mod?`<span style="font-size:.7rem;color:var(--text2)">${p.mod}</span>`:''}
-              ${(p.cant||1)>1?`<span style="font-size:.7rem;font-weight:800;color:var(--gold)">x${p.cant}</span>`:''}
-            `).join('<span style="color:var(--border2);margin:0 3px">·</span>')}
-          </div>
-          ${v.localidad||v.zona?`<div class="vcard-loc">📍 ${[ciudad(v.localidad),v.zona].filter(Boolean).join(' · ')}</div>`:''}
+    let prods=[];try{prods=v.productos?JSON.parse(v.productos):[{tipo:v.producto,mod:v.modelo,cant:v.cantidad||1}]}catch(e){prods=[{tipo:v.producto,mod:v.modelo,cant:1}]}
+    return `<div class="vcard" style="margin-bottom:8px">
+      <div style="padding:12px 13px 10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px">
+          <div style="font-weight:800;font-size:.92rem;flex:1;min-width:0">${v.cliente}</div>
+          <div style="font-weight:900;color:var(--gold);font-size:.9rem;white-space:nowrap;flex-shrink:0">${v.precio?'$'+Number(v.precio).toLocaleString('es-AR'):'—'}</div>
         </div>
-        <div class="vcard-right">
-          <div class="vcard-price">${v.precio?'$'+Number(v.precio).toLocaleString('es-AR'):'—'}</div>
-          <div class="${ECLASES[ei]} etag" style="font-size:.6rem">
-            ${ESTADO_ICONS[ei]}
-            <select class="estado-select" onchange="cambiarEstado('${v.id}',this.value)">
-              ${ESTADOS.map(e=>`<option${e===v.estado?' selected':''}>${e}</option>`).join('')}
-            </select>
-          </div>
-          ${ganancia!==null?`<div style="font-size:.68rem;font-weight:800;color:${ganancia>=0?'var(--green)':'var(--red)'}">
-            ${ganancia>=0?'+':''}$${ganancia.toLocaleString('es-AR')}
-          </div>`:''}
+        ${prods.map(p=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap">
+          <span class="ptag ${p.tipo==='a'?'pa':'pc-tag'}">${p.tipo==='a'?'Silo Aéreo':'Autoconsumo'}</span>
+          ${p.mod?`<span style="font-size:.8rem;color:var(--text);font-weight:600">${p.mod}</span>`:''}
+          ${(p.cant||1)>1?`<span style="font-size:.72rem;font-weight:800;color:var(--gold);background:var(--bg3);padding:1px 7px;border-radius:4px">x${p.cant}</span>`:''}
+        </div>`).join('')}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+          <div style="font-size:.72rem;color:var(--text3)">${[ciudad(v.localidad),v.zona].filter(Boolean).map(x=>'📍'+x).join(' ')}</div>
+          ${ganancia!==null?`<div style="font-size:.73rem;font-weight:800;color:${ganancia>=0?'var(--green)':'var(--red)'}">${ganancia>=0?'+':''}$${ganancia.toLocaleString('es-AR')}</div>`:''}
         </div>
       </div>
-      <div class="vcard-footer">
-        <div class="vcard-date">📅 ${fecha}${v.telefono?` · 📞 ${v.telefono}`:''}</div>
-        <div class="vcard-actions">
-          <button class="vcard-btn" onclick="abrirEditar('${v.id}')">✎ Editar</button>
+      <div style="padding:8px 13px;border-top:1px solid var(--border);background:#0d1824;display:flex;align-items:center;gap:8px">
+        <div class="${ECLASES[ei]} etag" style="flex-shrink:0;font-size:.62rem">
+          ${ESTADO_ICONS[ei]}
+          <select class="estado-select" onchange="cambiarEstado('${v.id}',this.value)">
+            ${ESTADOS.map(e=>`<option${e===v.estado?' selected':''}>${e}</option>`).join('')}
+          </select>
+        </div>
+        <div style="font-size:.67rem;color:var(--text3);flex:1">📅 ${fecha}</div>
+        <div style="display:flex;gap:5px;flex-shrink:0">
+          <button class="vcard-btn" onclick="abrirEditar('${v.id}')">✎</button>
           ${v.telefono?`<button class="vcard-btn" onclick="wa('${v.telefono}')">💬</button>`:''}
           <button class="vcard-btn danger" onclick="eliminarVenta('${v.id}')">✕</button>
         </div>
@@ -1997,6 +2021,12 @@ function renderClientes(){
     </div>`).join('');
   if(cliSel)verCli(cliSel);
 }
+function cerrarDetalleCli(){
+  document.getElementById('cliDetailFull').classList.remove('on');
+  cliSel=null;
+  document.querySelectorAll('.cli-item').forEach(el=>el.classList.remove('sel'));
+}
+
 function verCli(nombre){
   cliSel=nombre;
   document.querySelectorAll('.cli-item').forEach(el=>el.classList.toggle('sel',el.querySelector('.cli-name')?.textContent===nombre));
@@ -2008,7 +2038,13 @@ function verCli(nombre){
   const rent=tV-tCP-tCF;
   const margen=tV>0?((rent/tV)*100).toFixed(1):0;
   const ent=cvs.filter(v=>v.estado==='Entregado').length;
-  document.getElementById('cliDetail').innerHTML=`
+  const isMob=window.innerWidth<=768;
+  const targetEl=isMob?document.getElementById('cliDetailFullBody'):document.getElementById('cliDetail');
+  if(isMob){
+    document.getElementById('cliDetailFullTitle').textContent=nombre;
+    document.getElementById('cliDetailFull').classList.add('on');
+  }
+  targetEl.innerHTML=`
     <div class="cd-name">${nombre}</div>
     <div style="margin-top:5px;margin-bottom:12px;display:flex;flex-direction:column;gap:5px">
       ${tel?`<div style="color:var(--blue);font-size:.83rem">📞 <a href="tel:${tel}" style="color:var(--blue);text-decoration:none">${tel}</a>
