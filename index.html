@@ -156,6 +156,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .bd{background:var(--border);color:var(--text);border:1px solid var(--border2)}
 .bv{background:#1a5230;color:#9fe;border:1px solid #2a8c50}
 .bp{background:#0d2e18;color:var(--green);border:1px solid #2a8c50}
+.opt-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:7px;padding:6px 11px;font-size:.74rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.opt-btn.on{background:var(--gold);color:#111820;border-color:var(--gold)}
 .disp-card{background:var(--bg2);border:1px solid #2a8c50;border-radius:9px;margin-bottom:8px;padding:11px 13px}
 .checkrow{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;cursor:pointer;transition:background .12s;border:1px solid transparent}
 .checkrow:hover{background:var(--bg3);border-color:var(--border2)}
@@ -349,15 +351,12 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div class="fg"><label>Zona de flete</label><input id="f-zona" placeholder="Ej: Rosario"/></div>
     </div>
     <div class="frow">
-      <div class="fg"><label>Producto</label><select id="f-producto"><option>Silo Aéreo</option><option>Autoconsumo</option></select></div>
-      <div class="fg"><label>Modelo / Tonelaje</label>
-        <select id="f-modelo">
-          <option value="">-- Seleccioná --</option>
-          <option>6TN</option><option>10TN</option><option>16TN</option><option>22TN</option>
-          <option>28TN</option><option>40TN</option><option>50TN</option><option>60TN</option>
-          <option>80TN</option><option>100TN</option><option>120TN</option><option>150TN</option>
-        </select>
-      </div>
+      <div class="fg"><label>Producto</label><select id="f-producto" onchange="onProductoChange()"><option>Silo Aéreo</option><option>Autoconsumo</option></select></div>
+      <div class="fg"><label>Modelo / Tonelaje</label><select id="f-modelo" onchange="onModeloChange()"></select></div>
+    </div>
+    <div class="fg" id="extras-box" style="display:none">
+      <label id="extras-label">Base</label>
+      <div id="extras-opts" style="display:flex;gap:6px;flex-wrap:wrap"></div>
     </div>
     <div class="frow">
       <div class="fg"><label>Precio venta (ARS)</label><input id="f-precio" type="number" placeholder="0"/></div>
@@ -422,8 +421,12 @@ const sb=supabase.createClient(SURL,SKEY);
 
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-36.38,FAB_LNG=-64.97;
-const RADIO_COSTADO=100;   // km máximos al costado de la ruta
-const RADIO_ADELANTE=300;  // km máximos más adelante del punto final
+const RADIO_COSTADO=100;
+const RADIO_ADELANTE=300;
+
+const AEREO_MODELOS=['6TN','10TN','16TN','22TN','28TN','30TN','40TN','50TN','60TN','62TN','72TN','80TN','100TN','120TN','140TN','150TN','175TN','200TN'];
+const AUTO_MODELOS=['2 TN 12 bocas','2 TN 18 bocas','4 TN','7 TN','7 TN con alero al medio','12 TN','12 TN alero grande','12 TN con alero al medio','18 TN alero al medio'];
+let conoSel='35',fibraSel=false;
 
 const CAP_AEREO={'6':8,'10':8,'16':6,'22':6,'28':6,'30':3,'40':3,'50':3,'60':3,'62':3,'72':3,'80':2,'100':2,'120':2,'140':2,'150':1,'175':1,'200':1};
 const CAP_AUTO={'2':20,'4':20,'7':8,'12':5,'18':5};
@@ -482,7 +485,7 @@ function distAlPath(la,ln,path){let m=Infinity;for(const pt of path){const d=dis
 function getMaxPorCamion(producto,modelo){
   const esAuto=/autoconsumo/i.test(producto||'');
   const tabla=esAuto?CAP_AUTO:CAP_AEREO;
-  const num=parseFloat((modelo||'').replace(/[^\d.]/g,''));
+  const num=parseFloat((modelo||'').match(/\d+(?:\.\d+)?/)?.[0]||0); // primer número del modelo
   if(!num)return esAuto?20:8;
   let best=null,bestDiff=Infinity;
   for(const k of Object.keys(tabla)){const diff=Math.abs(parseFloat(k)-num);if(diff<bestDiff){bestDiff=diff;best=tabla[k];}}
@@ -495,6 +498,64 @@ function barraCapacidad(paradas){
   const color=oc>=1?'var(--red)':oc>=0.75?'var(--yellow)':'var(--green)';
   const label=oc>=1?`${camiones} camión${camiones>1?'es':''} lleno${camiones>1?'s':''}`:`${Math.round(oc*100)}% cargado`;
   return`<div class="cap-bar-wrap"><div class="cap-bar-label"><span>Capacidad</span><span style="color:${color};font-weight:700">${label}</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>`;
+}
+
+// ── MODELOS / TONELAJE ───────────────────────────────────────
+function llenarSelectModelos(prod,sel){
+  const ms=prod==='Autoconsumo'?AUTO_MODELOS:AEREO_MODELOS;
+  document.getElementById('f-modelo').innerHTML='<option value="">-- Seleccioná --</option>'+ms.map(m=>`<option ${m===sel?'selected':''}>${m}</option>`).join('');
+}
+function onProductoChange(){
+  conoSel='35';fibraSel=false;
+  llenarSelectModelos(document.getElementById('f-producto').value,'');
+  actualizarExtras();
+}
+function onModeloChange(){actualizarExtras();}
+function esModeloFibra(m){return m.startsWith('12 TN')||m.startsWith('18 TN');}
+function actualizarExtras(){
+  const prod=document.getElementById('f-producto').value;
+  const modelo=document.getElementById('f-modelo').value;
+  const box=document.getElementById('extras-box');
+  const lbl=document.getElementById('extras-label');
+  const opts=document.getElementById('extras-opts');
+  if(prod==='Silo Aéreo'&&modelo){
+    lbl.textContent='Tipo de cono / base';
+    opts.innerHTML=[['35','Cono estándar 35°'],['45','45°'],['55','55°']]
+      .map(([a,t])=>`<button type="button" class="opt-btn${conoSel===a?' on':''}" onclick="setCono('${a}')">${t}</button>`).join('');
+    box.style.display='block';
+  } else if(prod==='Autoconsumo'&&esModeloFibra(modelo)){
+    lbl.textContent='Opcional';
+    opts.innerHTML=`<button type="button" class="opt-btn${fibraSel?' on':''}" onclick="toggleFibra()">${fibraSel?'✓ ':''}Incluye base de fibra</button>`;
+    box.style.display='block';
+  } else {
+    box.style.display='none';
+  }
+}
+function setCono(a){conoSel=a;actualizarExtras();}
+function toggleFibra(){fibraSel=!fibraSel;actualizarExtras();}
+function modeloFinal(){
+  const prod=document.getElementById('f-producto').value;
+  const m=document.getElementById('f-modelo').value;
+  if(!m)return '';
+  if(prod==='Silo Aéreo')return m+' · Cono '+conoSel+'°';
+  if(prod==='Autoconsumo'&&esModeloFibra(m)&&fibraSel)return m+' · Base de fibra';
+  return m;
+}
+function cargarModeloEnForm(prod,modeloGuardado){
+  llenarSelectModelos(prod,'');
+  conoSel='35';fibraSel=false;
+  if(modeloGuardado){
+    const partes=modeloGuardado.split(' · ');
+    const base=partes[0];
+    const sel=document.getElementById('f-modelo');
+    if(![...sel.options].some(o=>o.value===base)){sel.insertAdjacentHTML('beforeend',`<option>${base}</option>`);}
+    sel.value=base;
+    partes.slice(1).forEach(t=>{
+      const cono=t.match(/Cono\s*(\d+)/i);if(cono)conoSel=cono[1];
+      if(/fibra/i.test(t))fibraSel=true;
+    });
+  }
+  actualizarExtras();
 }
 
 // ── DATOS ────────────────────────────────────────────────────
@@ -637,12 +698,8 @@ function toggleViaje(id){
   renderViajes();
   if(!yaAbierto){
     setTimeout(()=>{
-      if(mapFlete&&directionsRenderer){
-        mostrarRutaViaje(id);
-      } else if(typeof google!=='undefined'){
-        initMapaFlete();
-        setTimeout(()=>mostrarRutaViaje(id),700);
-      }
+      if(mapFlete&&directionsRenderer){mostrarRutaViaje(id);}
+      else if(typeof google!=='undefined'){initMapaFlete();setTimeout(()=>mostrarRutaViaje(id),700);}
     },100);
   } else {
     if(directionsRenderer)directionsRenderer.setDirections({routes:[]});
@@ -691,14 +748,24 @@ function exportarViaje(id){
 }
 function exportarTodos(){if(viajeAbierto)exportarViaje(viajeAbierto);else if(viajesData.length)exportarViaje(viajesData[0].id);else toast('Sin viajes');}
 
-// ── OPTIMIZAR: buscar clientes cerca de la ruta ──────────────
+// ── Helper: clientes que YA están en el viaje (ids + nombres) ──
+function setClientesEnViaje(vj){
+  const paradasArr=parsePar(vj?.paradas_snap||[]);
+  const ids=new Set([...(vj?.pedido_ids||[]).map(String),...paradasArr.map(x=>String(x.id)).filter(Boolean)]);
+  const nombres=new Set(paradasArr.map(x=>(x.cliente||'').trim().toLowerCase()).filter(Boolean));
+  return{ids,nombres};
+}
+function noEstaEnViaje(v,enViaje){
+  return !enViaje.ids.has(String(v.id)) && !enViaje.nombres.has((v.cliente||'').trim().toLowerCase());
+}
+
+// ── OPTIMIZAR: clientes cerca de la ruta ─────────────────────
 function optimizarViaje(id){
   const vj=viajesData.find(v=>v.id===id);if(!vj)return;
   if(typeof google==='undefined'){toast('El mapa todavía no cargó');return;}
   const paradas=parsePar(vj.paradas_snap).filter(x=>x.lat&&x.lng);
   if(!paradas.length){toast('Agregá al menos una parada con ubicación marcada');return;}
 
-  // Construir la ruta para obtener su trazado
   let idxDest=0,maxD=-1;
   paradas.forEach((p,i)=>{const d=distKm(FAB_LAT,FAB_LNG,parseFloat(p.lat),parseFloat(p.lng));if(d>maxD){maxD=d;idxDest=i;}});
   const destPar=paradas[idxDest];
@@ -714,12 +781,12 @@ function optimizarViaje(id){
   },(res,status)=>{
     if(status!=='OK'){toast('No se pudo calcular la ruta: '+status);return;}
     const path=res.routes[0].overview_path.map(p=>({lat:p.lat(),lng:p.lng()}));
-    const enViaje=new Set(parsePar(vj.paradas_snap).map(x=>String(x.id)).filter(Boolean));
+    const enViaje=setClientesEnViaje(vj);
 
-    const cand=ventas.filter(v=>v.estado!=='Entregado'&&v.lat&&v.lng&&!enViaje.has(String(v.id))).map(v=>{
+    const cand=ventas.filter(v=>v.estado!=='Entregado'&&v.lat&&v.lng&&noEstaEnViaje(v,enViaje)).map(v=>{
       const la=parseFloat(v.lat),ln=parseFloat(v.lng);
-      const lateral=distAlPath(la,ln,path);                 // distancia al costado de la ruta
-      const adelante=distKm(destination.lat,destination.lng,la,ln); // distancia desde el punto final
+      const lateral=distAlPath(la,ln,path);
+      const adelante=distKm(destination.lat,destination.lng,la,ln);
       return {...v,_dist:Math.round(lateral),_ade:Math.round(adelante)};
     }).filter(v=> v._dist<=RADIO_COSTADO || v._ade<=RADIO_ADELANTE )
       .sort((a,b)=>a._dist-b._dist);
@@ -727,7 +794,7 @@ function optimizarViaje(id){
     agregarViajeId=id;
     agregarVentasSeleccionadas=new Set();
     agregarVentasDisponibles=cand;
-    document.getElementById('agregar-viaje-nombre').textContent=`Viaje: ${vj.nombre} · ${vj.km_real?vj.km_real+' km':''}`;
+    document.getElementById('agregar-viaje-nombre').textContent=`Viaje: ${vj.nombre}${vj.km_real?' · '+vj.km_real+' km':''}`;
     document.getElementById('agregar-buscar').value='';
     document.getElementById('agregar-hint').innerHTML=
       `🎯 <strong>${cand.length}</strong> clientes a ≤${RADIO_COSTADO} km al costado de la ruta, o ≤${RADIO_ADELANTE} km más adelante`;
@@ -743,8 +810,8 @@ function abrirAgregar(vjId){
   document.getElementById('agregar-viaje-nombre').textContent=vj?`Viaje: ${vj.nombre}`:'';
   document.getElementById('agregar-buscar').value='';
   document.getElementById('agregar-hint').textContent='Seleccioná las ventas para agregar al viaje';
-  const enViaje=new Set(parsePar(vj?.paradas_snap||[]).map(x=>String(x.id)).filter(Boolean));
-  agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&!enViaje.has(String(v.id)));
+  const enViaje=setClientesEnViaje(vj);
+  agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&noEstaEnViaje(v,enViaje));
   renderListaAgregar(agregarVentasDisponibles,false);
   document.getElementById('overlayAgregar').classList.add('on');
 }
@@ -755,8 +822,9 @@ function renderListaAgregar(lista,mostrarDist){
     const sel=agregarVentasSeleccionadas.has(v.id);
     let info='';
     if(mostrarDist&&v._dist!=null){
-      info=` · <strong style="color:var(--gold)">${v._dist} km al costado</strong>`;
-      if(v._dist>RADIO_COSTADO&&v._ade!=null)info=` · <span class="tag-ade">${v._ade} km adelante</span>`;
+      info=(v._dist<=RADIO_COSTADO)
+        ? ` · <strong style="color:var(--gold)">${v._dist} km al costado</strong>`
+        : ` · <span class="tag-ade">${v._ade} km adelante</span>`;
     }
     return`<div class="checkrow${sel?' sel':''}" onclick="toggleSelAgregar('${v.id}')">
       <input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelAgregar('${v.id}')"/>
@@ -772,8 +840,8 @@ function toggleSelAgregar(id){
   if(agregarVentasSeleccionadas.has(id))agregarVentasSeleccionadas.delete(id);
   else agregarVentasSeleccionadas.add(id);
   const q=document.getElementById('agregar-buscar').value.toLowerCase();
+  const mostrarDist=agregarVentasDisponibles.some(v=>v._dist!=null);
   let lista=agregarVentasDisponibles;
-  const mostrarDist=lista.some(v=>v._dist!=null);
   if(q)lista=lista.filter(v=>(v.cliente||'').toLowerCase().includes(q)||(v.localidad||'').toLowerCase().includes(q));
   renderListaAgregar(lista,mostrarDist);
 }
@@ -781,8 +849,8 @@ function mostrarTodosAgregar(){
   const vj=viajesData.find(v=>v.id===agregarViajeId);
   document.getElementById('agregar-hint').textContent='Todos los clientes pendientes';
   document.getElementById('agregar-buscar').value='';
-  const enViaje=new Set(parsePar(vj?.paradas_snap||[]).map(x=>String(x.id)).filter(Boolean));
-  agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&!enViaje.has(String(v.id)));
+  const enViaje=setClientesEnViaje(vj);
+  agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&noEstaEnViaje(v,enViaje));
   renderListaAgregar(agregarVentasDisponibles,false);
 }
 document.addEventListener('DOMContentLoaded',()=>{
@@ -819,7 +887,7 @@ async function guardarVenta(){
     cuit:document.getElementById('f-cuit').value.trim(),
     zona:document.getElementById('f-zona').value.trim(),
     producto:document.getElementById('f-producto').value,
-    modelo:document.getElementById('f-modelo').value,
+    modelo:modeloFinal(),
     precio:parseFloat(document.getElementById('f-precio').value)||null,
     costo_producto:parseFloat(document.getElementById('f-costo-producto').value)||null,
     costo_flete:parseFloat(document.getElementById('f-costo-flete').value)||null,
@@ -854,7 +922,9 @@ function abrirNueva(){
   editId=null;modalLat=null;modalLng=null;
   document.getElementById('modalTitle').textContent='Nueva venta';
   ['f-cliente','f-telefono','f-cuit','f-zona','f-precio','f-costo-producto','f-costo-flete','f-fecha-entrega','f-localidad','f-notas'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('f-producto').value='Silo Aéreo';document.getElementById('f-modelo').value='';document.getElementById('f-estado').value='Confirmado';
+  document.getElementById('f-producto').value='Silo Aéreo';
+  document.getElementById('f-estado').value='Confirmado';
+  cargarModeloEnForm('Silo Aéreo','');
   document.getElementById('overlay').classList.add('on');
   setTimeout(()=>{if(mapModal)google.maps.event.trigger(mapModal,'resize');},200);
 }
@@ -864,7 +934,8 @@ function abrirEditar(id){
   document.getElementById('modalTitle').textContent='Editar venta';
   document.getElementById('f-cliente').value=v.cliente||'';document.getElementById('f-telefono').value=v.telefono||'';
   document.getElementById('f-cuit').value=v.cuit||'';document.getElementById('f-zona').value=v.zona||'';
-  document.getElementById('f-producto').value=v.producto||'Silo Aéreo';document.getElementById('f-modelo').value=v.modelo||'';
+  document.getElementById('f-producto').value=v.producto||'Silo Aéreo';
+  cargarModeloEnForm(v.producto||'Silo Aéreo',v.modelo||'');
   document.getElementById('f-precio').value=v.precio||'';document.getElementById('f-costo-producto').value=v.costo_producto||'';
   document.getElementById('f-costo-flete').value=v.costo_flete||'';document.getElementById('f-estado').value=v.estado||'Confirmado';
   document.getElementById('f-fecha-entrega').value=v.fecha_entrega||'';document.getElementById('f-localidad').value=v.localidad||'';
@@ -949,7 +1020,6 @@ function initMapaFlete(){
   directionsRenderer=new google.maps.DirectionsRenderer({map:mapFlete,suppressMarkers:false,polylineOptions:{strokeColor:'#4a90d9',strokeWeight:5}});
 }
 
-// ── MOSTRAR RUTA (destino = parada más lejana, resto optimizado) ──
 function mostrarRutaViaje(id){
   if(!mapFlete||!directionsRenderer)return;
   directionsRenderer.setDirections({routes:[]});
@@ -969,10 +1039,7 @@ function mostrarRutaViaje(id){
     if(p.localidad)return p.localidad+', Argentina';
     return null;
   };
-  const conLoc=paradas.map(p=>({
-    parada:p,loc:aLoc(p),
-    coords:(p.lat&&p.lng)?{lat:parseFloat(p.lat),lng:parseFloat(p.lng)}:null
-  })).filter(x=>x.loc);
+  const conLoc=paradas.map(p=>({parada:p,loc:aLoc(p),coords:(p.lat&&p.lng)?{lat:parseFloat(p.lat),lng:parseFloat(p.lng)}:null})).filter(x=>x.loc);
   if(!conLoc.length){
     if(st){st.textContent='⚠️ Las paradas no tienen localidad ni coordenadas';st.style.background='#2a1010';st.style.color='var(--red)';}
     return;
@@ -1000,15 +1067,10 @@ function mostrarRutaViaje(id){
       const hrs=Math.floor(mins/60),minR=mins%60,tiempoStr=hrs>0?`${hrs}h ${minR}m`:`${minR}m`;
       if(ri){ri.textContent=`🚛 Ida: ${km} km · ${tiempoStr}`;ri.style.display='block';}
       if(st){st.textContent=`✓ ${km} km de ida · ${tiempoStr}`;st.style.background='#0d2e18';st.style.color='var(--green)';}
-
       const orden=res.routes[0].waypoint_order;
       let paradasOrden;
-      if(orden&&orden.length){
-        paradasOrden=orden.map(i=>restItems[i].parada);
-        paradasOrden.push(destItem.parada);
-      } else {
-        paradasOrden=[...restItems.map(x=>x.parada),destItem.parada];
-      }
+      if(orden&&orden.length){paradasOrden=orden.map(i=>restItems[i].parada);paradasOrden.push(destItem.parada);}
+      else{paradasOrden=[...restItems.map(x=>x.parada),destItem.parada];}
       sb.from('viajes').update({km_real:km,paradas_snap:paradasOrden}).eq('id',id).then(()=>{
         const vj2=viajesData.find(v=>v.id===id);
         if(vj2){vj2.km_real=km;vj2.paradas_snap=paradasOrden;}
@@ -1086,9 +1148,7 @@ function calcularRutaSim(){
       if(orden&&orden.length){nuevas=orden.map(i=>rest[i]);nuevas.push(destPar);}
       else{nuevas=[...rest,destPar];}
       simParadas=nuevas;renderSimParadas();
-    } else {
-      toast('No se pudo calcular la ruta: '+status);
-    }
+    } else {toast('No se pudo calcular la ruta: '+status);}
   });
 }
 
@@ -1109,6 +1169,7 @@ const ah=new Date(),hh=ah.getHours();
 document.getElementById('inicioBienvenida').textContent=(hh<12?'Buenos días':hh<18?'Buenas tardes':'Buenas noches')+' — Remeco';
 document.getElementById('inicioFecha').textContent=ah.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 if(window.innerWidth<=768)document.getElementById('fabBtn').style.display='block';
+llenarSelectModelos('Silo Aéreo','');
 
 cargarDatos();
 </script>
