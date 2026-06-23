@@ -162,6 +162,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .checkrow.sel{background:#0d2e18;border-color:#2a8c50}
 .checkrow input[type=checkbox]{width:16px;height:16px;accent-color:var(--gold);cursor:pointer;flex-shrink:0}
 .flete-pub-badge{display:inline-block;background:#0d2e18;color:var(--green);border:1px solid #2a8c50;border-radius:10px;padding:2px 7px;font-size:.6rem;font-weight:700;margin-left:6px;vertical-align:middle}
+.tag-ade{background:#2a1a40;color:var(--purple);border-radius:8px;padding:1px 6px;font-size:.58rem;font-weight:700;margin-left:4px}
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:#1e3a55;border-radius:3px}
@@ -400,8 +401,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <div id="agregar-viaje-nombre" style="font-size:.72rem;color:var(--text3);margin-bottom:10px"></div>
     <div style="display:flex;gap:7px;margin-bottom:10px">
       <input id="agregar-buscar" style="flex:1;background:var(--bg3);border:1px solid #1e3a55;color:var(--text);border-radius:7px;padding:7px 10px;font-size:.8rem;font-family:inherit" placeholder="Buscar cliente..."/>
-      <button class="bp" onclick="soloMostrarCercanos()" style="padding:7px 10px;font-size:.7rem;white-space:nowrap">📍 Cercanos</button>
-      <button class="bd" onclick="mostrarTodosAgregar()" style="padding:7px 10px;font-size:.7rem">Todos</button>
+      <button class="bd" onclick="mostrarTodosAgregar()" style="padding:7px 10px;font-size:.7rem">Ver todos</button>
     </div>
     <div style="font-size:.65rem;color:var(--text3);margin-bottom:8px" id="agregar-hint">Seleccioná las ventas para agregar al viaje</div>
     <div style="flex:1;overflow-y:auto;max-height:340px" id="agregar-lista"></div>
@@ -422,6 +422,8 @@ const sb=supabase.createClient(SURL,SKEY);
 
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-36.38,FAB_LNG=-64.97;
+const RADIO_COSTADO=100;   // km máximos al costado de la ruta
+const RADIO_ADELANTE=300;  // km máximos más adelante del punto final
 
 const CAP_AEREO={'6':8,'10':8,'16':6,'22':6,'28':6,'30':3,'40':3,'50':3,'60':3,'62':3,'72':3,'80':2,'100':2,'120':2,'140':2,'150':1,'175':1,'200':1};
 const CAP_AUTO={'2':20,'4':20,'7':8,'12':5,'18':5};
@@ -476,6 +478,7 @@ function distKm(lat1,lng1,lat2,lng2){
   const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
+function distAlPath(la,ln,path){let m=Infinity;for(const pt of path){const d=distKm(pt.lat,pt.lng,la,ln);if(d<m)m=d;}return m;}
 function getMaxPorCamion(producto,modelo){
   const esAuto=/autoconsumo/i.test(producto||'');
   const tabla=esAuto?CAP_AUTO:CAP_AEREO;
@@ -617,7 +620,7 @@ function renderViajes(){
         ${barraCapacidad(p)}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px">
           <button class="bv" style="font-size:.68rem;padding:5px" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes</button>
-          <button class="bd" style="font-size:.68rem;padding:5px" onclick="exportarViaje('${vj.id}')">📋 Exportar WA</button>
+          <button class="bp" style="font-size:.68rem;padding:5px" onclick="optimizarViaje('${vj.id}')">🎯 Optimizar</button>
           <button style="background:${pubBg};border:1px solid ${pubColor};color:${pubTxt};border-radius:7px;font-size:.68rem;padding:5px;cursor:pointer;font-weight:600;font-family:inherit;grid-column:span 2" onclick="togglePublico('${vj.id}',${!vj.publico})">
             ${vj.publico?'✅ Publicado — tocá para ocultar':'📢 Publicar flete disponible'}
           </button>
@@ -686,7 +689,52 @@ function exportarViaje(id){
   t+=`📦 Capacidad: ${Math.round(oc*100)}% (${Math.ceil(oc)} camión${Math.ceil(oc)>1?'es':''})`;
   navigator.clipboard.writeText(t).then(()=>toast('Copiado para WhatsApp ✓')).catch(()=>alert(t));
 }
-function exportarTodos(){if(viajesData.length)exportarViaje(viajesData[0].id);else toast('Sin viajes');}
+function exportarTodos(){if(viajeAbierto)exportarViaje(viajeAbierto);else if(viajesData.length)exportarViaje(viajesData[0].id);else toast('Sin viajes');}
+
+// ── OPTIMIZAR: buscar clientes cerca de la ruta ──────────────
+function optimizarViaje(id){
+  const vj=viajesData.find(v=>v.id===id);if(!vj)return;
+  if(typeof google==='undefined'){toast('El mapa todavía no cargó');return;}
+  const paradas=parsePar(vj.paradas_snap).filter(x=>x.lat&&x.lng);
+  if(!paradas.length){toast('Agregá al menos una parada con ubicación marcada');return;}
+
+  // Construir la ruta para obtener su trazado
+  let idxDest=0,maxD=-1;
+  paradas.forEach((p,i)=>{const d=distKm(FAB_LAT,FAB_LNG,parseFloat(p.lat),parseFloat(p.lng));if(d>maxD){maxD=d;idxDest=i;}});
+  const destPar=paradas[idxDest];
+  const rest=paradas.filter((_,i)=>i!==idxDest);
+  const destination={lat:parseFloat(destPar.lat),lng:parseFloat(destPar.lng)};
+  const waypoints=rest.map(p=>({location:{lat:parseFloat(p.lat),lng:parseFloat(p.lng)},stopover:true}));
+
+  toast('🎯 Buscando clientes cerca de la ruta...');
+  new google.maps.DirectionsService().route({
+    origin:FABRICA,destination,waypoints,
+    optimizeWaypoints:true,provideRouteAlternatives:false,
+    travelMode:google.maps.TravelMode.DRIVING,region:'ar'
+  },(res,status)=>{
+    if(status!=='OK'){toast('No se pudo calcular la ruta: '+status);return;}
+    const path=res.routes[0].overview_path.map(p=>({lat:p.lat(),lng:p.lng()}));
+    const enViaje=new Set(parsePar(vj.paradas_snap).map(x=>String(x.id)).filter(Boolean));
+
+    const cand=ventas.filter(v=>v.estado!=='Entregado'&&v.lat&&v.lng&&!enViaje.has(String(v.id))).map(v=>{
+      const la=parseFloat(v.lat),ln=parseFloat(v.lng);
+      const lateral=distAlPath(la,ln,path);                 // distancia al costado de la ruta
+      const adelante=distKm(destination.lat,destination.lng,la,ln); // distancia desde el punto final
+      return {...v,_dist:Math.round(lateral),_ade:Math.round(adelante)};
+    }).filter(v=> v._dist<=RADIO_COSTADO || v._ade<=RADIO_ADELANTE )
+      .sort((a,b)=>a._dist-b._dist);
+
+    agregarViajeId=id;
+    agregarVentasSeleccionadas=new Set();
+    agregarVentasDisponibles=cand;
+    document.getElementById('agregar-viaje-nombre').textContent=`Viaje: ${vj.nombre} · ${vj.km_real?vj.km_real+' km':''}`;
+    document.getElementById('agregar-buscar').value='';
+    document.getElementById('agregar-hint').innerHTML=
+      `🎯 <strong>${cand.length}</strong> clientes a ≤${RADIO_COSTADO} km al costado de la ruta, o ≤${RADIO_ADELANTE} km más adelante`;
+    renderListaAgregar(cand,true);
+    document.getElementById('overlayAgregar').classList.add('on');
+  });
+}
 
 // ── AGREGAR CLIENTES ─────────────────────────────────────────
 function abrirAgregar(vjId){
@@ -697,20 +745,24 @@ function abrirAgregar(vjId){
   document.getElementById('agregar-hint').textContent='Seleccioná las ventas para agregar al viaje';
   const enViaje=new Set(parsePar(vj?.paradas_snap||[]).map(x=>String(x.id)).filter(Boolean));
   agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&!enViaje.has(String(v.id)));
-  renderListaAgregar(agregarVentasDisponibles);
+  renderListaAgregar(agregarVentasDisponibles,false);
   document.getElementById('overlayAgregar').classList.add('on');
 }
-function renderListaAgregar(lista){
+function renderListaAgregar(lista,mostrarDist){
   const el=document.getElementById('agregar-lista');
-  if(!lista.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">No hay ventas disponibles</div>';return;}
+  if(!lista.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">No hay clientes que cumplan</div>';return;}
   el.innerHTML=lista.map(v=>{
     const sel=agregarVentasSeleccionadas.has(v.id);
-    const dist=v._dist!=null?` · <strong style="color:var(--gold)">${Math.round(v._dist)} km</strong>`:'';
+    let info='';
+    if(mostrarDist&&v._dist!=null){
+      info=` · <strong style="color:var(--gold)">${v._dist} km al costado</strong>`;
+      if(v._dist>RADIO_COSTADO&&v._ade!=null)info=` · <span class="tag-ade">${v._ade} km adelante</span>`;
+    }
     return`<div class="checkrow${sel?' sel':''}" onclick="toggleSelAgregar('${v.id}')">
       <input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelAgregar('${v.id}')"/>
       <div style="flex:1;min-width:0">
         <div style="font-weight:700;font-size:.8rem">${v.cliente||'—'}</div>
-        <div style="font-size:.67rem;color:var(--text3);margin-top:1px">${v.producto||''} ${v.modelo||''} · ${v.localidad||''}${dist}</div>
+        <div style="font-size:.67rem;color:var(--text3);margin-top:1px">${v.producto||''} ${v.modelo||''} · ${v.localidad||''}${info}</div>
         ${eTag(v.estado)}
       </div>
     </div>`;
@@ -721,30 +773,24 @@ function toggleSelAgregar(id){
   else agregarVentasSeleccionadas.add(id);
   const q=document.getElementById('agregar-buscar').value.toLowerCase();
   let lista=agregarVentasDisponibles;
+  const mostrarDist=lista.some(v=>v._dist!=null);
   if(q)lista=lista.filter(v=>(v.cliente||'').toLowerCase().includes(q)||(v.localidad||'').toLowerCase().includes(q));
-  renderListaAgregar(lista);
-}
-function soloMostrarCercanos(){
-  const vj=viajesData.find(v=>v.id===agregarViajeId);if(!vj)return;
-  const paradas=parsePar(vj.paradas_snap).filter(x=>x.lat&&x.lng);
-  const puntos=[{lat:FAB_LAT,lng:FAB_LNG},...paradas.map(p=>({lat:parseFloat(p.lat),lng:parseFloat(p.lng)}))];
-  const cercanas=agregarVentasDisponibles.filter(v=>v.lat&&v.lng).map(v=>{
-    const minD=Math.min(...puntos.map(p=>distKm(p.lat,p.lng,parseFloat(v.lat),parseFloat(v.lng))));
-    return{...v,_dist:minD};
-  }).filter(v=>v._dist<=100).sort((a,b)=>a._dist-b._dist);
-  document.getElementById('agregar-hint').textContent=`📍 ${cercanas.length} ventas dentro de 100 km de la ruta`;
-  renderListaAgregar(cercanas);
+  renderListaAgregar(lista,mostrarDist);
 }
 function mostrarTodosAgregar(){
-  document.getElementById('agregar-hint').textContent='Seleccioná las ventas para agregar al viaje';
+  const vj=viajesData.find(v=>v.id===agregarViajeId);
+  document.getElementById('agregar-hint').textContent='Todos los clientes pendientes';
   document.getElementById('agregar-buscar').value='';
-  renderListaAgregar(agregarVentasDisponibles);
+  const enViaje=new Set(parsePar(vj?.paradas_snap||[]).map(x=>String(x.id)).filter(Boolean));
+  agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&!enViaje.has(String(v.id)));
+  renderListaAgregar(agregarVentasDisponibles,false);
 }
 document.addEventListener('DOMContentLoaded',()=>{
   const inp=document.getElementById('agregar-buscar');
   if(inp)inp.addEventListener('input',()=>{
     const q=inp.value.toLowerCase();
-    renderListaAgregar(agregarVentasDisponibles.filter(v=>(v.cliente||'').toLowerCase().includes(q)||(v.localidad||'').toLowerCase().includes(q)));
+    const mostrarDist=agregarVentasDisponibles.some(v=>v._dist!=null);
+    renderListaAgregar(agregarVentasDisponibles.filter(v=>(v.cliente||'').toLowerCase().includes(q)||(v.localidad||'').toLowerCase().includes(q)),mostrarDist);
   });
 });
 async function confirmarAgregar(){
@@ -757,7 +803,9 @@ async function confirmarAgregar(){
   const{error}=await sb.from('viajes').update({paradas_snap:paradasNuevas,pedido_ids}).eq('id',agregarViajeId);
   if(error){toast('Error: '+error.message);return;}
   vj.paradas_snap=paradasNuevas;vj.pedido_ids=pedido_ids;
-  cerrarAgregar();renderViajes();
+  cerrarAgregar();
+  viajeAbierto=agregarViajeId;
+  renderViajes();
   setTimeout(()=>mostrarRutaViaje(agregarViajeId),200);
   toast(`✓ ${nuevas.length} cliente${nuevas.length>1?'s':''} agregado${nuevas.length>1?'s':''} al viaje`);
 }
@@ -901,7 +949,7 @@ function initMapaFlete(){
   directionsRenderer=new google.maps.DirectionsRenderer({map:mapFlete,suppressMarkers:false,polylineOptions:{strokeColor:'#4a90d9',strokeWeight:5}});
 }
 
-// ── MOSTRAR RUTA (destino = parada más lejana, resto optimizado, sin rodeos) ──
+// ── MOSTRAR RUTA (destino = parada más lejana, resto optimizado) ──
 function mostrarRutaViaje(id){
   if(!mapFlete||!directionsRenderer)return;
   directionsRenderer.setDirections({routes:[]});
@@ -922,8 +970,7 @@ function mostrarRutaViaje(id){
     return null;
   };
   const conLoc=paradas.map(p=>({
-    parada:p,
-    loc:aLoc(p),
+    parada:p,loc:aLoc(p),
     coords:(p.lat&&p.lng)?{lat:parseFloat(p.lat),lng:parseFloat(p.lng)}:null
   })).filter(x=>x.loc);
   if(!conLoc.length){
@@ -931,7 +978,6 @@ function mostrarRutaViaje(id){
     return;
   }
 
-  // DESTINO = parada más lejana de la fábrica (evita el rodeo de volver)
   let idxDest=conLoc.length-1,maxD=-1;
   conLoc.forEach((x,i)=>{if(x.coords){const d=distKm(FAB_LAT,FAB_LNG,x.coords.lat,x.coords.lng);if(d>maxD){maxD=d;idxDest=i;}}});
   const destItem=conLoc[idxDest];
@@ -942,13 +988,9 @@ function mostrarRutaViaje(id){
   if(st){st.textContent='🗺️ Calculando ruta más corta...';st.style.background='#1a2c40';st.style.color='var(--gold)';}
 
   new google.maps.DirectionsService().route({
-    origin:FABRICA,
-    destination,
-    waypoints,
-    optimizeWaypoints:true,
-    provideRouteAlternatives:false,
-    travelMode:google.maps.TravelMode.DRIVING,
-    region:'ar'
+    origin:FABRICA,destination,waypoints,
+    optimizeWaypoints:true,provideRouteAlternatives:false,
+    travelMode:google.maps.TravelMode.DRIVING,region:'ar'
   },(res,status)=>{
     if(status==='OK'){
       directionsRenderer.setDirections(res);
@@ -1016,26 +1058,19 @@ function limpiarSim(){
   const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';
 }
 
-// ── SIMULAR RUTA (destino = parada más lejana, resto optimizado) ──
 function calcularRutaSim(){
   if(!simMap||!simDirRenderer||!simParadas.length)return;
   simDirRenderer.setDirections({routes:[]});
-
   let idxDest=simParadas.length-1,maxD=-1;
   simParadas.forEach((p,i)=>{const d=distKm(FAB_LAT,FAB_LNG,p.lat,p.lng);if(d>maxD){maxD=d;idxDest=i;}});
   const destPar=simParadas[idxDest];
   const rest=simParadas.filter((_,i)=>i!==idxDest);
   const destination={lat:destPar.lat,lng:destPar.lng};
   const waypoints=rest.map(p=>({location:{lat:p.lat,lng:p.lng},stopover:true}));
-
   new google.maps.DirectionsService().route({
-    origin:FABRICA,
-    destination,
-    waypoints,
-    optimizeWaypoints:true,
-    provideRouteAlternatives:false,
-    travelMode:google.maps.TravelMode.DRIVING,
-    region:'ar'
+    origin:FABRICA,destination,waypoints,
+    optimizeWaypoints:true,provideRouteAlternatives:false,
+    travelMode:google.maps.TravelMode.DRIVING,region:'ar'
   },(res,status)=>{
     if(status==='OK'){
       simDirRenderer.setDirections(res);
