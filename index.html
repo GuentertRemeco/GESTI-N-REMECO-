@@ -94,20 +94,23 @@ tr:hover td{background:var(--bg3)}
 .vcard-actions{display:flex;gap:5px}
 .vcard-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:5px;padding:4px 9px;font-size:.68rem;cursor:pointer;font-family:inherit}
 .flete-wrap{flex:1;display:flex;overflow:hidden}
-.flete-panel{width:320px;min-width:280px;background:var(--bg);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.fp-header{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.flete-panel{width:340px;min-width:300px;background:var(--bg);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.fp-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.fp-tab{flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--text3);font-size:.7rem;font-weight:700;padding:9px 5px;cursor:pointer;font-family:inherit;transition:all .15s;text-transform:uppercase;letter-spacing:.5px;margin-bottom:-1px}
+.fp-tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.fp-header{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .fp-title{font-size:.63rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold)}
 .fp-body{flex:1;overflow-y:auto;padding:7px}
-.viaje-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;margin-bottom:8px;overflow:hidden}
+.viaje-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;margin-bottom:8px;overflow:hidden;transition:border-color .2s}
 .viaje-header{padding:8px 11px;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--border)}
 .viaje-info{flex:1;min-width:0}
 .viaje-nombre{font-weight:800;font-size:.82rem;color:var(--gold)}
 .viaje-meta{font-size:.63rem;color:var(--text3);margin-top:1px;display:flex;gap:7px;flex-wrap:wrap}
 .viaje-km{color:#3a8a5a;font-weight:700}
-.vbtn{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:3px 7px;font-size:.65rem;border-radius:4px;cursor:pointer}
+.vbtn{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:3px 7px;font-size:.65rem;border-radius:4px;cursor:pointer;font-family:inherit}
 .vbtn.del{background:#2a1010;border-color:#5a2020;color:#fcc}
-.vbtn.pub{background:#0d2e18;border-color:#2a8c50;color:var(--green)}
-.viaje-body{padding:8px}
+.viaje-body{padding:8px;display:none}
+.viaje-body.open{display:block}
 .vp-item{background:var(--bg3);border:1px solid #1e3a55;border-radius:6px;padding:6px 9px;margin-bottom:4px;display:flex;align-items:center;gap:7px}
 .vp-num{width:20px;height:20px;border-radius:50%;background:var(--gold);color:#111820;font-size:.6rem;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .vp-info{flex:1;min-width:0}
@@ -144,14 +147,20 @@ tr:hover td{background:var(--bg3)}
 .frow{display:flex;gap:8px}.frow .fg{flex:1}
 .mmhint{font-size:.68rem;color:var(--text3);margin-bottom:8px}
 .mact{display:flex;gap:8px;justify-content:flex-end;margin-top:13px}
-.modal-sm{background:#15202e;border:1px solid var(--gold);border-radius:11px;padding:18px;width:100%;max-width:340px}
+.modal-sm{background:#15202e;border:1px solid var(--gold);border-radius:11px;padding:18px;width:100%;max-width:380px;max-height:90vh;overflow-y:auto}
+.modal-lg{background:#15202e;border:1px solid var(--gold);border-radius:14px;padding:18px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column}
 button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight:600;padding:8px 14px;transition:all .15s;font-family:inherit}
 .bg{background:var(--gold);color:#111820}.bg:hover{background:var(--gold2)}
 .bd{background:var(--border);color:var(--text);border:1px solid var(--border2)}
 .bv{background:#1a5230;color:#9fe;border:1px solid #2a8c50}
-.bpub{background:#0d2e18;color:var(--green);border:1px solid #2a8c50}
-.bpub.on{background:#1a5230}
-#toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:#15202e;border:1px solid var(--gold);color:var(--gold);padding:8px 18px;border-radius:20px;font-size:.78rem;z-index:9999;font-weight:600;transition:opacity .3s;pointer-events:none;opacity:0;white-space:nowrap}
+.bp{background:#0d2e18;color:var(--green);border:1px solid #2a8c50}
+.disp-card{background:var(--bg2);border:1px solid #2a8c50;border-radius:9px;margin-bottom:8px;padding:11px 13px;cursor:pointer;transition:border-color .15s}
+.disp-card:hover{border-color:var(--green)}
+.checkrow{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;cursor:pointer;transition:background .12s;border:1px solid transparent}
+.checkrow:hover{background:var(--bg3);border-color:var(--border2)}
+.checkrow.sel{background:#0d2e18;border-color:#2a8c50}
+.checkrow input[type=checkbox]{width:16px;height:16px;accent-color:var(--gold);cursor:pointer;flex-shrink:0}
+.flete-pub-badge{display:inline-block;background:#0d2e18;color:var(--green);border:1px solid #2a8c50;border-radius:10px;padding:2px 7px;font-size:.6rem;font-weight:700;margin-left:6px;vertical-align:middle}
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:#1e3a55;border-radius:3px}
@@ -159,13 +168,12 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 @keyframes spin{to{transform:rotate(360deg)}}
 .sp{width:22px;height:22px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;margin:20px auto}
 .simular-wrap{flex:1;display:flex;overflow:hidden}
-.flete-pub-badge{display:inline-block;background:#0d2e18;color:var(--green);border:1px solid #2a8c50;border-radius:10px;padding:2px 7px;font-size:.6rem;font-weight:700;margin-left:6px}
 @media(max-width:768px){
   .topnav{display:none}.bnav{display:flex!important}
   body{padding-bottom:var(--bnav-h)}
   .vtable-wrap{display:none}.vcards-wrap{display:flex;flex-direction:column}
   .flete-wrap,.simular-wrap{flex-direction:column-reverse}
-  .flete-panel,.sim-panel{width:100%;max-height:52vh;border-left:none;border-top:1px solid var(--border)}
+  .flete-panel,.sim-panel{width:100%;max-height:54vh;border-left:none;border-top:1px solid var(--border)}
   .cli-wrap{flex-direction:column}
   .cli-list{width:100%;max-height:36vh;border-right:none;border-bottom:1px solid var(--border);display:flex;overflow-x:auto;overflow-y:hidden}
   .cli-item{min-width:150px;border-bottom:none;border-right:1px solid #1a2a3a;flex-shrink:0}
@@ -220,7 +228,10 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div id="viajesList"><div class="sp"></div></div>
     </div>
     <div>
-      <div class="inicio-stitle" style="color:var(--green)">🚛 Fletes disponibles para cargar</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+        <div class="inicio-stitle" style="color:var(--green);margin-bottom:0">🚛 Fletes disponibles para cargar</div>
+        <button class="bp" style="padding:4px 11px;font-size:.68rem" onclick="ir('flete');setTimeout(()=>switchFpTab('disponibles'),300)">Ver todos</button>
+      </div>
       <div id="fletesPublicos"><div style="color:var(--text3);font-size:.78rem;padding:8px 0">Cargando...</div></div>
     </div>
     <button class="bg" onclick="abrirNueva()" id="fabBtn"
@@ -262,10 +273,29 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div class="flete-wrap">
     <div id="map-flete" style="flex:1"></div>
     <div class="flete-panel">
-      <div class="fp-header"><span class="fp-title">Viajes programados</span><button class="bg" onclick="abrirNuevoViaje()" style="padding:4px 10px;font-size:.72rem">+ Nuevo</button></div>
-      <div class="fp-body" id="fpBody"><div class="sp"></div></div>
-      <div style="padding:8px 12px;border-top:1px solid var(--border);background:var(--bg4)">
-        <button class="bg" style="width:100%;padding:9px" onclick="exportarTodos()">📋 Exportar para WhatsApp</button>
+      <div class="fp-tabs">
+        <button class="fp-tab on" id="tab-programados" onclick="switchFpTab('programados')">🚛 Mis viajes</button>
+        <button class="fp-tab" id="tab-disponibles" onclick="switchFpTab('disponibles')">📢 Disponibles</button>
+      </div>
+
+      <!-- PANEL PROGRAMADOS -->
+      <div id="panel-programados" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0">
+        <div class="fp-header">
+          <span class="fp-title">Viajes programados</span>
+          <button class="bg" onclick="abrirNuevoViaje()" style="padding:4px 10px;font-size:.72rem">+ Nuevo</button>
+        </div>
+        <div class="fp-body" id="fpBody"><div class="sp"></div></div>
+        <div style="padding:8px 12px;border-top:1px solid var(--border);background:var(--bg4)">
+          <button class="bg" style="width:100%;padding:9px" onclick="exportarTodos()">📋 Exportar para WhatsApp</button>
+        </div>
+      </div>
+
+      <!-- PANEL DISPONIBLES -->
+      <div id="panel-disponibles" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0">
+        <div class="fp-header">
+          <span class="fp-title" style="color:var(--green)">Fletes publicados</span>
+        </div>
+        <div class="fp-body" id="fpDisponibles"><div class="sp"></div></div>
       </div>
     </div>
   </div>
@@ -280,12 +310,14 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
         <div class="sim-title">🧮 Simulador de flete</div>
         <input style="width:100%;background:var(--bg3);border:1px solid #1e3a55;color:var(--text);border-radius:7px;padding:8px 11px;font-size:.82rem;font-family:inherit" id="sim-input" placeholder="Escribí una localidad..."/>
       </div>
-      <div style="flex:1;overflow-y:auto;padding:7px" id="sim-body"><div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">Escribí una localidad arriba para agregar paradas</div></div>
+      <div style="flex:1;overflow-y:auto;padding:7px" id="sim-body">
+        <div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">Escribí una localidad para agregar paradas. La ruta parte desde la fábrica en La Pampa.</div>
+      </div>
       <div class="sim-footer">
         <div style="font-size:1.4rem;font-weight:900;color:var(--gold);line-height:1" id="sim-total">0</div>
-        <div style="font-size:.65rem;color:var(--text3);margin-bottom:8px">km del recorrido</div>
+        <div style="font-size:.65rem;color:var(--text3);margin-bottom:8px">km del recorrido total</div>
         <div style="display:flex;gap:7px">
-          <button class="bv" style="flex:1;padding:8px" onclick="calcularRutaSim()">🗺️ Ver ruta real</button>
+          <button class="bv" style="flex:1;padding:8px" onclick="calcularRutaSim()">🗺️ Optimizar ruta</button>
           <button class="bd" style="padding:8px" onclick="limpiarSim()">Limpiar</button>
         </div>
       </div>
@@ -346,7 +378,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   </div>
 </div>
 
-<!-- MODAL VIAJE -->
+<!-- MODAL VIAJE NUEVO -->
 <div class="overlay" id="overlayViaje">
   <div class="modal-sm">
     <h2 style="font-size:.88rem;color:var(--gold);margin-bottom:12px">Nuevo viaje</h2>
@@ -355,6 +387,25 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <div class="mact">
       <button class="bd" onclick="cerrarNuevoViaje()">Cancelar</button>
       <button class="bg" onclick="guardarNuevoViaje()">Crear</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AGREGAR CLIENTES AL VIAJE -->
+<div class="overlay" id="overlayAgregar">
+  <div class="modal-lg">
+    <h2 style="font-size:.88rem;color:var(--gold);margin-bottom:4px">Agregar clientes al viaje</h2>
+    <div id="agregar-viaje-nombre" style="font-size:.72rem;color:var(--text3);margin-bottom:10px"></div>
+    <div style="display:flex;gap:7px;margin-bottom:10px">
+      <input id="agregar-buscar" style="flex:1;background:var(--bg3);border:1px solid #1e3a55;color:var(--text);border-radius:7px;padding:7px 10px;font-size:.8rem;font-family:inherit" placeholder="Buscar cliente..."/>
+      <button class="bp" onclick="soloMostrarCercanos()" style="padding:7px 10px;font-size:.7rem;white-space:nowrap">📍 Cercanos</button>
+      <button class="bd" onclick="mostrarTodosAgregar()" style="padding:7px 10px;font-size:.7rem">Todos</button>
+    </div>
+    <div style="font-size:.65rem;color:var(--text3);margin-bottom:8px" id="agregar-hint">Seleccioná las ventas para agregar al viaje</div>
+    <div style="flex:1;overflow-y:auto;max-height:340px" id="agregar-lista"></div>
+    <div class="mact" style="margin-top:10px">
+      <button class="bd" onclick="cerrarAgregar()">Cancelar</button>
+      <button class="bg" onclick="confirmarAgregar()">Agregar seleccionados</button>
     </div>
   </div>
 </div>
@@ -368,6 +419,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 const sb=supabase.createClient(SURL,SKEY);
 
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
+const FAB_LAT=-36.38, FAB_LNG=-64.97;
 
 const CAP_AEREO={'6':8,'10':8,'16':6,'22':6,'28':6,'30':3,'40':3,'50':3,'60':3,'62':3,'72':3,'80':2,'100':2,'120':2,'140':2,'150':1,'175':1,'200':1};
 const CAP_AUTO={'2':20,'4':20,'7':8,'12':5,'18':5};
@@ -377,8 +429,10 @@ let filterEstado='',filterProd='';
 let mapMapa=null,mapFlete=null,mapModal=null,simMap=null;
 let markersArr=[],modalMarker=null,directionsRenderer=null,simDirRenderer=null;
 let simParadas=[];
+let agregarViajeId=null,agregarVentasSeleccionadas=new Set(),agregarVentasDisponibles=[];
 const BNAV={inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes'};
 
+// ── UTILS ────────────────────────────────────────────────────
 function ir(pg){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.ntab,.bnav-item').forEach(t=>t.classList.remove('on'));
@@ -398,11 +452,25 @@ function ir(pg){
   if(pg==='simular'&&typeof google!=='undefined')initMapaSim();
 }
 
+function switchFpTab(tab){
+  document.getElementById('tab-programados').classList.toggle('on',tab==='programados');
+  document.getElementById('tab-disponibles').classList.toggle('on',tab==='disponibles');
+  document.getElementById('panel-programados').style.display=tab==='programados'?'flex':'none';
+  document.getElementById('panel-disponibles').style.display=tab==='disponibles'?'flex':'none';
+  if(tab==='disponibles')renderFpDisponibles();
+}
+
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',2800);}
 function fNum(n){n=parseFloat(n)||0;if(n>=1000000)return(n/1000000).toFixed(1)+'M';if(n>=1000)return Math.round(n/1000)+'K';return Math.round(n).toLocaleString('es-AR');}
 function fFecha(d){if(!d)return'—';const[y,m,dd]=d.split('-');return`${parseInt(dd)} ${['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][parseInt(m)-1]} ${y}`;}
 function eTag(e){const mp={'Confirmado':['e0','✅'],'En producción':['e1','⚙️'],'Listo para entregar':['e2','📦'],'En camino':['e3','🚛'],'Entregado':['e4','✔']};const[c,i]=mp[e]||['e0','●'];return`<span class="etag ${c}">${i} ${e||'—'}</span>`;}
 function parsePar(s){if(!s)return[];try{return Array.isArray(s)?s:JSON.parse(s);}catch{return[];}}
+
+function distKm(lat1,lng1,lat2,lng2){
+  const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
 
 function getMaxPorCamion(producto,modelo){
   const esAuto=/autoconsumo/i.test(producto||'');
@@ -410,17 +478,12 @@ function getMaxPorCamion(producto,modelo){
   const num=parseFloat((modelo||'').replace(/[^\d.]/g,''));
   if(!num)return esAuto?20:8;
   let best=null,bestDiff=Infinity;
-  for(const k of Object.keys(tabla)){
-    const diff=Math.abs(parseFloat(k)-num);
-    if(diff<bestDiff){bestDiff=diff;best=tabla[k];}
-  }
+  for(const k of Object.keys(tabla)){const diff=Math.abs(parseFloat(k)-num);if(diff<bestDiff){bestDiff=diff;best=tabla[k];}}
   return best||(esAuto?20:6);
 }
 
 function calcOcupacion(paradas){
-  let total=0;
-  paradas.forEach(p=>{ total+=1/getMaxPorCamion(p.producto,p.modelo); });
-  return total;
+  let total=0;paradas.forEach(p=>{total+=1/getMaxPorCamion(p.producto,p.modelo);});return total;
 }
 
 function barraCapacidad(paradas){
@@ -429,13 +492,14 @@ function barraCapacidad(paradas){
   const pct=Math.min(oc*100,100);
   const camiones=Math.ceil(oc);
   const color=oc>=1?'var(--red)':oc>=0.75?'var(--yellow)':'var(--green)';
-  const label=oc>=1?`${camiones} camión${camiones>1?'es':''} completo${camiones>1?'s':''}`:`${Math.round(oc*100)}% cargado`;
+  const label=oc>=1?`${camiones} camión${camiones>1?'es':''} lleno${camiones>1?'s':''}`:`${Math.round(oc*100)}% cargado`;
   return`<div class="cap-bar-wrap">
-    <div class="cap-bar-label"><span>Capacidad camión</span><span style="color:${color};font-weight:700">${label}</span></div>
+    <div class="cap-bar-label"><span>Capacidad</span><span style="color:${color};font-weight:700">${label}</span></div>
     <div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div>
   </div>`;
 }
 
+// ── DATOS ────────────────────────────────────────────────────
 async function cargarDatos(){
   const{data:v,error:ve}=await sb.from('ventas').select('*').order('created_at',{ascending:false});
   if(ve){toast('⚠️ Error Supabase: '+ve.message);console.error(ve);}
@@ -445,6 +509,7 @@ async function cargarDatos(){
   if(mapMapa)actMarkersMapa();
 }
 
+// ── INICIO ───────────────────────────────────────────────────
 function renderStats(){
   const tot=ventas.length,pend=ventas.filter(v=>v.estado!=='Entregado').length;
   const ahora=new Date();
@@ -469,33 +534,51 @@ function renderProxFletes(){
   const hoy=new Date().toISOString().split('T')[0];
   const p=viajesData.filter(v=>v.fecha>=hoy).slice(0,3);
   document.getElementById('viajesList').innerHTML=p.length?p.map(v=>`<div class="viaje-prox" onclick="ir('flete')"><div style="display:flex;align-items:center"><div class="vp-nombre">🚛 ${v.nombre}</div>${v.publico?'<span class="flete-pub-badge">PUBLICADO</span>':''}</div><div class="vp-meta">📅 ${fFecha(v.fecha)}${v.km_real?' · '+v.km_real+' km':''}</div></div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin fletes programados</div>';
-  renderFletesPublicos();
 }
 
 function renderFletesPublicos(){
   const pub=viajesData.filter(v=>v.publico);
-  const el=document.getElementById('fletesPublicos');
-  if(!el)return;
+  const el=document.getElementById('fletesPublicos');if(!el)return;
   if(!pub.length){el.innerHTML='<div style="color:var(--text3);font-size:.78rem;padding:8px 0">No hay fletes publicados actualmente</div>';return;}
   el.innerHTML=pub.map(vj=>{
-    const p=parsePar(vj.paradas_snap);
-    const oc=calcOcupacion(p);
+    const p=parsePar(vj.paradas_snap),oc=calcOcupacion(p);
     const libre=Math.max(0,(1-oc)*100).toFixed(0);
     const color=oc>=1?'var(--red)':oc>=0.75?'var(--yellow)':'var(--green)';
     const pct=Math.min(oc*100,100);
-    return`<div class="viaje-prox" onclick="ir('flete')" style="border-color:#2a8c50">
+    return`<div class="viaje-prox" onclick="ir('flete');setTimeout(()=>switchFpTab('disponibles'),300)" style="border-color:#2a8c50">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
         <div class="vp-nombre">🚛 ${vj.nombre}</div>
         <span style="font-size:.65rem;font-weight:700;color:${color}">${libre}% libre</span>
       </div>
-      <div class="vp-meta">📅 ${fFecha(vj.fecha)} · ${p.length} paradas</div>
-      <div class="cap-bar-wrap" style="margin-top:6px">
-        <div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div>
-      </div>
+      <div class="vp-meta">📅 ${fFecha(vj.fecha)} · ${p.length} paradas${vj.km_real?' · '+vj.km_real+' km':''}</div>
+      <div class="cap-bar-wrap" style="margin-top:6px"><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>
     </div>`;
   }).join('');
 }
 
+function renderFpDisponibles(){
+  const pub=viajesData.filter(v=>v.publico);
+  const el=document.getElementById('fpDisponibles');if(!el)return;
+  if(!pub.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--text3);font-size:.8rem">No hay fletes publicados.<br>Los organizadores pueden publicar un viaje<br>para que aparezca acá.</div>';return;}
+  el.innerHTML=pub.map(vj=>{
+    const p=parsePar(vj.paradas_snap),oc=calcOcupacion(p);
+    const libre=Math.max(0,(1-oc)*100).toFixed(0);
+    const color=oc>=1?'var(--red)':oc>=0.75?'var(--yellow)':'var(--green)';
+    const pct=Math.min(oc*100,100);
+    return`<div class="disp-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <div style="font-weight:800;font-size:.84rem;color:var(--gold)">🚛 ${vj.nombre}</div>
+        <span style="font-size:.68rem;font-weight:700;color:${color}">${libre}% libre</span>
+      </div>
+      <div style="font-size:.7rem;color:var(--text3);margin-bottom:7px">📅 ${fFecha(vj.fecha)} · ${p.length} paradas${vj.km_real?' · '+vj.km_real+' km':''}</div>
+      ${p.map((x,i)=>`<div style="font-size:.68rem;color:var(--text2);padding:2px 0">  ${i+1}. ${x.cliente||x.nombre||'—'} · ${x.localidad||''}</div>`).join('')}
+      <div class="cap-bar-wrap" style="margin-top:8px"><div class="cap-bar-label"><span>Capacidad</span><span style="color:${color};font-weight:700">${Math.round(oc*100)}%</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>
+      <button class="bg" style="width:100%;margin-top:9px;padding:7px;font-size:.73rem" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes a este viaje</button>
+    </div>`;
+  }).join('');
+}
+
+// ── VENTAS ───────────────────────────────────────────────────
 function renderVentas(){
   let l=[...ventas];
   const q=(document.getElementById('buscar').value||'').toLowerCase();
@@ -515,6 +598,7 @@ function renderVentas(){
   document.getElementById('vcards').innerHTML=l.length?l.map(v=>`<div class="vcard" onclick="abrirEditar('${v.id}')"><div class="vcard-header"><div class="vcard-main"><div class="vcard-name">${v.cliente||'—'}</div><div style="margin-bottom:4px">${eTag(v.estado)}</div><div class="vcard-loc">📍 ${v.localidad||'—'} · ${v.producto||''} ${v.modelo||''}</div></div><div class="vcard-right"><div class="vcard-price">${v.precio?'$'+fNum(v.precio):'—'}</div></div></div><div class="vcard-footer"><div class="vcard-date">${v.fecha_entrega?'📅 '+fFecha(v.fecha_entrega):'Sin fecha'}</div><div class="vcard-actions"><button class="vcard-btn" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div></div></div>`).join(''):em;
 }
 
+// ── VIAJES ───────────────────────────────────────────────────
 function renderViajes(){
   const el=document.getElementById('fpBody');
   if(!viajesData.length){el.innerHTML='<div style="text-align:center;padding:28px;color:var(--text3);font-size:.78rem">Creá un viaje y agregá los pedidos</div>';return;}
@@ -523,11 +607,11 @@ function renderViajes(){
     const pubColor=vj.publico?'#2a8c50':'var(--border2)';
     const pubBg=vj.publico?'#0d2e18':'var(--bg3)';
     const pubTxt=vj.publico?'var(--green)':'var(--text3)';
-    return`<div class="viaje-card" style="border-color:${vj.publico?'#2a8c50':'var(--border)'}">
+    return`<div class="viaje-card" id="vjcard-${vj.id}" style="border-color:${vj.publico?'#2a8c50':'var(--border)'}">
       <div class="viaje-header">
         <button class="vbtn" onclick="toggleViaje('${vj.id}')">▼</button>
         <div class="viaje-info">
-          <div class="viaje-nombre">🚛 ${vj.nombre}${vj.publico?'<span class="flete-pub-badge">PUBLICADO</span>':''}</div>
+          <div class="viaje-nombre">🚛 ${vj.nombre}${vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div>
           <div class="viaje-meta">
             <span>${p.length} paradas</span>
             ${vj.km_real?`<span class="viaje-km">${vj.km_real} km</span>`:''}
@@ -537,12 +621,13 @@ function renderViajes(){
         <button class="vbtn del" onclick="eliminarViaje('${vj.id}')">✕</button>
       </div>
       <div class="viaje-body" id="vbody-${vj.id}">
-        ${p.map((x,i)=>`<div class="vp-item"><div class="vp-num">${i+1}</div><div class="vp-info"><div class="vp-cli">${x.cliente||x.nombre||'—'}</div><div class="vp-sub">${x.producto||''} ${x.modelo||''} · ${x.localidad||''}</div></div></div>`).join('')}
+        ${p.length?p.map((x,i)=>`<div class="vp-item"><div class="vp-num">${i+1}</div><div class="vp-info"><div class="vp-cli">${x.cliente||x.nombre||'—'}</div><div class="vp-sub">${x.producto||''} ${x.modelo||''} · ${x.localidad||''}</div></div><button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.75rem;padding:3px" onclick="quitarDelViaje('${vj.id}',${i})">✕</button></div>`).join(''):'<div style="font-size:.72rem;color:var(--text3);padding:6px 0;text-align:center">Sin paradas — agregá clientes</div>'}
         ${barraCapacidad(p)}
-        <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">
-          <button class="bv" style="flex:1;font-size:.68rem;padding:5px" onclick="exportarViaje('${vj.id}')">📋 Exportar</button>
-          <button class="bd" style="font-size:.68rem;padding:5px" onclick="verRutaViaje('${vj.id}')">🗺️ Ruta</button>
-          <button style="background:${pubBg};border:1px solid ${pubColor};color:${pubTxt};border-radius:7px;font-size:.68rem;padding:5px 8px;cursor:pointer;font-weight:600;font-family:inherit" onclick="togglePublico('${vj.id}',${!vj.publico})">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px">
+          <button class="bv" style="font-size:.68rem;padding:5px" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes</button>
+          <button class="bd" style="font-size:.68rem;padding:5px" onclick="verRutaViaje('${vj.id}')">🗺️ Ver ruta</button>
+          <button class="bd" style="font-size:.68rem;padding:5px" onclick="exportarViaje('${vj.id}')">📋 Exportar</button>
+          <button style="background:${pubBg};border:1px solid ${pubColor};color:${pubTxt};border-radius:7px;font-size:.68rem;padding:5px;cursor:pointer;font-weight:600;font-family:inherit" onclick="togglePublico('${vj.id}',${!vj.publico})">
             ${vj.publico?'✅ Publicado':'📢 Publicar'}
           </button>
         </div>
@@ -551,14 +636,21 @@ function renderViajes(){
   }).join('');
 }
 
-function toggleViaje(id){const el=document.getElementById('vbody-'+id);if(el)el.style.display=el.style.display==='none'?'':'none';}
+// Acordeón: solo uno abierto a la vez
+function toggleViaje(id){
+  const body=document.getElementById('vbody-'+id);if(!body)return;
+  const yaAbierto=body.classList.contains('open');
+  // cerrar todos
+  document.querySelectorAll('.viaje-body').forEach(b=>b.classList.remove('open'));
+  // abrir este si estaba cerrado
+  if(!yaAbierto)body.classList.add('open');
+}
 
 async function eliminarViaje(id){
   if(!confirm('¿Eliminar este viaje?'))return;
   const{error}=await sb.from('viajes').delete().eq('id',id);
   if(error){toast('Error: '+error.message);return;}
-  viajesData=viajesData.filter(v=>v.id!==id);
-  renderViajes();renderProxFletes();toast('Viaje eliminado');
+  viajesData=viajesData.filter(v=>v.id!==id);renderViajes();renderProxFletes();toast('Viaje eliminado');
 }
 
 async function togglePublico(id,val){
@@ -569,10 +661,22 @@ async function togglePublico(id,val){
   toast(val?'✅ Flete publicado — visible para todos los vendedores':'Flete ocultado');
 }
 
+async function quitarDelViaje(vjId,idx){
+  const vj=viajesData.find(v=>v.id===vjId);if(!vj)return;
+  const paradas=parsePar(vj.paradas_snap);
+  const quitado=paradas.splice(idx,1)[0];
+  const pedido_ids=(vj.pedido_ids||[]).filter(pid=>String(pid)!==String(quitado?.id));
+  const{error}=await sb.from('viajes').update({paradas_snap:paradas,pedido_ids}).eq('id',vjId);
+  if(error){toast('Error: '+error.message);return;}
+  vj.paradas_snap=paradas;vj.pedido_ids=pedido_ids;
+  renderViajes();// reabrir
+  setTimeout(()=>{const b=document.getElementById('vbody-'+vjId);if(b)b.classList.add('open');},50);
+  toast('Cliente quitado del viaje');
+}
+
 function exportarViaje(id){
   const vj=viajesData.find(v=>v.id===id);if(!vj)return;
-  const p=parsePar(vj.paradas_snap);
-  const oc=calcOcupacion(p);
+  const p=parsePar(vj.paradas_snap),oc=calcOcupacion(p);
   let t=`*🚛 ${vj.nombre}*\n📅 ${fFecha(vj.fecha)}\n🏭 Salida: Remeco, La Pampa\n\n`;
   p.forEach((x,i)=>{t+=`${i+1}. *${x.cliente||x.nombre||'—'}*\n   ${x.producto||''} ${x.modelo||''} · ${x.localidad||''}\n\n`;});
   if(vj.km_real)t+=`📍 Total: ${vj.km_real} km\n`;
@@ -582,6 +686,95 @@ function exportarViaje(id){
 function exportarTodos(){if(viajesData.length)exportarViaje(viajesData[0].id);else toast('Sin viajes');}
 function verRutaViaje(id){ir('flete');setTimeout(()=>mostrarRutaViaje(id),600);}
 
+// ── AGREGAR CLIENTES AL VIAJE ─────────────────────────────────
+function abrirAgregar(vjId){
+  agregarViajeId=vjId;
+  agregarVentasSeleccionadas=new Set();
+  const vj=viajesData.find(v=>v.id===vjId);
+  document.getElementById('agregar-viaje-nombre').textContent=vj?`Viaje: ${vj.nombre}`:'';
+  document.getElementById('agregar-buscar').value='';
+  document.getElementById('agregar-hint').textContent='Seleccioná las ventas para agregar al viaje';
+  // ventas no entregadas no ya en el viaje
+  const enViaje=new Set(parsePar(vj?.paradas_snap||[]).map(x=>String(x.id)).filter(Boolean));
+  agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&!enViaje.has(String(v.id)));
+  renderListaAgregar(agregarVentasDisponibles);
+  document.getElementById('overlayAgregar').classList.add('on');
+}
+
+function renderListaAgregar(lista){
+  const el=document.getElementById('agregar-lista');
+  if(!lista.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">No hay ventas disponibles</div>';return;}
+  el.innerHTML=lista.map(v=>{
+    const sel=agregarVentasSeleccionadas.has(v.id);
+    const dist=v._dist!=null?` · <span style="color:var(--gold);font-weight:700">${Math.round(v._dist)} km</span>`:'';
+    return`<div class="checkrow${sel?' sel':''}" onclick="toggleSelAgregar('${v.id}')">
+      <input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelAgregar('${v.id}')"/>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:.8rem">${v.cliente||'—'}</div>
+        <div style="font-size:.67rem;color:var(--text3);margin-top:1px">${v.producto||''} ${v.modelo||''} · ${v.localidad||''}${dist}</div>
+        ${eTag(v.estado)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleSelAgregar(id){
+  if(agregarVentasSeleccionadas.has(id))agregarVentasSeleccionadas.delete(id);
+  else agregarVentasSeleccionadas.add(id);
+  // re-render solo el check
+  const vj=viajesData.find(v=>v.id===agregarViajeId);
+  const enViaje=new Set(parsePar(vj?.paradas_snap||[]).map(x=>String(x.id)).filter(Boolean));
+  const q=document.getElementById('agregar-buscar').value.toLowerCase();
+  let lista=agregarVentasDisponibles;
+  if(q)lista=lista.filter(v=>(v.cliente||'').toLowerCase().includes(q)||(v.localidad||'').toLowerCase().includes(q));
+  renderListaAgregar(lista);
+}
+
+function soloMostrarCercanos(){
+  const vj=viajesData.find(v=>v.id===agregarViajeId);if(!vj)return;
+  const paradas=parsePar(vj.paradas_snap).filter(x=>x.lat&&x.lng);
+  const puntos=[{lat:FAB_LAT,lng:FAB_LNG},...paradas.map(p=>({lat:parseFloat(p.lat),lng:parseFloat(p.lng)}))];
+  const cercanas=agregarVentasDisponibles.filter(v=>v.lat&&v.lng).map(v=>{
+    const minD=Math.min(...puntos.map(p=>distKm(p.lat,p.lng,parseFloat(v.lat),parseFloat(v.lng))));
+    return{...v,_dist:minD};
+  }).filter(v=>v._dist<=100).sort((a,b)=>a._dist-b._dist);
+  document.getElementById('agregar-hint').textContent=`📍 Mostrando ${cercanas.length} ventas dentro de 100 km de la ruta`;
+  renderListaAgregar(cercanas);
+}
+
+function mostrarTodosAgregar(){
+  document.getElementById('agregar-hint').textContent='Seleccioná las ventas para agregar al viaje';
+  document.getElementById('agregar-buscar').value='';
+  renderListaAgregar(agregarVentasDisponibles);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const inp=document.getElementById('agregar-buscar');
+  if(inp)inp.addEventListener('input',()=>{
+    const q=inp.value.toLowerCase();
+    const lista=agregarVentasDisponibles.filter(v=>(v.cliente||'').toLowerCase().includes(q)||(v.localidad||'').toLowerCase().includes(q));
+    renderListaAgregar(lista);
+  });
+});
+
+async function confirmarAgregar(){
+  if(!agregarVentasSeleccionadas.size){toast('Seleccioná al menos una venta');return;}
+  const vj=viajesData.find(v=>v.id===agregarViajeId);if(!vj)return;
+  const paradasActuales=parsePar(vj.paradas_snap);
+  const nuevas=ventas.filter(v=>agregarVentasSeleccionadas.has(v.id));
+  const paradasNuevas=[...paradasActuales,...nuevas.map(v=>({cliente:v.cliente,producto:v.producto,modelo:v.modelo,localidad:v.localidad,lat:v.lat,lng:v.lng,id:v.id}))];
+  const pedido_ids=[...(vj.pedido_ids||[]),...nuevas.map(v=>v.id)];
+  const{error}=await sb.from('viajes').update({paradas_snap:paradasNuevas,pedido_ids}).eq('id',agregarViajeId);
+  if(error){toast('Error: '+error.message);return;}
+  vj.paradas_snap=paradasNuevas;vj.pedido_ids=pedido_ids;
+  cerrarAgregar();renderViajes();
+  setTimeout(()=>{const b=document.getElementById('vbody-'+agregarViajeId);if(b)b.classList.add('open');},50);
+  toast(`✓ ${nuevas.length} cliente${nuevas.length>1?'s':''} agregado${nuevas.length>1?'s':''} al viaje`);
+}
+
+function cerrarAgregar(){document.getElementById('overlayAgregar').classList.remove('on');}
+
+// ── GUARDAR VENTA ────────────────────────────────────────────
 async function guardarVenta(){
   const data={
     cliente:document.getElementById('f-cliente').value.trim(),
@@ -655,11 +848,7 @@ function abrirEditar(id){
   setTimeout(()=>{
     if(mapModal){
       google.maps.event.trigger(mapModal,'resize');
-      if(modalLat&&modalLng){
-        const pos={lat:parseFloat(modalLat),lng:parseFloat(modalLng)};
-        mapModal.setCenter(pos);mapModal.setZoom(12);
-        if(modalMarker){modalMarker.setPosition(pos);modalMarker.setVisible(true);}
-      }
+      if(modalLat&&modalLng){const pos={lat:parseFloat(modalLat),lng:parseFloat(modalLng)};mapModal.setCenter(pos);mapModal.setZoom(12);if(modalMarker){modalMarker.setPosition(pos);modalMarker.setVisible(true);}}
     }
   },200);
 }
@@ -668,131 +857,7 @@ function cerrarModal(){document.getElementById('overlay').classList.remove('on')
 function abrirNuevoViaje(){document.getElementById('overlayViaje').classList.add('on');}
 function cerrarNuevoViaje(){document.getElementById('overlayViaje').classList.remove('on');}
 
-// ── GOOGLE MAPS ───────────────────────────────────────────────
-function initMaps(){
-  const mm=document.getElementById('mmap-div');
-  if(mm){
-    mapModal=new google.maps.Map(mm,{center:{lat:-36.5,lng:-64.5},zoom:6,mapTypeId:'hybrid',disableDefaultUI:true,zoomControl:true});
-    modalMarker=new google.maps.Marker({map:mapModal,draggable:true,visible:false});
-    mapModal.addListener('click',e=>{
-      modalLat=e.latLng.lat();modalLng=e.latLng.lng();
-      modalMarker.setPosition(e.latLng);modalMarker.setVisible(true);
-    });
-    modalMarker.addListener('dragend',e=>{modalLat=e.latLng.lat();modalLng=e.latLng.lng();});
-  }
-  if(document.getElementById('page-mapa').classList.contains('on'))initMapaMapa();
-  if(document.getElementById('page-flete').classList.contains('on'))initMapaFlete();
-  if(document.getElementById('page-simular').classList.contains('on'))initMapaSim();
-}
-
-function initMapaMapa(){
-  if(mapMapa){actMarkersMapa();return;}
-  const el=document.getElementById('map-mapa');if(!el||typeof google==='undefined')return;
-  mapMapa=new google.maps.Map(el,{center:{lat:-36.5,lng:-64.5},zoom:6,mapTypeId:'hybrid'});
-  actMarkersMapa();
-}
-
-const COL={'Confirmado':'#c9a840','En producción':'#c0a0ff','Listo para entregar':'#5ab8ff','En camino':'#ffc040','Entregado':'#5adf8a'};
-
-function actMarkersMapa(){
-  if(!mapMapa)return;
-  markersArr.forEach(m=>m.setMap(null));markersArr=[];
-  // Marker fábrica
-  const fabMarker=new google.maps.Marker({
-    position:{lat:-36.38,lng:-64.97},map:mapMapa,title:'Remeco – Fábrica',
-    icon:{url:'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'}
-  });
-  const fabIW=new google.maps.InfoWindow({content:'<div style="font-family:sans-serif"><strong>🏭 Metalúrgica Remeco</strong><br>Colonia Menonita, Campo 2, La Pampa</div>'});
-  fabMarker.addListener('click',()=>fabIW.open(mapMapa,fabMarker));
-  markersArr.push(fabMarker);
-  ventas.forEach(v=>{
-    if(!v.lat||!v.lng)return;
-    const mk=new google.maps.Marker({
-      position:{lat:parseFloat(v.lat),lng:parseFloat(v.lng)},map:mapMapa,title:v.cliente,
-      icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:COL[v.estado]||'#c9a840',fillOpacity:1,strokeColor:'#fff',strokeWeight:2,scale:9}
-    });
-    const iw=new google.maps.InfoWindow({content:`<div style="font-family:sans-serif;min-width:150px"><strong>${v.cliente}</strong><br>${v.producto||''} ${v.modelo||''}<br>📍 ${v.localidad||''}<br><span style="color:${COL[v.estado]||'#333'}">${v.estado||''}</span><br>${v.precio?'<strong>$'+fNum(v.precio)+'</strong>':''}${v.fecha_entrega?'<br>📅 '+fFecha(v.fecha_entrega):''}</div>`});
-    mk.addListener('click',()=>iw.open(mapMapa,mk));
-    markersArr.push(mk);
-  });
-}
-
-function initMapaFlete(){
-  if(mapFlete)return;
-  const el=document.getElementById('map-flete');if(!el||typeof google==='undefined')return;
-  mapFlete=new google.maps.Map(el,{center:{lat:-36.5,lng:-64.5},zoom:6,mapTypeId:'roadmap'});
-  directionsRenderer=new google.maps.DirectionsRenderer({map:mapFlete});
-  // Mostrar ruta del primer viaje automáticamente
-  if(viajesData.length)setTimeout(()=>mostrarRutaViaje(viajesData[0].id),500);
-}
-
-function mostrarRutaViaje(id){
-  if(!mapFlete||!directionsRenderer)return;
-  const vj=viajesData.find(v=>v.id===id);if(!vj)return;
-  const p=parsePar(vj.paradas_snap).filter(x=>x.lat&&x.lng);
-  if(!p.length){toast('Las paradas necesitan coordenadas en el mapa');return;}
-  const dest=p.length>0?{lat:parseFloat(p[p.length-1].lat),lng:parseFloat(p[p.length-1].lng)}:FABRICA;
-  const wp=p.slice(0,p.length-1).map(x=>({location:{lat:parseFloat(x.lat),lng:parseFloat(x.lng)},stopover:true}));
-  new google.maps.DirectionsService().route({
-    origin:FABRICA,
-    destination:dest,
-    waypoints:wp,
-    travelMode:google.maps.TravelMode.DRIVING
-  },(res,st)=>{
-    if(st==='OK'){
-      directionsRenderer.setDirections(res);
-      const kmTotal=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
-      sb.from('viajes').update({km_real:kmTotal}).eq('id',id).then(()=>{
-        const vj2=viajesData.find(v=>v.id===id);if(vj2)vj2.km_real=kmTotal;
-        renderViajes();
-      });
-    } else toast('No se pudo calcular la ruta');
-  });
-}
-
-function initMapaSim(){
-  if(simMap)return;
-  const el=document.getElementById('map-sim');if(!el||typeof google==='undefined')return;
-  simMap=new google.maps.Map(el,{center:{lat:-36.5,lng:-64.5},zoom:6,mapTypeId:'roadmap'});
-  simDirRenderer=new google.maps.DirectionsRenderer({map:simMap});
-  const inp=document.getElementById('sim-input');
-  const ac=new google.maps.places.Autocomplete(inp,{componentRestrictions:{country:'ar'}});
-  ac.addListener('place_changed',()=>{
-    const pl=ac.getPlace();if(!pl.geometry)return;
-    simParadas.push({nombre:pl.name||inp.value,lat:pl.geometry.location.lat(),lng:pl.geometry.location.lng()});
-    inp.value='';renderSimParadas();
-    if(simParadas.length>=1)calcularRutaSim();
-  });
-}
-
-function renderSimParadas(){
-  const el=document.getElementById('sim-body');
-  if(!simParadas.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">Escribí una localidad arriba para agregar paradas</div>';document.getElementById('sim-total').textContent='0';return;}
-  el.innerHTML=simParadas.map((p,i)=>`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:7px;padding:7px 10px;margin-bottom:4px;display:flex;align-items:center;gap:7px"><div class="vp-num">${i+1}</div><div style="flex:1;font-weight:700;font-size:.78rem">${p.nombre}</div><button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.82rem;padding:3px" onclick="eliminarParadaSim(${i})">✕</button></div>`).join('');
-}
-
-function eliminarParadaSim(i){simParadas.splice(i,1);renderSimParadas();if(simParadas.length>=1)calcularRutaSim();else{if(simDirRenderer)simDirRenderer.setDirections({routes:[]});document.getElementById('sim-total').textContent='0';}}
-function limpiarSim(){simParadas=[];renderSimParadas();if(simDirRenderer)simDirRenderer.setDirections({routes:[]});}
-
-function calcularRutaSim(){
-  if(!simMap||!simDirRenderer)return;
-  const destino=simParadas.length>0?{lat:simParadas[simParadas.length-1].lat,lng:simParadas[simParadas.length-1].lng}:null;
-  if(!destino)return;
-  const wp=simParadas.slice(0,simParadas.length-1).map(p=>({location:{lat:p.lat,lng:p.lng},stopover:true}));
-  new google.maps.DirectionsService().route({
-    origin:FABRICA,
-    destination:destino,
-    waypoints:wp,
-    travelMode:google.maps.TravelMode.DRIVING
-  },(res,st)=>{
-    if(st==='OK'){
-      simDirRenderer.setDirections(res);
-      const km=res.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000;
-      document.getElementById('sim-total').textContent=Math.round(km);
-    } else toast('Error calculando ruta');
-  });
-}
-
+// ── CLIENTES ─────────────────────────────────────────────────
 function renderClientes(){
   const map={};
   ventas.forEach(v=>{if(!v.cliente)return;if(!map[v.cliente])map[v.cliente]={nombre:v.cliente,telefono:v.telefono,cuit:v.cuit,ventas:[]};map[v.cliente].ventas.push(v);});
@@ -832,6 +897,132 @@ function verCliente(i){
     ${cv.map(v=>`<div class="pendiente-card" onclick="abrirEditar('${v.id}')"><div class="pc-info"><div class="pc-cli">${v.producto||'—'} ${v.modelo||''}</div><div class="pc-sub">${v.localidad||''} · ${fFecha(v.fecha_entrega)}</div></div><div style="text-align:right">${eTag(v.estado)}<div style="font-size:.78rem;font-weight:700;color:var(--gold);margin-top:4px">${v.precio?'$'+fNum(v.precio):''}</div></div></div>`).join('')}`;
 }
 
+// ── GOOGLE MAPS ───────────────────────────────────────────────
+function initMaps(){
+  const mm=document.getElementById('mmap-div');
+  if(mm){
+    mapModal=new google.maps.Map(mm,{center:{lat:FAB_LAT,lng:FAB_LNG},zoom:6,mapTypeId:'hybrid',disableDefaultUI:true,zoomControl:true});
+    modalMarker=new google.maps.Marker({map:mapModal,draggable:true,visible:false});
+    mapModal.addListener('click',e=>{modalLat=e.latLng.lat();modalLng=e.latLng.lng();modalMarker.setPosition(e.latLng);modalMarker.setVisible(true);});
+    modalMarker.addListener('dragend',e=>{modalLat=e.latLng.lat();modalLng=e.latLng.lng();});
+  }
+  if(document.getElementById('page-mapa').classList.contains('on'))initMapaMapa();
+  if(document.getElementById('page-flete').classList.contains('on'))initMapaFlete();
+  if(document.getElementById('page-simular').classList.contains('on'))initMapaSim();
+}
+
+function initMapaMapa(){
+  if(mapMapa){actMarkersMapa();return;}
+  const el=document.getElementById('map-mapa');if(!el||typeof google==='undefined')return;
+  mapMapa=new google.maps.Map(el,{center:{lat:FAB_LAT,lng:FAB_LNG},zoom:6,mapTypeId:'hybrid'});
+  actMarkersMapa();
+}
+
+const COL={'Confirmado':'#c9a840','En producción':'#c0a0ff','Listo para entregar':'#5ab8ff','En camino':'#ffc040','Entregado':'#5adf8a'};
+
+function actMarkersMapa(){
+  if(!mapMapa)return;
+  markersArr.forEach(m=>m.setMap(null));markersArr=[];
+  const fabM=new google.maps.Marker({position:{lat:FAB_LAT,lng:FAB_LNG},map:mapMapa,title:'Remeco – Fábrica',icon:{url:'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'}});
+  const fabIW=new google.maps.InfoWindow({content:'<div style="font-family:sans-serif"><strong>🏭 Metalúrgica Remeco</strong><br>Colonia Menonita, Campo 2, La Pampa</div>'});
+  fabM.addListener('click',()=>fabIW.open(mapMapa,fabM));
+  markersArr.push(fabM);
+  ventas.forEach(v=>{
+    if(!v.lat||!v.lng)return;
+    const mk=new google.maps.Marker({position:{lat:parseFloat(v.lat),lng:parseFloat(v.lng)},map:mapMapa,title:v.cliente,icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:COL[v.estado]||'#c9a840',fillOpacity:1,strokeColor:'#fff',strokeWeight:2,scale:9}});
+    const iw=new google.maps.InfoWindow({content:`<div style="font-family:sans-serif;min-width:150px"><strong>${v.cliente}</strong><br>${v.producto||''} ${v.modelo||''}<br>📍 ${v.localidad||''}<br><span style="color:${COL[v.estado]||'#333'}">${v.estado||''}</span><br>${v.precio?'<strong>$'+fNum(v.precio)+'</strong>':''}${v.fecha_entrega?'<br>📅 '+fFecha(v.fecha_entrega):''}</div>`});
+    mk.addListener('click',()=>iw.open(mapMapa,mk));
+    markersArr.push(mk);
+  });
+}
+
+function initMapaFlete(){
+  if(mapFlete)return;
+  const el=document.getElementById('map-flete');if(!el||typeof google==='undefined')return;
+  mapFlete=new google.maps.Map(el,{center:{lat:FAB_LAT,lng:FAB_LNG},zoom:6,mapTypeId:'roadmap'});
+  directionsRenderer=new google.maps.DirectionsRenderer({map:mapFlete,suppressMarkers:false});
+  if(viajesData.length)setTimeout(()=>mostrarRutaViaje(viajesData[0].id),500);
+}
+
+function mostrarRutaViaje(id){
+  if(!mapFlete||!directionsRenderer)return;
+  const vj=viajesData.find(v=>v.id===id);if(!vj)return;
+  const p=parsePar(vj.paradas_snap).filter(x=>x.lat&&x.lng);
+  if(!p.length){toast('Las paradas necesitan coordenadas marcadas en el mapa');return;}
+  const dest={lat:parseFloat(p[p.length-1].lat),lng:parseFloat(p[p.length-1].lng)};
+  const wp=p.slice(0,p.length-1).map(x=>({location:{lat:parseFloat(x.lat),lng:parseFloat(x.lng)},stopover:true}));
+  new google.maps.DirectionsService().route({
+    origin:FABRICA,destination:dest,waypoints:wp,
+    optimizeWaypoints:false,
+    travelMode:google.maps.TravelMode.DRIVING
+  },(res,st)=>{
+    if(st==='OK'){
+      directionsRenderer.setDirections(res);
+      const km=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
+      sb.from('viajes').update({km_real:km}).eq('id',id).then(()=>{
+        const vj2=viajesData.find(v=>v.id===id);if(vj2)vj2.km_real=km;renderViajes();
+      });
+    } else toast('No se pudo calcular la ruta');
+  });
+}
+
+function initMapaSim(){
+  if(simMap)return;
+  const el=document.getElementById('map-sim');if(!el||typeof google==='undefined')return;
+  simMap=new google.maps.Map(el,{center:{lat:FAB_LAT,lng:FAB_LNG},zoom:6,mapTypeId:'roadmap'});
+  simDirRenderer=new google.maps.DirectionsRenderer({map:simMap});
+  const inp=document.getElementById('sim-input');
+  const ac=new google.maps.places.Autocomplete(inp,{componentRestrictions:{country:'ar'},types:['(cities)']});
+  ac.addListener('place_changed',()=>{
+    const pl=ac.getPlace();if(!pl.geometry)return;
+    simParadas.push({nombre:pl.name||inp.value,lat:pl.geometry.location.lat(),lng:pl.geometry.location.lng()});
+    inp.value='';renderSimParadas();
+    if(simParadas.length>=1)calcularRutaSim();
+  });
+}
+
+function renderSimParadas(){
+  const el=document.getElementById('sim-body');
+  if(!simParadas.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">Escribí una localidad para agregar paradas. La ruta parte desde la fábrica en La Pampa.</div>';document.getElementById('sim-total').textContent='0';return;}
+  el.innerHTML=`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:7px;padding:7px 10px;margin-bottom:4px;display:flex;align-items:center;gap:7px;opacity:.7"><div class="vp-num">🏭</div><div style="font-weight:700;font-size:.75rem;color:var(--text3)">Remeco – La Pampa (origen)</div></div>`+
+  simParadas.map((p,i)=>`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:7px;padding:7px 10px;margin-bottom:4px;display:flex;align-items:center;gap:7px"><div class="vp-num">${i+1}</div><div style="flex:1;font-weight:700;font-size:.78rem">${p.nombre}</div><button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.82rem;padding:3px" onclick="eliminarParadaSim(${i})">✕</button></div>`).join('');
+}
+
+function eliminarParadaSim(i){
+  simParadas.splice(i,1);renderSimParadas();
+  if(simParadas.length>=1)calcularRutaSim();
+  else{if(simDirRenderer)simDirRenderer.setDirections({routes:[]});document.getElementById('sim-total').textContent='0';}
+}
+function limpiarSim(){simParadas=[];renderSimParadas();if(simDirRenderer)simDirRenderer.setDirections({routes:[]});document.getElementById('sim-total').textContent='0';}
+
+function calcularRutaSim(){
+  if(!simMap||!simDirRenderer||!simParadas.length)return;
+  const dest={lat:simParadas[simParadas.length-1].lat,lng:simParadas[simParadas.length-1].lng};
+  const wp=simParadas.slice(0,simParadas.length-1).map(p=>({location:{lat:p.lat,lng:p.lng},stopover:true}));
+  new google.maps.DirectionsService().route({
+    origin:FABRICA,
+    destination:dest,
+    waypoints:wp,
+    optimizeWaypoints:true,  // <-- optimiza el orden de las paradas
+    travelMode:google.maps.TravelMode.DRIVING
+  },(res,st)=>{
+    if(st==='OK'){
+      simDirRenderer.setDirections(res);
+      const km=res.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000;
+      document.getElementById('sim-total').textContent=Math.round(km);
+      // reordenar las paradas según el orden optimizado
+      const orden=res.routes[0].waypoint_order;
+      if(orden&&orden.length){
+        const reordenadas=orden.map(i=>simParadas.slice(0,-1)[i]);
+        reordenadas.push(simParadas[simParadas.length-1]);
+        simParadas=reordenadas;
+        renderSimParadas();
+      }
+    } else toast('Error calculando ruta');
+  });
+}
+
+// ── EVENTOS ───────────────────────────────────────────────────
 document.getElementById('buscar').addEventListener('input',()=>renderVentas());
 document.getElementById('sortSelect').addEventListener('change',()=>renderVentas());
 document.querySelectorAll('.chip').forEach(chip=>{
@@ -841,8 +1032,12 @@ document.querySelectorAll('.chip').forEach(chip=>{
     renderVentas();
   });
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();}});
-document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();}}));
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();}
+});
+document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{
+  if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();}
+}));
 
 const ah=new Date(),hh=ah.getHours();
 document.getElementById('inicioBienvenida').textContent=(hh<12?'Buenos días':hh<18?'Buenas tardes':'Buenas noches')+' — Remeco';
