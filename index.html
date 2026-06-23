@@ -901,7 +901,7 @@ function initMapaFlete(){
   directionsRenderer=new google.maps.DirectionsRenderer({map:mapFlete,suppressMarkers:false,polylineOptions:{strokeColor:'#4a90d9',strokeWeight:5}});
 }
 
-// ── MOSTRAR RUTA (SOLO IDA + orden optimizado = una sola ruta más corta) ──
+// ── MOSTRAR RUTA (destino = parada más lejana, resto optimizado, sin rodeos) ──
 function mostrarRutaViaje(id){
   if(!mapFlete||!directionsRenderer)return;
   directionsRenderer.setDirections({routes:[]});
@@ -921,14 +921,23 @@ function mostrarRutaViaje(id){
     if(p.localidad)return p.localidad+', Argentina';
     return null;
   };
-  const conLoc=paradas.map(p=>({parada:p,loc:aLoc(p)})).filter(x=>x.loc);
+  const conLoc=paradas.map(p=>({
+    parada:p,
+    loc:aLoc(p),
+    coords:(p.lat&&p.lng)?{lat:parseFloat(p.lat),lng:parseFloat(p.lng)}:null
+  })).filter(x=>x.loc);
   if(!conLoc.length){
     if(st){st.textContent='⚠️ Las paradas no tienen localidad ni coordenadas';st.style.background='#2a1010';st.style.color='var(--red)';}
     return;
   }
 
-  const destination=conLoc[conLoc.length-1].loc;
-  const waypoints=conLoc.slice(0,conLoc.length-1).map(x=>({location:x.loc,stopover:true}));
+  // DESTINO = parada más lejana de la fábrica (evita el rodeo de volver)
+  let idxDest=conLoc.length-1,maxD=-1;
+  conLoc.forEach((x,i)=>{if(x.coords){const d=distKm(FAB_LAT,FAB_LNG,x.coords.lat,x.coords.lng);if(d>maxD){maxD=d;idxDest=i;}}});
+  const destItem=conLoc[idxDest];
+  const restItems=conLoc.filter((_,i)=>i!==idxDest);
+  const destination=destItem.loc;
+  const waypoints=restItems.map(x=>({location:x.loc,stopover:true}));
 
   if(st){st.textContent='🗺️ Calculando ruta más corta...';st.style.background='#1a2c40';st.style.color='var(--gold)';}
 
@@ -951,12 +960,12 @@ function mostrarRutaViaje(id){
       if(st){st.textContent=`✓ ${km} km de ida · ${tiempoStr}`;st.style.background='#0d2e18';st.style.color='var(--green)';}
 
       const orden=res.routes[0].waypoint_order;
-      let paradasOrden=paradas;
+      let paradasOrden;
       if(orden&&orden.length){
-        const intermedias=conLoc.slice(0,conLoc.length-1).map(x=>x.parada);
-        const ultima=conLoc[conLoc.length-1].parada;
-        paradasOrden=orden.map(i=>intermedias[i]);
-        paradasOrden.push(ultima);
+        paradasOrden=orden.map(i=>restItems[i].parada);
+        paradasOrden.push(destItem.parada);
+      } else {
+        paradasOrden=[...restItems.map(x=>x.parada),destItem.parada];
       }
       sb.from('viajes').update({km_real:km,paradas_snap:paradasOrden}).eq('id',id).then(()=>{
         const vj2=viajesData.find(v=>v.id===id);
@@ -1007,11 +1016,18 @@ function limpiarSim(){
   const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';
 }
 
+// ── SIMULAR RUTA (destino = parada más lejana, resto optimizado) ──
 function calcularRutaSim(){
   if(!simMap||!simDirRenderer||!simParadas.length)return;
   simDirRenderer.setDirections({routes:[]});
-  const destination={lat:simParadas[simParadas.length-1].lat,lng:simParadas[simParadas.length-1].lng};
-  const waypoints=simParadas.slice(0,simParadas.length-1).map(p=>({location:{lat:p.lat,lng:p.lng},stopover:true}));
+
+  let idxDest=simParadas.length-1,maxD=-1;
+  simParadas.forEach((p,i)=>{const d=distKm(FAB_LAT,FAB_LNG,p.lat,p.lng);if(d>maxD){maxD=d;idxDest=i;}});
+  const destPar=simParadas[idxDest];
+  const rest=simParadas.filter((_,i)=>i!==idxDest);
+  const destination={lat:destPar.lat,lng:destPar.lng};
+  const waypoints=rest.map(p=>({location:{lat:p.lat,lng:p.lng},stopover:true}));
+
   new google.maps.DirectionsService().route({
     origin:FABRICA,
     destination,
@@ -1031,11 +1047,10 @@ function calcularRutaSim(){
       const si=document.getElementById('sim-ruta-info');
       if(si){si.textContent=`🚛 Ida: ${km} km · ${tiempoStr}`;si.style.display='block';}
       const orden=res.routes[0].waypoint_order;
-      if(orden&&orden.length&&simParadas.length>1){
-        const ultima=simParadas[simParadas.length-1];
-        const reord=orden.map(i=>simParadas.slice(0,-1)[i]);
-        reord.push(ultima);simParadas=reord;renderSimParadas();
-      }
+      let nuevas;
+      if(orden&&orden.length){nuevas=orden.map(i=>rest[i]);nuevas.push(destPar);}
+      else{nuevas=[...rest,destPar];}
+      simParadas=nuevas;renderSimParadas();
     } else {
       toast('No se pudo calcular la ruta: '+status);
     }
