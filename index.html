@@ -371,7 +371,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div class="fg"><label>Localidad</label><input id="f-localidad" placeholder="Ciudad..."/></div>
     </div>
     <div class="fg"><label>Notas</label><textarea id="f-notas" placeholder="Info adicional..." rows="2"></textarea></div>
-    <p class="mmhint">📍 Tocá el mapa para marcar la ubicación exacta</p>
+    <p class="mmhint">📍 Tocá el mapa para marcar la ubicación exacta (importante para las rutas)</p>
     <div id="mmap-div" style="height:180px;border-radius:8px;overflow:hidden;border:1px solid #1e3a55;margin-bottom:4px"></div>
     <div class="mact">
       <button class="bd" onclick="cerrarModal()">Cancelar</button>
@@ -452,7 +452,6 @@ function ir(pg){
   if(pg==='mapa'&&typeof google!=='undefined')initMapaMapa();
   if(pg==='flete'&&typeof google!=='undefined'){
     initMapaFlete();
-    // auto-mostrar ruta del viaje activo si hay uno
     if(viajeAbierto)setTimeout(()=>mostrarRutaViaje(viajeAbierto),400);
   }
   if(pg==='simular'&&typeof google!=='undefined')initMapaSim();
@@ -634,7 +633,6 @@ function toggleViaje(id){
   viajeAbierto=yaAbierto?null:id;
   renderViajes();
   if(!yaAbierto){
-    // Pequeño delay para que el DOM se actualice
     setTimeout(()=>{
       if(mapFlete&&directionsRenderer){
         mostrarRutaViaje(id);
@@ -644,7 +642,6 @@ function toggleViaje(id){
       }
     },100);
   } else {
-    // Limpiar mapa al cerrar
     if(directionsRenderer)directionsRenderer.setDirections({routes:[]});
     const ri=document.getElementById('ruta-info');if(ri)ri.style.display='none';
   }
@@ -904,56 +901,62 @@ function initMapaFlete(){
   directionsRenderer=new google.maps.DirectionsRenderer({map:mapFlete,suppressMarkers:false,polylineOptions:{strokeColor:'#4a90d9',strokeWeight:5}});
 }
 
-// ── MOSTRAR RUTA (SOLO IDA: Fábrica → parada1 → ... → última parada) ──
+// ── MOSTRAR RUTA (SOLO IDA, usa coordenadas o el nombre de la localidad) ──
 function mostrarRutaViaje(id){
   if(!mapFlete||!directionsRenderer)return;
+  // SIEMPRE limpiar la ruta anterior primero
+  directionsRenderer.setDirections({routes:[]});
+  const ri=document.getElementById('ruta-info');if(ri)ri.style.display='none';
+
   const vj=viajesData.find(v=>v.id===id);if(!vj)return;
-  const p=parsePar(vj.paradas_snap).filter(x=>x.lat&&x.lng);
-
-  // Ocultar estado previo
+  const paradas=parsePar(vj.paradas_snap);
   const st=document.getElementById('ruta-status-'+id);
-  const ri=document.getElementById('ruta-info');
 
-  if(!p.length){
-    if(ri){ri.textContent='Sin coordenadas — marcá los clientes en el mapa';ri.style.display='block';}
-    if(st){st.textContent='⚠️ Las paradas necesitan coordenadas';st.style.background='#2a1010';}
+  if(!paradas.length){
+    if(st){st.textContent='Sin paradas — agregá clientes';st.style.background='#2a1010';st.style.color='var(--red)';}
     return;
   }
 
-  // Solo ida: origen = fábrica, destino = última parada, waypoints = intermedias
-  const origin=FABRICA;
-  const destination={lat:parseFloat(p[p.length-1].lat),lng:parseFloat(p[p.length-1].lng)};
-  const waypoints=p.slice(0,p.length-1).map(x=>({
-    location:{lat:parseFloat(x.lat),lng:parseFloat(x.lng)},
-    stopover:true
-  }));
+  // Usa lat/lng si existe, sino la localidad como texto (Google la geocodifica)
+  const aLoc=p=>{
+    if(p.lat&&p.lng)return{lat:parseFloat(p.lat),lng:parseFloat(p.lng)};
+    if(p.localidad)return p.localidad+', Argentina';
+    return null;
+  };
+  const locs=paradas.map(aLoc).filter(Boolean);
+  if(!locs.length){
+    if(st){st.textContent='⚠️ Las paradas no tienen localidad ni coordenadas';st.style.background='#2a1010';st.style.color='var(--red)';}
+    return;
+  }
+
+  const destination=locs[locs.length-1];
+  const waypoints=locs.slice(0,locs.length-1).map(l=>({location:l,stopover:true}));
+
+  if(st){st.textContent='🗺️ Calculando ruta de ida...';st.style.background='#1a2c40';st.style.color='var(--gold)';}
 
   new google.maps.DirectionsService().route({
-    origin,
+    origin:FABRICA,
     destination,
     waypoints,
-    optimizeWaypoints:false,  // respeta el orden de las paradas
+    optimizeWaypoints:false,
     travelMode:google.maps.TravelMode.DRIVING,
     region:'ar'
-  },(res,st2)=>{
-    if(st2==='OK'){
+  },(res,status)=>{
+    if(status==='OK'){
       directionsRenderer.setDirections(res);
       const km=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
       const mins=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.duration.value,0)/60);
-      const hrs=Math.floor(mins/60),minR=mins%60;
-      const tiempoStr=hrs>0?`${hrs}h ${minR}m`:`${minR}m`;
+      const hrs=Math.floor(mins/60),minR=mins%60,tiempoStr=hrs>0?`${hrs}h ${minR}m`:`${minR}m`;
       if(ri){ri.textContent=`🚛 Ida: ${km} km · ${tiempoStr}`;ri.style.display='block';}
       if(st){st.textContent=`✓ ${km} km de ida · ${tiempoStr}`;st.style.background='#0d2e18';st.style.color='var(--green)';}
-      // Guardar km en Supabase
       sb.from('viajes').update({km_real:km}).eq('id',id).then(()=>{
         const vj2=viajesData.find(v=>v.id===id);if(vj2)vj2.km_real=km;
-        // Actualizar km en el header sin re-renderizar todo
-        const meta=document.querySelector(`#vjcard-${id} .viaje-meta`);
-        if(meta){const kmSpan=meta.querySelector('.viaje-km');if(kmSpan)kmSpan.textContent=`📍 ${km} km`;}
+        const kmSpan=document.querySelector(`#vjcard-${id} .viaje-km`);
+        if(kmSpan)kmSpan.textContent=`📍 ${km} km`;
       });
     } else {
-      if(ri){ri.textContent='No se pudo calcular la ruta';ri.style.display='block';}
-      if(st){st.textContent='⚠️ Error calculando ruta';st.style.background='#2a1010';}
+      if(ri){ri.textContent='No se pudo calcular la ruta ('+status+')';ri.style.display='block';}
+      if(st){st.textContent='⚠️ Error: '+status;st.style.background='#2a1010';st.style.color='var(--red)';}
     }
   });
 }
@@ -997,6 +1000,7 @@ function limpiarSim(){
 // Simulación: solo ida, origen fijo en fábrica, destino = última parada, waypoints optimizados
 function calcularRutaSim(){
   if(!simMap||!simDirRenderer||!simParadas.length)return;
+  simDirRenderer.setDirections({routes:[]}); // limpiar primero
   const destination={lat:simParadas[simParadas.length-1].lat,lng:simParadas[simParadas.length-1].lng};
   const waypoints=simParadas.slice(0,simParadas.length-1).map(p=>({location:{lat:p.lat,lng:p.lng},stopover:true}));
   new google.maps.DirectionsService().route({
@@ -1006,25 +1010,23 @@ function calcularRutaSim(){
     optimizeWaypoints:true,
     travelMode:google.maps.TravelMode.DRIVING,
     region:'ar'
-  },(res,st)=>{
-    if(st==='OK'){
+  },(res,status)=>{
+    if(status==='OK'){
       simDirRenderer.setDirections(res);
       const km=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
       const mins=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.duration.value,0)/60);
-      const hrs=Math.floor(mins/60),minR=mins%60;
-      const tiempoStr=hrs>0?`${hrs}h ${minR}m`:`${minR}m`;
+      const hrs=Math.floor(mins/60),minR=mins%60,tiempoStr=hrs>0?`${hrs}h ${minR}m`:`${minR}m`;
       document.getElementById('sim-total').textContent=km;
       const si=document.getElementById('sim-ruta-info');
       if(si){si.textContent=`🚛 Ida: ${km} km · ${tiempoStr}`;si.style.display='block';}
-      // Reordenar lista según orden optimizado
       const orden=res.routes[0].waypoint_order;
       if(orden&&orden.length&&simParadas.length>1){
-        const ultimas=simParadas[simParadas.length-1];
+        const ultima=simParadas[simParadas.length-1];
         const reord=orden.map(i=>simParadas.slice(0,-1)[i]);
-        reord.push(ultimas);simParadas=reord;renderSimParadas();
+        reord.push(ultima);simParadas=reord;renderSimParadas();
       }
     } else {
-      toast('No se pudo calcular la ruta: '+st);
+      toast('No se pudo calcular la ruta: '+status);
     }
   });
 }
