@@ -34,8 +34,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .page.on{display:flex}
 .bnav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--bnav-h);
       background:var(--bg4);border-top:1px solid var(--border);
-      align-items:stretch;z-index:900;
-      padding-bottom:env(safe-area-inset-bottom)}
+      align-items:stretch;z-index:900;padding-bottom:env(safe-area-inset-bottom)}
 .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
            gap:3px;background:none;border:none;color:var(--text3);cursor:pointer;
            font-family:inherit;padding:8px 4px;transition:color .15s;position:relative}
@@ -53,7 +52,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
            padding:13px;cursor:pointer;transition:border-color .15s,transform .1s}
 .stat-card:active{transform:scale(.97)}
 .stat-card:hover{border-color:var(--gold)}
-.stat-val{font-size:1.6rem;font-weight:900;color:var(--gold);line-height:1}
+.stat-val{font-size:1.4rem;font-weight:900;color:var(--gold);line-height:1}
 .stat-label{font-size:.66rem;color:var(--text3);margin-top:4px;line-height:1.3}
 .stat-sub{font-size:.69rem;color:#3a8a5a;margin-top:3px;font-weight:700}
 .inicio-stitle{font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;
@@ -70,8 +69,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .viaje-prox:hover{border-color:var(--gold)}
 .vp-nombre{font-weight:700;font-size:.84rem;color:var(--gold)}
 .vp-meta{font-size:.7rem;color:var(--text3);margin-top:2px}
-.vbar{background:var(--bg2);border-bottom:1px solid var(--border);
-      padding:10px 12px;flex-shrink:0}
+.vbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 12px;flex-shrink:0}
 .vbar-top{display:flex;gap:8px;align-items:center;margin-bottom:8px}
 .search-wrap{flex:1;position:relative}
 .search-wrap input{width:100%;background:var(--bg3);border:1px solid var(--border2);
@@ -98,8 +96,7 @@ table{width:100%;border-collapse:collapse;font-size:.78rem}
 thead{position:sticky;top:0;background:var(--bg2);z-index:10}
 th{padding:9px 10px;text-align:left;color:var(--text3);font-size:.63rem;
    text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);
-   font-weight:700;cursor:pointer;user-select:none;white-space:nowrap}
-th:hover{color:var(--text)}
+   font-weight:700;white-space:nowrap}
 td{padding:9px 10px;border-bottom:1px solid #1a2a3a;vertical-align:middle}
 tr:hover td{background:var(--bg3)}
 .etag{display:inline-flex;align-items:center;padding:3px 8px;border-radius:12px;
@@ -109,8 +106,6 @@ tr:hover td{background:var(--bg3)}
 .e2{background:#2a1a40;color:var(--purple)}
 .e3{background:#0d2e4a;color:var(--blue)}
 .e4{background:#1a3a1a;color:#40df40}
-.ptag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.63rem;font-weight:700}
-.pa{background:#0d2e4a;color:var(--blue)}.pc-tag{background:#3a2800;color:var(--yellow)}
 .act-btns{display:flex;gap:3px}
 .ab{background:none;border:none;padding:5px 6px;border-radius:5px;cursor:pointer;
     font-size:.78rem;color:var(--text3);transition:all .15s}
@@ -119,10 +114,10 @@ tr:hover td{background:var(--bg3)}
 .empty-state{text-align:center;padding:50px 20px;color:var(--text3)}
 .empty-icon{font-size:2.5rem;margin-bottom:10px;opacity:.5}
 .empty-msg{font-size:.84rem;margin-bottom:4px}
-.empty-sub{font-size:.72rem;color:var(--text3)}
+.empty-sub{font-size:.72rem}
 .vcards-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px}
 .vcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
-       margin-bottom:7px;overflow:hidden;transition:border-color .15s}
+       margin-bottom:7px;overflow:hidden}
 .vcard-header{padding:10px 12px;display:flex;align-items:flex-start;gap:8px}
 .vcard-main{flex:1;min-width:0}
 .vcard-name{font-weight:800;font-size:.88rem;margin-bottom:2px}
@@ -161,18 +156,19 @@ tr:hover td{background:var(--bg3)}
 .sim-panel{width:300px;min-width:260px;background:var(--bg);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
 .sim-header{padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
 .sim-title{font-size:.63rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin-bottom:7px}
-.sim-input{width:100%;background:var(--bg3);border:1px solid #1e3a55;color:var(--text);border-radius:7px;padding:8px 11px;font-size:.82rem;font-family:inherit}
-.sim-body{flex:1;overflow-y:auto;padding:7px}
+.sim-input-el{width:100%;background:var(--bg3);border:1px solid #1e3a55;color:var(--text);border-radius:7px;padding:8px 11px;font-size:.82rem;font-family:inherit}
+.sim-body-el{flex:1;overflow-y:auto;padding:7px}
 .sim-footer{padding:10px 12px;border-top:1px solid var(--border);background:var(--bg4);flex-shrink:0}
-.sim-total{font-size:1.4rem;font-weight:900;color:var(--gold);line-height:1}
+.sim-total-el{font-size:1.4rem;font-weight:900;color:var(--gold);line-height:1}
 .sim-label{font-size:.65rem;color:var(--text3);margin-bottom:8px}
 .cli-wrap{display:flex;flex:1;overflow:hidden}
 .cli-list{width:240px;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0}
-.cli-item{padding:10px 13px;border-bottom:1px solid #1a2a3a;cursor:pointer}
+.cli-item{padding:10px 13px;border-bottom:1px solid #1a2a3a;cursor:pointer;transition:background .12s}
+.cli-item:hover,.cli-item.sel{background:var(--bg3)}
 .cli-name{font-weight:700;font-size:.82rem}
 .cli-tel{font-size:.7rem;color:var(--blue);margin-top:2px}
 .cli-cnt{font-size:.66rem;color:var(--text3);margin-top:1px}
-.cli-detail{flex:1;overflow-y:auto;padding:16px}
+.cli-detail-wrap{flex:1;overflow-y:auto;padding:16px}
 .rent-card{background:var(--bg3);border:1px solid #1e3a55;border-radius:10px;padding:14px;margin-bottom:14px}
 .rent-title{font-size:.67rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:10px}
 .rent-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a2a3a;font-size:.78rem}
@@ -187,8 +183,9 @@ tr:hover td{background:var(--bg3)}
 .fg label{display:block;font-size:.63rem;color:var(--text2);margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 .fg input,.fg select,.fg textarea{width:100%;background:var(--bg3);border:1px solid #1e3a55;
   color:var(--text);border-radius:7px;padding:8px 11px;font-size:.83rem;font-family:inherit}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--gold)}
 .frow{display:flex;gap:8px}.frow .fg{flex:1}
-.mmap{height:180px;border-radius:8px;overflow:hidden;border:1px solid #1e3a55;margin-bottom:4px;background:var(--bg3);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:.75rem}
+.mmap-container{height:180px;border-radius:8px;overflow:hidden;border:1px solid #1e3a55;margin-bottom:4px}
 .mmhint{font-size:.68rem;color:var(--text3);margin-bottom:8px}
 .mact{display:flex;gap:8px;justify-content:flex-end;margin-top:13px}
 .modal-sm{background:#15202e;border:1px solid var(--gold);border-radius:11px;padding:18px;width:100%;max-width:340px}
@@ -205,10 +202,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:#1e3a55;border-radius:3px}
-.map-placeholder{flex:1;width:100%;background:var(--bg3);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text3)}
-.map-placeholder .map-icon{font-size:3rem;opacity:.4}
-.map-placeholder .map-msg{font-size:.8rem;opacity:.6}
-
+.pac-container{z-index:9999!important}
 @media(max-width:768px){
   .topnav{display:none}
   .bnav{display:flex!important}
@@ -230,10 +224,9 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   .vtable-wrap{display:block}
 }
 .simular-wrap{flex:1;display:flex;overflow:hidden}
-@keyframes pulse{0%,100%{opacity:.4}50%{opacity:.8}}
-.loading-dot{animation:pulse 1.4s ease-in-out infinite}
-.loading-dot:nth-child(2){animation-delay:.2s}
-.loading-dot:nth-child(3){animation-delay:.4s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:20px;height:20px;border:2px solid var(--border2);border-top-color:var(--gold);
+         border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
 </style>
 </head>
 <body>
@@ -276,24 +269,23 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div class="inicio-titulo" id="inicioBienvenida">Remeco Gestión</div>
       <div class="inicio-sub" id="inicioFecha"></div>
     </div>
-    <div class="stats-grid" id="statsGrid"></div>
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card"><div class="spinner"></div></div>
+      <div class="stat-card"><div class="spinner"></div></div>
+      <div class="stat-card"><div class="spinner"></div></div>
+    </div>
     <div style="margin-bottom:20px">
       <div class="inicio-stitle">Pedidos pendientes</div>
-      <div id="pendientesList">
-        <div style="color:var(--text3);font-size:.78rem;padding:8px 0">Conectando con Supabase...</div>
-      </div>
+      <div id="pendientesList"><div class="spinner" style="margin-top:8px"></div></div>
     </div>
     <div>
       <div class="inicio-stitle">Próximos fletes</div>
-      <div id="viajesList">
-        <div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin fletes programados</div>
-      </div>
+      <div id="viajesList"><div class="spinner" style="margin-top:8px"></div></div>
     </div>
     <button class="bg" onclick="abrirNueva()"
       style="position:fixed;bottom:calc(var(--bnav-h) + 14px);right:16px;
              border-radius:50px;padding:12px 20px;font-size:.82rem;
-             box-shadow:0 4px 20px rgba(201,168,64,.35);z-index:800;
-             display:none" id="fabBtn">
+             box-shadow:0 4px 20px rgba(201,168,64,.35);z-index:800;display:none" id="fabBtn">
       + Nueva
     </button>
   </div>
@@ -321,7 +313,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     </div>
     <div class="vbar-meta">
       <span class="vbar-count" id="vCount">Cargando...</span>
-      <select class="vbar-sort">
+      <select class="vbar-sort" id="sortSelect">
         <option>Más reciente</option>
         <option>Más antiguo</option>
         <option>Mayor precio</option>
@@ -334,55 +326,29 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <table>
       <thead>
         <tr>
-          <th>Cliente</th>
-          <th>Producto</th>
-          <th>Localidad</th>
-          <th>Precio</th>
-          <th>Estado</th>
-          <th>Entrega</th>
-          <th></th>
+          <th>Cliente</th><th>Producto</th><th>Localidad</th>
+          <th>Precio</th><th>Estado</th><th>Entrega</th><th></th>
         </tr>
       </thead>
       <tbody id="vtbody">
-        <tr><td colspan="7">
-          <div class="empty-state">
-            <div class="empty-icon">
-              <span class="loading-dot">●</span>
-              <span class="loading-dot">●</span>
-              <span class="loading-dot">●</span>
-            </div>
-            <div class="empty-msg">Conectando con Supabase...</div>
-            <div class="empty-sub" style="margin-top:6px;font-size:.7rem">Las ventas aparecerán en el archivo real con la API key</div>
-          </div>
-        </td></tr>
+        <tr><td colspan="7"><div class="empty-state"><div class="spinner"></div></div></td></tr>
       </tbody>
     </table>
   </div>
   <div class="vcards-wrap" id="vcards">
-    <div class="empty-state" style="margin-top:40px">
-      <div class="empty-icon">📋</div>
-      <div class="empty-msg">Conectando...</div>
-    </div>
+    <div class="empty-state"><div class="spinner"></div></div>
   </div>
 </div>
 
 <!-- MAPA -->
 <div class="page" id="page-mapa">
-  <div class="map-placeholder">
-    <div class="map-icon">🗺️</div>
-    <div class="map-msg">Google Maps carga con la API key</div>
-    <div style="font-size:.7rem;opacity:.4;margin-top:4px">Mapa satelital · Marcadores por estado · Info al tocar</div>
-  </div>
+  <div id="map-mapa" style="flex:1;width:100%"></div>
 </div>
 
 <!-- FLETE -->
 <div class="page" id="page-flete">
   <div class="flete-wrap">
-    <div class="map-placeholder">
-      <div class="map-icon">🚛</div>
-      <div class="map-msg">Mapa de ruta con Google Maps</div>
-      <div style="font-size:.7rem;opacity:.4;margin-top:4px">Ruta optimizada · Distancias reales · Exportar WhatsApp</div>
-    </div>
+    <div id="map-flete" style="flex:1"></div>
     <div class="flete-panel">
       <div class="fp-header">
         <span class="fp-title">Viajes programados</span>
@@ -390,46 +356,11 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       </div>
       <div class="fp-body" id="fpBody">
         <div style="text-align:center;padding:28px;color:var(--text3);font-size:.78rem">
-          Creá un viaje y agregá los pedidos
-        </div>
-        <div class="viaje-card">
-          <div class="viaje-header">
-            <button class="vbtn" style="font-size:.8rem;padding:3px 6px">▼</button>
-            <div class="viaje-info">
-              <div class="viaje-nombre">🚛 Rosario 20 jun</div>
-              <div class="viaje-meta">
-                <span>3 paradas</span>
-                <span class="viaje-km">847 km est.</span>
-                <span>📅 20 jun</span>
-              </div>
-            </div>
-            <button class="vbtn del">✕</button>
-          </div>
-          <div class="viaje-body">
-            <div class="vp-item">
-              <div class="vp-num">1</div>
-              <div class="vp-info"><div class="vp-cli">Juan García</div><div class="vp-sub">Aéreo · 16TN · Rosario</div></div>
-              <button class="vp-del">✕</button>
-            </div>
-            <div class="vp-item">
-              <div class="vp-num">2</div>
-              <div class="vp-info"><div class="vp-cli">Estancia Los Pinos</div><div class="vp-sub">Autocons. · 12TN · Venado Tuerto</div></div>
-              <button class="vp-del">✕</button>
-            </div>
-            <div class="vp-item">
-              <div class="vp-num">3</div>
-              <div class="vp-info"><div class="vp-cli">Agro Del Valle</div><div class="vp-sub">Aéreo · 22TN · Rafaela</div></div>
-              <button class="vp-del">✕</button>
-            </div>
-            <div style="display:flex;gap:5px;margin-top:8px">
-              <button class="bv" style="flex:1;font-size:.72rem;padding:6px">📋 Exportar</button>
-              <button class="bd" style="font-size:.72rem;padding:6px">⚡ Optimizar</button>
-            </div>
-          </div>
+          <div class="spinner" style="margin-bottom:10px"></div>Cargando viajes...
         </div>
       </div>
       <div style="padding:8px 12px;border-top:1px solid var(--border);background:var(--bg4)">
-        <button class="bg" style="width:100%;padding:9px">📋 Exportar para WhatsApp</button>
+        <button class="bg" style="width:100%;padding:9px" onclick="exportarTodos()">📋 Exportar para WhatsApp</button>
       </div>
     </div>
   </div>
@@ -438,44 +369,23 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 <!-- SIMULAR -->
 <div class="page" id="page-simular">
   <div class="simular-wrap">
-    <div class="map-placeholder">
-      <div class="map-icon">🧮</div>
-      <div class="map-msg">Simulador de ruta interactivo</div>
-      <div style="font-size:.7rem;opacity:.4;margin-top:4px">Agregá paradas · Ver ruta real · Km totales</div>
-    </div>
+    <div id="map-sim" style="flex:1"></div>
     <div class="sim-panel">
       <div class="sim-header">
         <div class="sim-title">🧮 Simulador de flete</div>
-        <input class="sim-input" placeholder="Escribí una localidad..."/>
+        <input class="sim-input-el" id="sim-input" placeholder="Escribí una localidad..."/>
       </div>
-      <div class="sim-body">
-        <div class="sim-parada" style="background:var(--bg3);border:1px solid #1e3a55;border-radius:7px;padding:7px 10px;margin-bottom:4px;display:flex;align-items:center;gap:7px">
-          <div class="vp-num">1</div>
-          <div class="sim-info" style="flex:1;min-width:0">
-            <div class="sim-lugar" style="font-weight:700;font-size:.78rem">Rosario</div>
-            <div class="sim-km" style="font-size:.66rem;color:#3a8a5a;margin-top:1px">+412 km desde fábrica</div>
-          </div>
-          <button class="vp-del">✕</button>
-        </div>
-        <div class="sim-parada" style="background:var(--bg3);border:1px solid #1e3a55;border-radius:7px;padding:7px 10px;display:flex;align-items:center;gap:7px">
-          <div class="vp-num">2</div>
-          <div class="sim-info" style="flex:1;min-width:0">
-            <div class="sim-lugar" style="font-weight:700;font-size:.78rem">Venado Tuerto</div>
-            <div class="sim-km" style="font-size:.66rem;color:#3a8a5a;margin-top:1px">+105 km desde Rosario</div>
-          </div>
-          <button class="vp-del">✕</button>
+      <div class="sim-body-el" id="sim-body">
+        <div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">
+          Escribí una localidad arriba para agregar paradas
         </div>
       </div>
       <div class="sim-footer">
-        <div class="sim-total">517</div>
+        <div class="sim-total-el" id="sim-total">0</div>
         <div class="sim-label">km del recorrido</div>
         <div style="display:flex;gap:7px">
-          <button class="bv" style="flex:1;padding:8px">🗺️ Ver ruta real</button>
-          <button class="bd" style="padding:8px">Limpiar</button>
-        </div>
-        <div style="margin-top:9px;padding:11px;background:var(--bg3);border-radius:8px;border:1px solid var(--border2);text-align:center">
-          <div style="font-size:.66rem;color:var(--text3);margin-bottom:4px">PRÓXIMAMENTE</div>
-          <button class="bsim" style="width:100%;padding:8px" disabled>💰 Calcular costo por cliente</button>
+          <button class="bv" style="flex:1;padding:8px" onclick="calcularRutaSim()">🗺️ Ver ruta real</button>
+          <button class="bd" style="padding:8px" onclick="limpiarSim()">Limpiar</button>
         </div>
       </div>
     </div>
@@ -486,51 +396,11 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 <div class="page" id="page-clientes">
   <div class="cli-wrap">
     <div class="cli-list" id="cliList">
-      <div class="cli-item sel">
-        <div class="cli-name">Estancia Los Pinos</div>
-        <div class="cli-tel">📞 3584123456</div>
-        <div class="cli-cnt">3 ventas</div>
-      </div>
-      <div class="cli-item">
-        <div class="cli-name">Agro Del Valle</div>
-        <div class="cli-cnt">2 ventas</div>
-      </div>
-      <div class="cli-item">
-        <div class="cli-name">Juan García</div>
-        <div class="cli-tel">📞 3415987654</div>
-        <div class="cli-cnt">1 venta</div>
-      </div>
-      <div class="cli-item">
-        <div class="cli-name">Lácteos Lugo</div>
-        <div class="cli-cnt">1 venta</div>
-      </div>
+      <div class="empty-state" style="padding:20px"><div class="spinner"></div></div>
     </div>
-    <div class="cli-detail">
-      <div style="font-size:1.15rem;font-weight:900;color:var(--gold)">Estancia Los Pinos</div>
-      <div style="margin-top:5px;margin-bottom:12px">
-        <div style="color:var(--blue);font-size:.83rem">📞 3584123456</div>
-        <div style="color:var(--text2);font-size:.76rem;margin-top:3px">CUIT: 20-12345678-9</div>
-      </div>
-      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-        <div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:9px 13px;min-width:80px">
-          <div style="font-size:1.1rem;font-weight:900;color:var(--gold)">3</div>
-          <div style="font-size:.65rem;color:var(--text3);margin-top:1px">ventas</div>
-        </div>
-        <div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:9px 13px;min-width:80px">
-          <div style="font-size:1.1rem;font-weight:900;color:var(--gold)">2</div>
-          <div style="font-size:.65rem;color:var(--text3);margin-top:1px">entregadas</div>
-        </div>
-        <div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:9px 13px;min-width:80px">
-          <div style="font-size:.95rem;font-weight:900;color:var(--gold)">$18.5M</div>
-          <div style="font-size:.65rem;color:var(--text3);margin-top:1px">facturado</div>
-        </div>
-      </div>
-      <div class="rent-card">
-        <div class="rent-title">📊 Rentabilidad</div>
-        <div class="rent-row"><span>Precio de venta</span><span style="color:var(--text)">$18.500.000</span></div>
-        <div class="rent-row"><span>Costo producto</span><span style="color:var(--red)">- $12.000.000</span></div>
-        <div class="rent-row"><span>Costo flete</span><span style="color:var(--red)">- $1.800.000</span></div>
-        <div class="rent-row"><span>Ganancia neta</span><span style="color:var(--green)">$4.700.000 (25.4%)</span></div>
+    <div class="cli-detail-wrap" id="cli-detail">
+      <div style="color:var(--text3);font-size:.82rem;padding-top:40px;text-align:center">
+        Seleccioná un cliente
       </div>
     </div>
   </div>
@@ -541,20 +411,20 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div class="modal">
     <h2 id="modalTitle">Nueva venta</h2>
     <div class="frow">
-      <div class="fg"><label>Cliente *</label><input placeholder="Nombre completo"/></div>
-      <div class="fg"><label>Teléfono</label><input placeholder="3584123456" type="tel"/></div>
+      <div class="fg"><label>Cliente *</label><input id="f-cliente" placeholder="Nombre completo"/></div>
+      <div class="fg"><label>Teléfono</label><input id="f-telefono" placeholder="3584123456" type="tel"/></div>
     </div>
     <div class="frow">
-      <div class="fg"><label>CUIT</label><input placeholder="20-12345678-9"/></div>
-      <div class="fg"><label>Zona de flete</label><input placeholder="Ej: Rosario"/></div>
+      <div class="fg"><label>CUIT</label><input id="f-cuit" placeholder="20-12345678-9"/></div>
+      <div class="fg"><label>Zona de flete</label><input id="f-zona" placeholder="Ej: Rosario"/></div>
     </div>
     <div class="frow">
       <div class="fg"><label>Producto *</label>
-        <select><option>Silo Aéreo</option><option>Autoconsumo</option></select>
+        <select id="f-producto"><option>Silo Aéreo</option><option>Autoconsumo</option></select>
       </div>
-      <div class="fg"><label>Tonelaje</label>
-        <select>
-          <option>-- Seleccioná --</option>
+      <div class="fg"><label>Modelo / Tonelaje</label>
+        <select id="f-modelo">
+          <option value="">-- Seleccioná --</option>
           <option>6TN</option><option>10TN</option><option>16TN</option>
           <option>22TN</option><option>28TN</option><option>40TN</option>
           <option>50TN</option><option>60TN</option><option>100TN</option>
@@ -562,28 +432,28 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       </div>
     </div>
     <div class="frow">
-      <div class="fg"><label>Precio venta (ARS)</label><input type="number" placeholder="0"/></div>
-      <div class="fg"><label>Costo producto (ARS)</label><input type="number" placeholder="0"/></div>
+      <div class="fg"><label>Precio venta (ARS)</label><input id="f-precio" type="number" placeholder="0"/></div>
+      <div class="fg"><label>Costo producto (ARS)</label><input id="f-costo-producto" type="number" placeholder="0"/></div>
     </div>
     <div class="frow">
-      <div class="fg"><label>Costo flete (ARS)</label><input type="number" placeholder="0"/></div>
+      <div class="fg"><label>Costo flete (ARS)</label><input id="f-costo-flete" type="number" placeholder="0"/></div>
       <div class="fg"><label>Estado</label>
-        <select>
+        <select id="f-estado">
           <option>Confirmado</option><option>En producción</option>
           <option>Listo para entregar</option><option>En camino</option><option>Entregado</option>
         </select>
       </div>
     </div>
     <div class="frow">
-      <div class="fg"><label>Fecha de entrega</label><input type="date"/></div>
-      <div class="fg"><label>Localidad</label><input placeholder="Escribí la ciudad..."/></div>
+      <div class="fg"><label>Fecha de entrega</label><input id="f-fecha-entrega" type="date"/></div>
+      <div class="fg"><label>Localidad</label><input id="f-localidad" placeholder="Escribí la ciudad..."/></div>
     </div>
-    <div class="fg"><label>Notas</label><textarea placeholder="Info adicional..."></textarea></div>
+    <div class="fg"><label>Notas</label><textarea id="f-notas" placeholder="Info adicional..." rows="2"></textarea></div>
     <p class="mmhint">📍 Tocá el mapa para marcar la ubicación exacta</p>
-    <div class="mmap">🗺️ Mapa interactivo (carga con Google Maps API)</div>
+    <div class="mmap-container" id="mmap-div"></div>
     <div class="mact">
       <button class="bd" onclick="cerrarModal()">Cancelar</button>
-      <button class="bg">Guardar</button>
+      <button class="bg" onclick="guardarVenta()">Guardar</button>
     </div>
   </div>
 </div>
@@ -592,73 +462,389 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 <div class="overlay" id="overlayViaje">
   <div class="modal-sm">
     <h2 style="font-size:.88rem;color:var(--gold);margin-bottom:12px">Nuevo viaje</h2>
-    <div class="fg"><label>Nombre del viaje</label><input placeholder="Ej: Rosario 20 jun"/></div>
-    <div class="fg"><label>Fecha de salida</label><input type="date"/></div>
+    <div class="fg"><label>Nombre del viaje</label><input id="fv-nombre" placeholder="Ej: Rosario 20 jun"/></div>
+    <div class="fg"><label>Fecha de salida</label><input id="fv-fecha" type="date"/></div>
     <div class="mact">
       <button class="bd" onclick="cerrarNuevoViaje()">Cancelar</button>
-      <button class="bg">Crear</button>
+      <button class="bg" onclick="guardarNuevoViaje()">Crear</button>
     </div>
   </div>
 </div>
 
 <div id="toast"></div>
 
-<script>
-const BNAV_MAP={inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes'};
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
-function ir(pg){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
-  document.querySelectorAll('.bnav-item').forEach(t=>t.classList.remove('on'));
-  document.getElementById('page-'+pg).classList.add('on');
-  document.querySelectorAll('.ntab').forEach(t=>{
-    const txt=t.textContent.toLowerCase();
-    if((pg==='inicio'&&txt.includes('inicio'))||(pg==='ventas'&&txt.includes('venta'))||
-       (pg==='mapa'&&txt.includes('mapa'))||(pg==='flete'&&txt.includes('flete'))||
-       (pg==='simular'&&txt.includes('simul'))||(pg==='clientes'&&txt.includes('cliente')))
+<script>
+// ── CONFIG ──────────────────────────────────────────────────
+const SUPA_URL = 'https://ahympdvzytatwlgzvyoh.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ── STATE ────────────────────────────────────────────────────
+let ventas = [], viajesData = [];
+let editId = null;
+let modalLat = null, modalLng = null;
+let filterEstado = '', filterProd = '';
+let mapMapa = null, mapFlete = null, mapModal = null, simMap = null;
+let markersArr = [], modalMarker = null;
+let directionsRenderer = null, simDirRenderer = null;
+let simParadas = [];
+
+// ── NAV ──────────────────────────────────────────────────────
+const BNAV_MAP = {inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes'};
+function ir(pg) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.ntab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.bnav-item').forEach(t => t.classList.remove('on'));
+  document.getElementById('page-' + pg).classList.add('on');
+  document.querySelectorAll('.ntab').forEach(t => {
+    const tx = t.textContent.toLowerCase();
+    if ((pg==='inicio'&&tx.includes('inicio'))||(pg==='ventas'&&tx.includes('venta'))||
+        (pg==='mapa'&&tx.includes('mapa'))||(pg==='flete'&&tx.includes('flete'))||
+        (pg==='simular'&&tx.includes('simul'))||(pg==='clientes'&&tx.includes('cliente')))
       t.classList.add('on');
   });
-  const bid=BNAV_MAP[pg];
-  if(bid)document.getElementById(bid)?.classList.add('on');
-  const fab=document.getElementById('fabBtn');
-  if(fab)fab.style.display=(pg==='inicio'&&window.innerWidth<=768)?'block':'none';
+  const bid = BNAV_MAP[pg];
+  if (bid) document.getElementById(bid)?.classList.add('on');
+  const fab = document.getElementById('fabBtn');
+  if (fab) fab.style.display = (pg==='inicio' && window.innerWidth<=768) ? 'block' : 'none';
+  if (pg==='mapa' && typeof google!=='undefined') initMapaMapa();
+  if (pg==='flete' && typeof google!=='undefined') initMapaFlete();
+  if (pg==='simular' && typeof google!=='undefined') initMapaSim();
 }
 
-function abrirNueva(){document.getElementById('overlay').classList.add('on')}
-function cerrarModal(){document.getElementById('overlay').classList.remove('on')}
-function abrirNuevoViaje(){document.getElementById('overlayViaje').classList.add('on')}
-function cerrarNuevoViaje(){document.getElementById('overlayViaje').classList.remove('on')}
+// ── HELPERS ──────────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.opacity = '1';
+  setTimeout(() => t.style.opacity = '0', 2500);
+}
+function formatNum(n) {
+  n = parseFloat(n) || 0;
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return Math.round(n/1000) + 'K';
+  return Math.round(n).toLocaleString('es-AR');
+}
+function formatFecha(d) {
+  if (!d) return '—';
+  const [y,m,dd] = d.split('-');
+  const M = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${parseInt(dd)} ${M[parseInt(m)-1]} ${y}`;
+}
+function estadoTag(e) {
+  const map = {'Confirmado':['e0','✅'],'En producción':['e1','⚙️'],
+    'Listo para entregar':['e2','📦'],'En camino':['e3','🚛'],'Entregado':['e4','✔']};
+  const [cls,icon] = map[e] || ['e0','●'];
+  return `<span class="etag ${cls}">${icon} ${e||'—'}</span>`;
+}
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje()}});
-document.querySelectorAll('.overlay').forEach(ov=>{
-  ov.addEventListener('click',e=>{
-    if(e.target===ov){cerrarModal();cerrarNuevoViaje();}
+// ── SUPABASE ─────────────────────────────────────────────────
+async function cargarDatos() {
+  const { data: v, error: ve } = await sb.from('ventas').select('*').order('created_at', {ascending:false});
+  if (ve) {
+    toast('⚠️ Error Supabase: ' + ve.message);
+    console.error(ve);
+  } else {
+    ventas = v || [];
+    renderVentas();
+    renderStats();
+    renderPendientes();
+    renderClientes();
+  }
+  const { data: vj, error: vje } = await sb.from('viajes').select('*').order('fecha');
+  if (!vje) {
+    viajesData = vj || [];
+    renderViajes();
+    renderProximosFletes();
+  }
+  if (mapMapa) actualizarMarkersMapa();
+}
+
+// ── STATS ────────────────────────────────────────────────────
+function renderStats() {
+  const total = ventas.length;
+  const pend = ventas.filter(v => v.estado !== 'Entregado').length;
+  const ahora = new Date();
+  const esteM = ventas.filter(v => {
+    const d = new Date(v.created_at);
+    return d.getMonth()===ahora.getMonth() && d.getFullYear()===ahora.getFullYear();
   });
-});
+  const facturado = esteM.reduce((s,v) => s + (parseFloat(v.precio)||0), 0);
+  const clientes = new Set(ventas.map(v => v.cliente).filter(Boolean)).size;
+  const vActivos = viajesData.length;
+  const ganancia = ventas.reduce((s,v) => s+(parseFloat(v.precio)||0)-(parseFloat(v.costo_producto)||0)-(parseFloat(v.costo_flete)||0), 0);
+  const rentPct = facturado > 0 ? ((ganancia/facturado)*100).toFixed(1) : '—';
+  document.getElementById('statsGrid').innerHTML = [
+    {val:total, label:'Ventas totales'},
+    {val:pend, label:'Pendientes', sub: pend ? pend+' en curso' : ''},
+    {val:'$'+formatNum(facturado), label:'Facturado mes'},
+    {val:clientes, label:'Clientes activos'},
+    {val:vActivos, label:'Viajes activos'},
+    {val:rentPct+'%', label:'Rentabilidad mes'},
+  ].map(s=>`<div class="stat-card">
+    <div class="stat-val">${s.val}</div>
+    <div class="stat-label">${s.label}</div>
+    ${s.sub?`<div class="stat-sub">${s.sub}</div>`:''}
+  </div>`).join('');
+}
 
-const ahora=new Date();
-const h=ahora.getHours();
-document.getElementById('inicioBienvenida').textContent=
-  (h<12?'Buenos días':h<18?'Buenas tardes':'Buenas noches')+' — Remeco';
-document.getElementById('inicioFecha').textContent=
-  ahora.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+function renderPendientes() {
+  const pend = ventas.filter(v => v.estado !== 'Entregado').slice(0, 6);
+  const el = document.getElementById('pendientesList');
+  if (!pend.length) { el.innerHTML='<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin pedidos pendientes</div>'; return; }
+  el.innerHTML = pend.map(v=>`
+    <div class="pendiente-card" onclick="abrirEditar('${v.id}')">
+      <div class="pc-info">
+        <div class="pc-cli">${v.cliente||'—'}</div>
+        <div class="pc-sub">${v.producto||''} ${v.modelo||''} · ${v.localidad||''}</div>
+      </div>
+      <div>${estadoTag(v.estado)}</div>
+    </div>`).join('');
+}
 
-document.getElementById('statsGrid').innerHTML=[
-  {val:'—',label:'Ventas totales',sub:'Conectando...'},
-  {val:'—',label:'Pendientes',sub:''},
-  {val:'—',label:'Facturado mes'},
-  {val:'—',label:'Clientes activos'},
-  {val:'—',label:'Viajes activos'},
-  {val:'—',label:'Rentabilidad mes'},
-].map(s=>`<div class="stat-card">
-  <div class="stat-val">${s.val}</div>
-  <div class="stat-label">${s.label}</div>
-  ${s.sub?`<div class="stat-sub">${s.sub}</div>`:''}
-</div>`).join('');
+function renderProximosFletes() {
+  const hoy = new Date().toISOString().split('T')[0];
+  const prox = viajesData.filter(v => v.fecha >= hoy).slice(0,3);
+  const el = document.getElementById('viajesList');
+  if (!prox.length) { el.innerHTML='<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin fletes programados</div>'; return; }
+  el.innerHTML = prox.map(v=>`
+    <div class="viaje-prox" onclick="ir('flete')">
+      <div class="vp-nombre">🚛 ${v.nombre}</div>
+      <div class="vp-meta">📅 ${formatFecha(v.fecha)}${v.km_real?' · '+v.km_real+' km':''}</div>
+    </div>`).join('');
+}
 
-if(window.innerWidth<=768)document.getElementById('fabBtn').style.display='block';
+// ── VENTAS ───────────────────────────────────────────────────
+function renderVentas() {
+  let lista = [...ventas];
+  const q = (document.getElementById('buscar').value||'').toLowerCase();
+  if (filterEstado) lista = lista.filter(v => v.estado === filterEstado);
+  if (filterProd==='a') lista = lista.filter(v => /aéreo|aereo|silo/i.test(v.producto||''));
+  if (filterProd==='c') lista = lista.filter(v => /autoconsumo/i.test(v.producto||''));
+  if (q) lista = lista.filter(v => (v.cliente||'').toLowerCase().includes(q) || (v.localidad||'').toLowerCase().includes(q) || (v.producto||'').toLowerCase().includes(q));
+  const sort = document.getElementById('sortSelect').value;
+  if (sort==='Más antiguo') lista.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+  else if (sort==='Mayor precio') lista.sort((a,b)=>(b.precio||0)-(a.precio||0));
+  else if (sort==='Menor precio') lista.sort((a,b)=>(a.precio||0)-(b.precio||0));
+  else if (sort==='Cliente A–Z') lista.sort((a,b)=>(a.cliente||'').localeCompare(b.cliente||''));
+  else lista.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  document.getElementById('vCount').textContent = `${lista.length} venta${lista.length!==1?'s':''}`;
+  const empty = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">Sin resultados</div></div>`;
+  document.getElementById('vtbody').innerHTML = lista.length ? lista.map(v=>`
+    <tr onclick="abrirEditar('${v.id}')" style="cursor:pointer">
+      <td><strong>${v.cliente||'—'}</strong><br><span style="font-size:.68rem;color:var(--text3)">${v.cuit||''}</span></td>
+      <td>${v.producto||'—'} <span style="font-size:.68rem;color:var(--text3)">${v.modelo||''}</span></td>
+      <td>${v.localidad||'—'}</td>
+      <td style="color:var(--gold);font-weight:700">${v.precio?'$'+formatNum(v.precio):'—'}</td>
+      <td>${estadoTag(v.estado)}</td>
+      <td style="font-size:.72rem">${formatFecha(v.fecha_entrega)}</td>
+      <td><div class="act-btns">
+        <button class="ab" onclick="event.stopPropagation();abrirEditar('${v.id}')">✏️</button>
+        <button class="ab del" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button>
+      </div></td>
+    </tr>`).join('') : `<tr><td colspan="7">${empty}</td></tr>`;
+  document.getElementById('vcards').innerHTML = lista.length ? lista.map(v=>`
+    <div class="vcard" onclick="abrirEditar('${v.id}')">
+      <div class="vcard-header">
+        <div class="vcard-main">
+          <div class="vcard-name">${v.cliente||'—'}</div>
+          <div class="vcard-prod">${estadoTag(v.estado)}</div>
+          <div class="vcard-loc">📍 ${v.localidad||'—'} · ${v.producto||''} ${v.modelo||''}</div>
+        </div>
+        <div class="vcard-right"><div class="vcard-price">${v.precio?'$'+formatNum(v.precio):'—'}</div></div>
+      </div>
+      <div class="vcard-footer">
+        <div class="vcard-date">${v.fecha_entrega?'📅 '+formatFecha(v.fecha_entrega):'Sin fecha'}</div>
+        <div class="vcard-actions">
+          <button class="vcard-btn" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button>
+        </div>
+      </div>
+    </div>`).join('') : empty;
+}
 
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',2500)}
-</script>
-</body>
-</html>
+// ── VIAJES ───────────────────────────────────────────────────
+function renderViajes() {
+  const el = document.getElementById('fpBody');
+  if (!viajesData.length) { el.innerHTML='<div style="text-align:center;padding:28px;color:var(--text3);font-size:.78rem">Creá un viaje y agregá los pedidos</div>'; return; }
+  el.innerHTML = viajesData.map(vj => {
+    const paradas = parsePar(vj.paradas_snap);
+    return `<div class="viaje-card">
+      <div class="viaje-header">
+        <button class="vbtn" onclick="toggleViaje('${vj.id}')">▼</button>
+        <div class="viaje-info">
+          <div class="viaje-nombre">🚛 ${vj.nombre}</div>
+          <div class="viaje-meta">
+            <span>${paradas.length} paradas</span>
+            ${vj.km_real?`<span class="viaje-km">${vj.km_real} km</span>`:''}
+            <span>📅 ${formatFecha(vj.fecha)}</span>
+          </div>
+        </div>
+        <button class="vbtn del" onclick="eliminarViaje('${vj.id}')">✕</button>
+      </div>
+      <div class="viaje-body" id="vbody-${vj.id}">
+        ${paradas.map((p,i)=>`<div class="vp-item">
+          <div class="vp-num">${i+1}</div>
+          <div class="vp-info">
+            <div class="vp-cli">${p.cliente||p.nombre||'—'}</div>
+            <div class="vp-sub">${p.producto||''} ${p.modelo||''} · ${p.localidad||''}</div>
+          </div>
+        </div>`).join('')}
+        <div style="display:flex;gap:5px;margin-top:8px">
+          <button class="bv" style="flex:1;font-size:.72rem;padding:6px" onclick="exportarViaje('${vj.id}')">📋 Exportar</button>
+          <button class="bd" style="font-size:.72rem;padding:6px" onclick="verRutaViaje('${vj.id}')">🗺️ Ruta</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function parsePar(snap) {
+  if (!snap) return [];
+  try { return Array.isArray(snap) ? snap : JSON.parse(snap); } catch { return []; }
+}
+
+function toggleViaje(id) {
+  const el = document.getElementById('vbody-'+id);
+  if (el) el.style.display = el.style.display==='none' ? '' : 'none';
+}
+
+async function eliminarViaje(id) {
+  if (!confirm('¿Eliminar este viaje?')) return;
+  const {error} = await sb.from('viajes').delete().eq('id', id);
+  if (error) { toast('Error: '+error.message); return; }
+  viajesData = viajesData.filter(v => v.id!==id);
+  renderViajes(); renderProximosFletes();
+  toast('Viaje eliminado');
+}
+
+function exportarViaje(id) {
+  const vj = viajesData.find(v => v.id===id);
+  if (!vj) return;
+  const paradas = parsePar(vj.paradas_snap);
+  let txt = `*🚛 ${vj.nombre}*\n📅 ${formatFecha(vj.fecha)}\n\n`;
+  paradas.forEach((p,i) => { txt += `${i+1}. *${p.cliente||p.nombre||'—'}*\n   ${p.producto||''} ${p.modelo||''} · ${p.localidad||''}\n\n`; });
+  if (vj.km_real) txt += `📍 Total: ${vj.km_real} km`;
+  navigator.clipboard.writeText(txt).then(()=>toast('Copiado para WhatsApp ✓')).catch(()=>toast(txt));
+}
+
+function exportarTodos() {
+  if (!viajesData.length) { toast('Sin viajes para exportar'); return; }
+  exportarViaje(viajesData[0].id);
+}
+
+function verRutaViaje(id) {
+  ir('flete');
+  setTimeout(() => mostrarRutaViaje(id), 600);
+}
+
+// ── GUARDAR VENTA ─────────────────────────────────────────────
+async function guardarVenta() {
+  const data = {
+    cliente: document.getElementById('f-cliente').value.trim(),
+    telefono: document.getElementById('f-telefono').value.trim(),
+    cuit: document.getElementById('f-cuit').value.trim(),
+    zona: document.getElementById('f-zona').value.trim(),
+    producto: document.getElementById('f-producto').value,
+    modelo: document.getElementById('f-modelo').value,
+    precio: parseFloat(document.getElementById('f-precio').value)||null,
+    costo_producto: parseFloat(document.getElementById('f-costo-producto').value)||null,
+    costo_flete: parseFloat(document.getElementById('f-costo-flete').value)||null,
+    estado: document.getElementById('f-estado').value,
+    fecha_entrega: document.getElementById('f-fecha-entrega').value||null,
+    localidad: document.getElementById('f-localidad').value.trim(),
+    notas: document.getElementById('f-notas').value.trim(),
+    lat: modalLat, lng: modalLng,
+  };
+  if (!data.cliente) { toast('El cliente es requerido'); return; }
+  let error;
+  if (editId) {
+    ({error} = await sb.from('ventas').update(data).eq('id', editId));
+  } else {
+    ({error} = await sb.from('ventas').insert([data]));
+  }
+  if (error) { toast('Error: '+error.message); return; }
+  toast(editId ? 'Venta actualizada ✓' : 'Venta guardada ✓');
+  cerrarModal();
+  await cargarDatos();
+}
+
+async function eliminarVenta(id) {
+  if (!confirm('¿Eliminar esta venta?')) return;
+  const {error} = await sb.from('ventas').delete().eq('id', id);
+  if (error) { toast('Error: '+error.message); return; }
+  toast('Venta eliminada');
+  await cargarDatos();
+}
+
+async function guardarNuevoViaje() {
+  const nombre = document.getElementById('fv-nombre').value.trim();
+  const fecha = document.getElementById('fv-fecha').value;
+  if (!nombre) { toast('El nombre es requerido'); return; }
+  const {error} = await sb.from('viajes').insert([{nombre, fecha:fecha||null, pedido_ids:[], paradas_snap:[]}]);
+  if (error) { toast('Error: '+error.message); return; }
+  toast('Viaje creado ✓');
+  cerrarNuevoViaje();
+  const {data} = await sb.from('viajes').select('*').order('fecha');
+  viajesData = data||[];
+  renderViajes(); renderProximosFletes();
+}
+
+// ── MODAL ────────────────────────────────────────────────────
+function abrirNueva() {
+  editId = null; modalLat = null; modalLng = null;
+  document.getElementById('modalTitle').textContent = 'Nueva venta';
+  ['f-cliente','f-telefono','f-cuit','f-zona','f-precio','f-costo-producto','f-costo-flete','f-fecha-entrega','f-localidad','f-notas'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('f-producto').value='Silo Aéreo';
+  document.getElementById('f-modelo').value='';
+  document.getElementById('f-estado').value='Confirmado';
+  document.getElementById('overlay').classList.add('on');
+  setTimeout(()=>{if(mapModal)google.maps.event.trigger(mapModal,'resize');},200);
+}
+
+function abrirEditar(id) {
+  const v = ventas.find(x=>x.id===id);
+  if (!v) return;
+  editId=id; modalLat=v.lat; modalLng=v.lng;
+  document.getElementById('modalTitle').textContent = 'Editar venta';
+  document.getElementById('f-cliente').value=v.cliente||'';
+  document.getElementById('f-telefono').value=v.telefono||'';
+  document.getElementById('f-cuit').value=v.cuit||'';
+  document.getElementById('f-zona').value=v.zona||'';
+  document.getElementById('f-producto').value=v.producto||'Silo Aéreo';
+  document.getElementById('f-modelo').value=v.modelo||'';
+  document.getElementById('f-precio').value=v.precio||'';
+  document.getElementById('f-costo-producto').value=v.costo_producto||'';
+  document.getElementById('f-costo-flete').value=v.costo_flete||'';
+  document.getElementById('f-estado').value=v.estado||'Confirmado';
+  document.getElementById('f-fecha-entrega').value=v.fecha_entrega||'';
+  document.getElementById('f-localidad').value=v.localidad||'';
+  document.getElementById('f-notas').value=v.notas||'';
+  document.getElementById('overlay').classList.add('on');
+  setTimeout(()=>{
+    if(mapModal){
+      google.maps.event.trigger(mapModal,'resize');
+      if(modalLat&&modalLng){
+        const pos={lat:parseFloat(modalLat),lng:parseFloat(modalLng)};
+        mapModal.setCenter(pos); mapModal.setZoom(12);
+        if(modalMarker)modalMarker.setPosition(pos);
+      }
+    }
+  },200);
+}
+
+function cerrarModal(){document.getElementById('overlay').classList.remove('on');editId=null;}
+function abrirNuevoViaje(){document.getElementById('overlayViaje').classList.add('on');}
+function cerrarNuevoViaje(){document.getElementById('overlayViaje').classList.remove('on');}
+
+// ── GOOGLE MAPS ───────────────────────────────────────────────
+function initMaps() {
+  // Modal map
+  const mmEl = document.getElementById('mmap-div');
+  if (mmEl) {
+    mapModal = new google.maps.Map(mmEl, {center:{lat:-34.6,lng:-63},zoom:5,mapTypeId:'hybrid',disableDefaultUI:true,zoomControl:true});
+    modalMarker = new google.maps.Marker({map:mapModal,draggable:true,visible:false});
+    mapModal.addListener('click', e=>{
+      modalLat=e.latLng.lat(); modalLng=e.latLng.lng();
+      modalMarker.setPosition(e.latLng); modalMarker.setVisible
