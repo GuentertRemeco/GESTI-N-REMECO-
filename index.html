@@ -22,6 +22,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .ntab:hover{color:var(--text);background:#1a2c40}
 .ntab.on{color:var(--gold);border-bottom-color:var(--gold);background:var(--bg2)}
 .nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.bell{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:9px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem}
+.user-chip{display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:3px 12px 3px 4px}
+.uc-ini{width:26px;height:26px;border-radius:50%;background:var(--gold);color:#111820;font-weight:900;font-size:.8rem;display:flex;align-items:center;justify-content:center}
+.uc-name{font-size:.78rem;font-weight:700;white-space:nowrap}
 .page{display:none;flex:1;overflow:hidden;flex-direction:column;min-height:0}
 .page.on{display:flex}
 .bnav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--bnav-h);background:var(--bg4);border-top:1px solid var(--border);align-items:stretch;z-index:900;padding-bottom:env(safe-area-inset-bottom)}
@@ -30,32 +34,39 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .bnav-item.on::after{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:var(--gold);border-radius:0 0 2px 2px}
 .bnav-icon{font-size:1.3rem;line-height:1}
 .bnav-label{font-size:.58rem;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
-.inicio-wrap{flex:1;overflow-y:auto;padding:16px}
-.inicio-header{margin-bottom:16px}
-.inicio-titulo{font-size:1.35rem;font-weight:900;color:var(--gold)}
-.inicio-sub{font-size:.78rem;color:var(--text3);margin-top:3px}
-.qa-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
-.qa-btn{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:7px;transition:all .15s;font-family:inherit;color:var(--text)}
-.qa-btn:hover{border-color:var(--gold);background:var(--bg3)}
-.qa-btn .ic{font-size:1.6rem;line-height:1}
-.qa-btn .tx{font-size:.78rem;font-weight:700}
-.qa-btn.primary{background:var(--gold);color:#111820;border-color:var(--gold)}
-.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
-.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:13px;cursor:pointer;transition:border-color .15s}
-.stat-card:hover{border-color:var(--gold)}
-.stat-val{font-size:1.4rem;font-weight:900;color:var(--gold);line-height:1}
-.stat-label{font-size:.66rem;color:var(--text3);margin-top:4px;line-height:1.3}
-.stat-sub{font-size:.69rem;color:#3a8a5a;margin-top:3px;font-weight:700}
+.inicio-wrap{flex:1;overflow-y:auto;padding:16px;max-width:760px;width:100%;margin:0 auto}
+.ini-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+.ini-fecha{font-size:.72rem;color:var(--text3);text-transform:capitalize;margin-bottom:4px}
+.ini-saludo{font-size:1.5rem;font-weight:900;color:var(--text)}
+.ini-user{display:flex;align-items:center;gap:8px}
+.ini-bell{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.1rem}
+.ini-uc{width:42px;height:42px;border-radius:11px;background:var(--gold);color:#111820;font-weight:900;font-size:1.05rem;display:flex;align-items:center;justify-content:center}
+.ini-cards-big{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.ic-big{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px}
+.ic-label{font-size:.64rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px}
+.ic-val{font-size:2rem;font-weight:900;color:var(--gold);line-height:1}
+.ic-sub{font-size:.74rem;color:var(--green);margin-top:7px;font-weight:700}
+.ini-cards-sm{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.ic-sm{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px}
+.ic-num{font-size:1.8rem;font-weight:900;color:var(--text);line-height:1}
+.ic-sub2{font-size:.72rem;color:var(--text3);margin-top:7px}
 .inicio-stitle{font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin-bottom:9px}
-.pendiente-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 13px;margin-bottom:6px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s}
-.pendiente-card:hover{border-color:var(--gold)}
+.lnk{background:none;border:none;color:var(--gold);font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit}
+.qa-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.qa-btn{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all .15s;font-family:inherit;color:var(--text)}
+.qa-btn:hover{border-color:var(--gold);background:var(--bg3)}
+.qa-btn .ic{font-size:1.5rem;line-height:1}
+.qa-btn .tx{font-size:.8rem;font-weight:700}
+.qa-btn.primary{background:var(--gold);color:#111820;border-color:var(--gold)}
+.pend-row{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:13px 14px;margin-bottom:8px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:border-color .15s}
+.pend-row:hover{border-color:var(--gold)}
+.pend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .pc-info{flex:1;min-width:0}
-.pc-cli{font-weight:700;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pc-sub{font-size:.69rem;color:#6a8aaa;margin-top:2px}
-.viaje-prox{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 13px;margin-bottom:6px;cursor:pointer;transition:border-color .15s}
-.viaje-prox:hover{border-color:var(--gold)}
-.vp-nombre{font-weight:700;font-size:.84rem;color:var(--gold)}
-.vp-meta{font-size:.7rem;color:var(--text3);margin-top:2px}
+.pc-cli{font-weight:700;font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-sub{font-size:.7rem;color:#6a8aaa;margin-top:2px}
+.flete-prox{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;cursor:pointer;transition:border-color .15s}
+.flete-prox:hover{border-color:var(--gold)}
+.vp-nombre{font-weight:800;font-size:.86rem;color:var(--gold)}
 .vbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 12px;flex-shrink:0}
 .vbar-top{display:flex;gap:8px;align-items:center;margin-bottom:8px}
 .search-wrap{flex:1;position:relative}
@@ -93,7 +104,7 @@ tr:hover td{background:var(--bg3)}
 .vcard-main{flex:1;min-width:0}
 .vcard-name{font-weight:800;font-size:.88rem;margin-bottom:2px}
 .vcard-loc{font-size:.72rem;color:var(--text2)}
-.vcard-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.vcard-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
 .vcard-price{font-weight:900;color:var(--gold);font-size:.9rem}
 .vcard-footer{padding:7px 12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:7px;background:#0d1824}
 .vcard-date{font-size:.67rem;color:var(--text3);flex:1}
@@ -164,14 +175,24 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .bp{background:#0d2e18;color:var(--green);border:1px solid #2a8c50}
 .opt-btn{background:var(--bg);border:1px solid var(--border2);color:var(--text2);border-radius:7px;padding:5px 10px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
 .opt-btn.on{background:var(--gold);color:#111820;border-color:var(--gold)}
-.prod-item{background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:8px;margin-bottom:6px}
-.prod-row{display:flex;gap:6px;align-items:center}
-.prod-item select,.prod-item input{background:var(--bg);border:1px solid #1e3a55;color:var(--text);border-radius:6px;padding:7px 9px;font-size:.8rem;font-family:inherit}
-.prod-tipo{flex:0 0 42%}.prod-modelo{flex:1;min-width:0}
-.prod-del{background:#2a1010;border:1px solid #5a2020;color:#fcc;border-radius:6px;padding:6px 9px;cursor:pointer;flex:0 0 auto;font-size:.7rem}
-.prod-extras{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
-.add-prod{background:var(--bg3);border:1px dashed var(--border2);color:var(--text2);border-radius:7px;padding:7px;width:100%;font-size:.74rem;cursor:pointer;font-family:inherit}
+.prod-item{background:var(--bg3);border:1px solid #1e3a55;border-radius:9px;margin-bottom:7px;overflow:hidden}
+.prod-head{display:flex;align-items:center;gap:9px;padding:9px 11px;cursor:pointer}
+.prod-arrow{color:var(--gold);font-size:.7rem}
+.prod-htitle{font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.prod-hsum{font-size:.8rem;font-weight:700;color:var(--text);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prod-body{padding:0 11px 11px}
+.prod-row{display:flex;gap:6px;align-items:center;margin-bottom:7px}
+.prod-item select,.prod-item input{background:var(--bg);border:1px solid #1e3a55;color:var(--text);border-radius:6px;padding:7px 9px;font-size:.8rem;font-family:inherit;width:100%}
+.prod-tipo{flex:0 0 44%}.prod-modelo{flex:1;min-width:0}
+.prod-del{background:#2a1010;border:1px solid #5a2020;color:#fcc;border-radius:6px;padding:5px 9px;cursor:pointer;font-size:.7rem;flex:0 0 auto;width:auto}
+.prod-extras{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.prod-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.pl{display:block;font-size:.56rem;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:3px}
+.add-prod{background:var(--bg3);border:1px dashed var(--border2);color:var(--text2);border-radius:7px;padding:8px;width:100%;font-size:.74rem;cursor:pointer;font-family:inherit}
 .add-prod:hover{border-color:var(--gold);color:var(--gold)}
+.tot-box{background:var(--bg3);border:1px solid #1e3a55;border-radius:9px;padding:10px 12px;display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+.tot-box>div{display:flex;justify-content:space-between;font-size:.78rem}
+.tot-box span{color:var(--text3)}
 #estadoMenu{display:none;position:fixed;background:#15202e;border:1px solid var(--gold);border-radius:9px;padding:5px;z-index:6000;box-shadow:0 6px 20px rgba(0,0,0,.5)}
 .em-item{padding:5px 8px;cursor:pointer;border-radius:6px}
 .em-item:hover{background:var(--bg3)}
@@ -198,7 +219,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   .cli-wrap{flex-direction:column}
   .cli-list{width:100%;max-height:36vh;border-right:none;border-bottom:1px solid var(--border);display:flex;overflow-x:auto;overflow-y:hidden}
   .cli-item{min-width:150px;border-bottom:none;border-right:1px solid #1a2a3a;flex-shrink:0}
-  .stats-grid{grid-template-columns:repeat(3,1fr)}
+  .ini-saludo{font-size:1.3rem}.ic-val{font-size:1.7rem}
   .frow{flex-direction:column;gap:0}
   .modal{padding:14px;max-height:92vh}
 }
@@ -216,6 +237,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <button class="ntab" onclick="ir('simular')">🧮 Simular</button>
   <button class="ntab" onclick="ir('clientes')">👤 Clientes</button>
   <div class="nav-right">
+    <div class="bell" title="Notificaciones">🔔</div>
+    <div class="user-chip"><span class="uc-ini" id="ucIniTop">H</span><span class="uc-name" id="ucNameTop">Hernán</span></div>
     <button class="bg" onclick="abrirNueva()" style="padding:6px 13px;font-size:.75rem">+ Nueva venta</button>
   </div>
 </nav>
@@ -231,31 +254,31 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 <!-- INICIO -->
 <div class="page on" id="page-inicio">
   <div class="inicio-wrap">
-    <div class="inicio-header">
-      <div class="inicio-titulo" id="inicioBienvenida">Remeco Gestión</div>
-      <div class="inicio-sub" id="inicioFecha"></div>
+    <div class="ini-top">
+      <div><div class="ini-fecha" id="inicioFecha"></div><div class="ini-saludo" id="inicioBienvenida">Remeco</div></div>
+      <div class="ini-user"><div class="ini-bell" title="Notificaciones">🔔</div><div class="ini-uc" id="ini-uc">H</div></div>
     </div>
+    <div class="ini-cards-big">
+      <div class="ic-big"><div class="ic-label">Facturado · <span id="ic-mes"></span></div><div class="ic-val" id="ic-fact">$0</div><div class="ic-sub" id="ic-fact-sub"></div></div>
+      <div class="ic-big"><div class="ic-label">Rentabilidad</div><div class="ic-val" style="color:var(--green)" id="ic-rent">$0</div><div class="ic-sub" id="ic-rent-sub" style="color:var(--text3)"></div></div>
+    </div>
+    <div class="ini-cards-sm">
+      <div class="ic-sm"><div class="ic-label">Pedidos pendientes</div><div class="ic-num" id="ic-pend">0</div><div class="ic-sub2" id="ic-pend-sub"></div></div>
+      <div class="ic-sm"><div class="ic-label">Viajes activos</div><div class="ic-num" id="ic-viajes">0</div><div class="ic-sub2" id="ic-viajes-sub"></div></div>
+    </div>
+    <div class="inicio-stitle">Acciones rápidas</div>
     <div class="qa-row">
-      <button class="qa-btn primary" onclick="abrirNueva()"><span class="ic">➕</span><span class="tx">Nueva venta</span></button>
-      <button class="qa-btn" onclick="ir('flete')"><span class="ic">🚛</span><span class="tx">Fletes</span></button>
-      <button class="qa-btn" onclick="ir('mapa')"><span class="ic">🗺️</span><span class="tx">Mapa</span></button>
+      <button class="qa-btn primary" onclick="abrirNueva()"><span class="ic">＋</span><span class="tx">Nueva venta</span></button>
+      <button class="qa-btn" onclick="abrirNuevoViaje()"><span class="ic">🚚</span><span class="tx">Nuevo flete</span></button>
+      <button class="qa-btn" onclick="ir('simular')"><span class="ic">📍</span><span class="tx">Simular ruta</span></button>
     </div>
-    <div class="stats-grid" id="statsGrid">
-      <div class="stat-card"><div class="sp"></div></div>
-      <div class="stat-card"><div class="sp"></div></div>
-      <div class="stat-card"><div class="sp"></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:6px 0 9px">
+      <div class="inicio-stitle" style="margin:0">Pedidos pendientes</div>
+      <button class="lnk" onclick="ir('ventas')">Ver todos</button>
     </div>
-    <div style="margin-bottom:18px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
-        <div class="inicio-stitle" style="margin-bottom:0">Pedidos pendientes</div>
-        <button class="bd" style="padding:3px 11px;font-size:.66rem" onclick="ir('ventas')">Ver todos</button>
-      </div>
-      <div id="pendientesList"><div class="sp"></div></div>
-    </div>
-    <div>
-      <div class="inicio-stitle">Próximo flete</div>
-      <div id="viajesList"><div class="sp"></div></div>
-    </div>
+    <div id="pendientesList"><div class="sp"></div></div>
+    <div class="inicio-stitle" style="margin-top:16px">Próximos fletes</div>
+    <div id="viajesList"><div class="sp"></div></div>
     <button class="bg" onclick="abrirNueva()" id="fabBtn"
       style="position:fixed;bottom:calc(var(--bnav-h)+14px);right:16px;border-radius:50px;padding:12px 20px;font-size:.82rem;box-shadow:0 4px 20px rgba(201,168,64,.35);z-index:800;display:none">+ Nueva</button>
   </div>
@@ -373,14 +396,15 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div id="prod-container"></div>
       <button type="button" class="add-prod" onclick="prodAgregar()">+ Agregar otro producto</button>
     </div>
-    <div class="frow">
-      <div class="fg"><label>Precio venta (ARS)</label><input id="f-precio" type="number" placeholder="0"/></div>
-      <div class="fg"><label>Costo producto (ARS)</label><input id="f-costo-producto" type="number" placeholder="0"/></div>
+    <div class="fg">
+      <div class="tot-box">
+        <div><span>Total venta</span><strong id="tot-precio">$0</strong></div>
+        <div><span>Costo producto</span><strong id="tot-costo">$0</strong></div>
+        <div><span>Costo flete</span><strong id="tot-flete">$0</strong></div>
+        <div><span>Ganancia</span><strong id="tot-gan" style="color:var(--green)">$0</strong></div>
+      </div>
     </div>
-    <div class="frow">
-      <div class="fg"><label>Costo flete (ARS)</label><input id="f-costo-flete" type="number" placeholder="0"/></div>
-      <div class="fg"><label>Fecha de entrega</label><input id="f-fecha-entrega" type="date"/></div>
-    </div>
+    <div class="fg"><label>Fecha de entrega</label><input id="f-fecha-entrega" type="date"/></div>
     <div class="fg"><label>Localidad</label><input id="f-localidad" placeholder="Escribí la ciudad y elegí de la lista..." autocomplete="off"/></div>
     <div class="fg"><label>Notas</label><textarea id="f-notas" placeholder="Info adicional..." rows="2"></textarea></div>
     <p class="mmhint">📍 Elegí la localidad arriba o tocá el mapa para marcar la ubicación exacta</p>
@@ -432,6 +456,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
+const NOMBRE_CUENTA='Hernán';  // ← CAMBIÁ ACÁ EL NOMBRE DE LA CUENTA
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-36.38,FAB_LNG=-64.97;
 const RADIO_COSTADO=100,RADIO_ADELANTE=300;
@@ -449,6 +474,7 @@ let simParadas=[],viajeAbierto=null;
 let agregarViajeId=null,agregarVentasSeleccionadas=new Set(),agregarVentasDisponibles=[];
 let prodItems=[];
 const BNAV={inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes'};
+const COL={'Confirmado':'#5adf8a','En producción':'#ffc040','Listo para entregar':'#c0a0ff','En camino':'#5ab8ff','Entregado':'#40df40'};
 
 // ── NAVEGACIÓN ───────────────────────────────────────────────
 function ir(pg){
@@ -479,14 +505,14 @@ function switchFpTab(tab){
 
 // ── UTILS ────────────────────────────────────────────────────
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',2800);}
-function fNum(n){n=parseFloat(n)||0;if(n>=1000000)return(n/1000000).toFixed(1)+'M';if(n>=1000)return Math.round(n/1000)+'K';return Math.round(n).toLocaleString('es-AR');}
+function fNum(n){n=parseFloat(n)||0;if(n>=1000000)return(n/1000000).toFixed(1).replace('.',',')+'M';if(n>=1000)return Math.round(n/1000)+'K';return Math.round(n).toLocaleString('es-AR');}
 function fFecha(d){if(!d)return'—';const[y,m,dd]=d.split('-');return`${parseInt(dd)} ${['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][parseInt(m)-1]} ${y}`;}
 function eTag(e){const mp={'Confirmado':['e0','✅'],'En producción':['e1','⚙️'],'Listo para entregar':['e2','📦'],'En camino':['e3','🚛'],'Entregado':['e4','✔']};const[c,i]=mp[e]||['e0','●'];return`<span class="etag ${c}">${i} ${e||'—'}</span>`;}
 function parsePar(s){if(!s)return[];try{return Array.isArray(s)?s:JSON.parse(s);}catch{return[];}}
 function distKm(lat1,lng1,lat2,lng2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
 function distAlPath(la,ln,path){let m=Infinity;for(const pt of path){const d=distKm(pt.lat,pt.lng,la,ln);if(d<m)m=d;}return m;}
 
-// ── CAPACIDAD (detección robusta auto vs aéreo) ──────────────
+// ── CAPACIDAD ────────────────────────────────────────────────
 function esAutoconsumo(producto,modelo){
   const t=((producto||'')+' '+(modelo||'')).toLowerCase();
   if(/silo|a[eé]reo|cono/.test(t))return false;
@@ -505,10 +531,10 @@ function getMaxPorCamion(producto,modelo){
 function productosDe(obj){
   let arr=[];
   if(obj&&obj.productos){try{arr=Array.isArray(obj.productos)?obj.productos:JSON.parse(obj.productos);}catch{}}
-  if(!arr.length&&obj)arr=[{producto:obj.producto,modelo:obj.modelo}];
+  if(!arr.length&&obj)arr=[{producto:obj.producto,modelo:obj.modelo,cantidad:1}];
   return arr.filter(a=>a&&(a.producto||a.modelo));
 }
-function ocupacionItem(obj){return productosDe(obj).reduce((s,a)=>s+1/getMaxPorCamion(a.producto,a.modelo),0);}
+function ocupacionItem(obj){return productosDe(obj).reduce((s,a)=>s+(a.cantidad||1)/getMaxPorCamion(a.producto,a.modelo),0);}
 function calcOcupacion(paradas){return paradas.reduce((s,p)=>s+ocupacionItem(p),0);}
 function barraCapacidad(paradas){
   if(!paradas.length)return'';
@@ -517,18 +543,39 @@ function barraCapacidad(paradas){
   const label=oc>=1?`${camiones} camión${camiones>1?'es':''} lleno${camiones>1?'s':''}`:`${Math.round(oc*100)}% cargado`;
   return`<div class="cap-bar-wrap"><div class="cap-bar-label"><span>Capacidad</span><span style="color:${color};font-weight:700">${label}</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>`;
 }
+function nombreProd(a){const tipo=(a.producto==='Silo Aéreo'||a.producto==='Autoconsumo')?a.producto+' ':'';const cant=(a.cantidad&&a.cantidad>1)?` ×${a.cantidad}`:'';return`${tipo}${a.modelo||''}${cant}`;}
 function productosTexto(v){
   const arr=productosDe(v);
   if(!arr.length)return'—';
-  return arr.map(a=>`${a.producto||''} <span style="color:var(--text3)">${a.modelo||''}</span>`).join(' <span style="color:var(--gold)">+</span> ');
+  return arr.map(a=>{const tipo=(a.producto==='Silo Aéreo'||a.producto==='Autoconsumo')?a.producto+' ':'';const cant=(a.cantidad&&a.cantidad>1)?` <span style="color:var(--gold)">×${a.cantidad}</span>`:'';return`${tipo}<span style="color:var(--text3)">${a.modelo||''}</span>${cant}`;}).join(' <span style="color:var(--gold)">+</span> ');
 }
-function paradaTexto(x){return productosDe(x).map(a=>`${a.producto||''} ${a.modelo||''}`).join(' + ')||'—';}
+function paradaTexto(x){return productosDe(x).map(a=>nombreProd(a)).join(' + ')||'—';}
 
-// ── PRODUCTOS (multi + personalizado) ────────────────────────
+// ── PRODUCTOS (multi · cantidad · precios · plegable) ────────
 function modelosDe(prod){return prod==='Autoconsumo'?AUTO_MODELOS:AEREO_MODELOS;}
+function itemModeloStr(it){
+  if(it.prod==='Personalizado')return it.libre||'';
+  if(!it.modelo)return '';
+  if(it.prod==='Silo Aéreo')return it.modelo+' · Cono '+(it.cono||'35')+'°';
+  if(it.prod==='Autoconsumo'&&(it.modelo.startsWith('12 TN')||it.modelo.startsWith('18 TN'))&&it.fibra)return it.modelo+' · Base de fibra';
+  return it.modelo;
+}
+function itemResumen(it){
+  const txt=it.prod==='Personalizado'?(it.libre||'(sin nombre)'):(itemModeloStr(it)||'(sin modelo)');
+  const tipo=(it.prod==='Silo Aéreo'||it.prod==='Autoconsumo')?it.prod+' ':'';
+  const cant=(it.cantidad>1)?` ×${it.cantidad}`:'';
+  const total=(parseFloat(it.precio)||0)*(it.cantidad||1);
+  return`${tipo}${txt}${cant}${total?' · $'+fNum(total):''}`;
+}
 function renderProdItems(){
   const cont=document.getElementById('prod-container');
   cont.innerHTML=prodItems.map((it,idx)=>{
+    const header=`<div class="prod-head" onclick="prodToggleOpen(${idx})">
+      <span class="prod-arrow">${it.open?'▼':'▶'}</span>
+      <div style="flex:1;min-width:0"><div class="prod-htitle">Producto ${idx+1}</div><div class="prod-hsum">${itemResumen(it)}</div></div>
+      ${prodItems.length>1?`<button type="button" class="prod-del" onclick="event.stopPropagation();prodQuitar(${idx})">✕</button>`:''}
+    </div>`;
+    if(!it.open)return`<div class="prod-item">${header}</div>`;
     let modeloField;
     if(it.prod==='Personalizado'){
       modeloField=`<input class="prod-modelo" placeholder="Escribí el producto..." value="${(it.libre||'').replace(/"/g,'&quot;')}" oninput="prodSetLibre(${idx},this.value)"/>`;
@@ -543,45 +590,63 @@ function renderProdItems(){
     } else if(it.prod==='Autoconsumo'&&(it.modelo.startsWith('12 TN')||it.modelo.startsWith('18 TN'))){
       extras=`<div class="prod-extras"><button type="button" class="opt-btn${it.fibra?' on':''}" onclick="prodToggleFibra(${idx})">${it.fibra?'✓ ':''}Incluye base de fibra</button></div>`;
     }
-    return`<div class="prod-item">
+    const body=`<div class="prod-body">
       <div class="prod-row">
-        <select class="prod-tipo" onchange="prodSetTipo(${idx},this.value)">
-          ${['Silo Aéreo','Autoconsumo','Personalizado'].map(p=>`<option ${p===it.prod?'selected':''}>${p}</option>`).join('')}
-        </select>
+        <select class="prod-tipo" onchange="prodSetTipo(${idx},this.value)">${['Silo Aéreo','Autoconsumo','Personalizado'].map(p=>`<option ${p===it.prod?'selected':''}>${p}</option>`).join('')}</select>
         ${modeloField}
-        ${prodItems.length>1?`<button type="button" class="prod-del" onclick="prodQuitar(${idx})">✕</button>`:''}
       </div>${extras}
+      <div class="prod-grid">
+        <div><label class="pl">Cantidad</label><input type="number" min="1" value="${it.cantidad||1}" oninput="prodSetCant(${idx},this.value)"/></div>
+        <div><label class="pl">Precio venta c/u</label><input type="number" placeholder="0" value="${it.precio??''}" oninput="prodSetNum(${idx},'precio',this.value)"/></div>
+        <div><label class="pl">Costo producto c/u</label><input type="number" placeholder="0" value="${it.costoP??''}" oninput="prodSetNum(${idx},'costoP',this.value)"/></div>
+        <div><label class="pl">Costo flete c/u</label><input type="number" placeholder="0" value="${it.costoF??''}" oninput="prodSetNum(${idx},'costoF',this.value)"/></div>
+      </div>
     </div>`;
+    return`<div class="prod-item">${header}${body}</div>`;
   }).join('');
+  updateTotales();
 }
-function prodSetTipo(i,v){prodItems[i]={prod:v,modelo:'',cono:'35',fibra:false,libre:''};renderProdItems();}
+function prodToggleOpen(i){prodItems[i].open=!prodItems[i].open;renderProdItems();}
+function prodSetTipo(i,v){const it=prodItems[i];it.prod=v;it.modelo='';it.cono='35';it.fibra=false;it.libre='';renderProdItems();}
 function prodSetModelo(i,v){prodItems[i].modelo=v;renderProdItems();}
-function prodSetLibre(i,v){prodItems[i].libre=v;}
+function prodSetLibre(i,v){prodItems[i].libre=v;updateTotales();}
 function prodSetCono(i,v){prodItems[i].cono=v;renderProdItems();}
 function prodToggleFibra(i){prodItems[i].fibra=!prodItems[i].fibra;renderProdItems();}
-function prodQuitar(i){prodItems.splice(i,1);renderProdItems();}
-function prodAgregar(){prodItems.push({prod:'Silo Aéreo',modelo:'',cono:'35',fibra:false,libre:''});renderProdItems();}
-function itemModeloStr(it){
-  if(it.prod==='Personalizado')return it.libre||'';
-  if(!it.modelo)return '';
-  if(it.prod==='Silo Aéreo')return it.modelo+' · Cono '+(it.cono||'35')+'°';
-  if(it.prod==='Autoconsumo'&&(it.modelo.startsWith('12 TN')||it.modelo.startsWith('18 TN'))&&it.fibra)return it.modelo+' · Base de fibra';
-  return it.modelo;
+function prodSetCant(i,v){prodItems[i].cantidad=Math.max(1,parseInt(v)||1);updateTotales();}
+function prodSetNum(i,f,v){prodItems[i][f]=v;updateTotales();}
+function prodQuitar(i){prodItems.splice(i,1);if(prodItems.length&&!prodItems.some(x=>x.open))prodItems[0].open=true;renderProdItems();}
+function prodAgregar(){prodItems.forEach(it=>it.open=false);prodItems.push({prod:'Silo Aéreo',modelo:'',cono:'35',fibra:false,libre:'',cantidad:1,precio:'',costoP:'',costoF:'',open:true});renderProdItems();}
+function updateTotales(){
+  let tp=0,tc=0,tf=0;
+  prodItems.forEach(it=>{const q=it.cantidad||1;tp+=(parseFloat(it.precio)||0)*q;tc+=(parseFloat(it.costoP)||0)*q;tf+=(parseFloat(it.costoF)||0)*q;});
+  document.getElementById('tot-precio').textContent='$'+fNum(tp);
+  document.getElementById('tot-costo').textContent='$'+fNum(tc);
+  document.getElementById('tot-flete').textContent='$'+fNum(tf);
+  document.getElementById('tot-gan').textContent='$'+fNum(tp-tc-tf);
 }
 function parseProdItem(prod,modeloFull){
   prod=prod||'Silo Aéreo';
-  if(prod==='Personalizado')return{prod,modelo:'',cono:'35',fibra:false,libre:modeloFull||''};
-  if(!['Silo Aéreo','Autoconsumo','Personalizado'].includes(prod))prod=esAutoconsumo(prod,modeloFull)?'Autoconsumo':'Silo Aéreo';
-  const it={prod,modelo:'',cono:'35',fibra:false,libre:''};
+  const base={prod,modelo:'',cono:'35',fibra:false,libre:'',cantidad:1,precio:'',costoP:'',costoF:'',open:false};
+  if(prod==='Personalizado'){base.libre=modeloFull||'';return base;}
+  if(!['Silo Aéreo','Autoconsumo','Personalizado'].includes(prod))base.prod=esAutoconsumo(prod,modeloFull)?'Autoconsumo':'Silo Aéreo';
   const partes=(modeloFull||'').split(' · ');
-  it.modelo=partes[0]||'';
-  partes.slice(1).forEach(t=>{const c=t.match(/Cono\s*(\d+)/i);if(c)it.cono=c[1];if(/fibra/i.test(t))it.fibra=true;});
-  return it;
+  base.modelo=partes[0]||'';
+  partes.slice(1).forEach(t=>{const c=t.match(/Cono\s*(\d+)/i);if(c)base.cono=c[1];if(/fibra/i.test(t))base.fibra=true;});
+  return base;
 }
 function cargarProdItems(v){
   let arr=productosDe(v);
   if(!arr.length)arr=[{producto:'Silo Aéreo',modelo:''}];
-  prodItems=arr.map(a=>parseProdItem(a.producto,a.modelo));
+  prodItems=arr.map((a,idx)=>{
+    const it=parseProdItem(a.producto,a.modelo);
+    it.cantidad=a.cantidad||1;
+    it.precio=(a.precio!=null&&a.precio!=='')?a.precio:(idx===0?(v.precio||''):'');
+    it.costoP=(a.costo_producto!=null&&a.costo_producto!=='')?a.costo_producto:(idx===0?(v.costo_producto||''):'');
+    it.costoF=(a.costo_flete!=null&&a.costo_flete!=='')?a.costo_flete:(idx===0?(v.costo_flete||''):'');
+    it.open=false;
+    return it;
+  });
+  if(prodItems.length)prodItems[0].open=true;
   renderProdItems();
 }
 
@@ -591,30 +656,46 @@ async function cargarDatos(){
   if(ve){toast('⚠️ Error Supabase: '+ve.message);console.error(ve);}
   else{ventas=v||[];renderVentas();renderStats();renderPendientes();renderClientes();}
   const{data:vj,error:vje}=await sb.from('viajes').select('*').order('fecha');
-  if(!vje){viajesData=vj||[];renderViajes();renderProxFletes();}
+  if(!vje){viajesData=vj||[];renderViajes();renderProxFletes();renderStats();}
   if(mapMapa)actMarkersMapa();
 }
 
 // ── INICIO ───────────────────────────────────────────────────
 function renderStats(){
   const ahora=new Date();
+  document.getElementById('ic-mes').textContent=ahora.toLocaleDateString('es-AR',{month:'long'});
   const eM=ventas.filter(v=>{const d=new Date(v.created_at);return d.getMonth()===ahora.getMonth()&&d.getFullYear()===ahora.getFullYear();});
   const fact=eM.reduce((s,v)=>s+(parseFloat(v.precio)||0),0);
+  const ganM=eM.reduce((s,v)=>s+(parseFloat(v.precio)||0)-(parseFloat(v.costo_producto)||0)-(parseFloat(v.costo_flete)||0),0);
+  const margen=fact>0?Math.round(ganM/fact*100):0;
+  document.getElementById('ic-fact').textContent='$'+fNum(fact);
+  document.getElementById('ic-rent').textContent='$'+fNum(ganM);
+  document.getElementById('ic-rent-sub').textContent=margen+'% de margen';
+  const mesAnt=ahora.getMonth()===0?11:ahora.getMonth()-1, anioAnt=ahora.getMonth()===0?ahora.getFullYear()-1:ahora.getFullYear();
+  const factA=ventas.filter(v=>{const d=new Date(v.created_at);return d.getMonth()===mesAnt&&d.getFullYear()===anioAnt;}).reduce((s,v)=>s+(parseFloat(v.precio)||0),0);
+  const subEl=document.getElementById('ic-fact-sub');
+  if(factA>0){const dif=Math.round((fact-factA)/factA*100);subEl.textContent=(dif>=0?'↑ ':'↓ ')+Math.abs(dif)+'% vs mes anterior';subEl.style.color=dif>=0?'var(--green)':'var(--red)';}
+  else subEl.textContent='';
   const pend=ventas.filter(v=>v.estado!=='Entregado').length;
-  document.getElementById('statsGrid').innerHTML=[
-    {val:ventas.length,lbl:'Ventas totales'},
-    {val:pend,lbl:'Pendientes',sub:pend?pend+' en curso':''},
-    {val:'$'+fNum(fact),lbl:'Facturado mes'}
-  ].map(s=>`<div class="stat-card" onclick="ir('ventas')"><div class="stat-val">${s.val}</div><div class="stat-label">${s.lbl}</div>${s.sub?`<div class="stat-sub">${s.sub}</div>`:''}</div>`).join('');
+  const ent=ventas.filter(v=>v.estado==='Entregado'&&new Date(v.created_at).getMonth()===ahora.getMonth()).length;
+  document.getElementById('ic-pend').textContent=pend;
+  document.getElementById('ic-pend-sub').textContent=ent?ent+' entregado'+(ent>1?'s':'')+' este mes':'';
+  const kmProg=viajesData.reduce((s,v)=>s+(parseFloat(v.km_real)||0),0);
+  document.getElementById('ic-viajes').textContent=viajesData.length;
+  document.getElementById('ic-viajes-sub').textContent=kmProg?fNum(kmProg)+' km programados':'';
 }
 function renderPendientes(){
-  const p=ventas.filter(v=>v.estado!=='Entregado').slice(0,3);
-  document.getElementById('pendientesList').innerHTML=p.length?p.map(v=>`<div class="pendiente-card" onclick="abrirEditar('${v.id}')"><div class="pc-info"><div class="pc-cli">${v.cliente||'—'}</div><div class="pc-sub">${paradaTexto(v)} · ${v.localidad||''}</div></div><div>${eTag(v.estado)}</div></div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin pedidos pendientes</div>';
+  const p=ventas.filter(v=>v.estado!=='Entregado').slice(0,4);
+  document.getElementById('pendientesList').innerHTML=p.length?p.map(v=>`<div class="pend-row" onclick="abrirEditar('${v.id}')"><span class="pend-dot" style="background:${COL[v.estado]||'#888'}"></span><div class="pc-info"><div class="pc-cli">${v.cliente||'—'}</div><div class="pc-sub">${paradaTexto(v)} · ${v.localidad||''}</div></div>${eTag(v.estado)}</div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin pedidos pendientes</div>';
 }
 function renderProxFletes(){
   const hoy=new Date().toISOString().split('T')[0];
-  const p=viajesData.filter(v=>v.fecha>=hoy).slice(0,1);
-  document.getElementById('viajesList').innerHTML=p.length?p.map(v=>`<div class="viaje-prox" onclick="ir('flete')"><div style="display:flex;align-items:center"><div class="vp-nombre">🚛 ${v.nombre}</div>${v.publico?'<span class="flete-pub-badge">PUBLICADO</span>':''}</div><div class="vp-meta">📅 ${fFecha(v.fecha)}${v.km_real?' · '+v.km_real+' km':''}</div></div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin fletes programados</div>';
+  const p=viajesData.filter(v=>v.fecha>=hoy).slice(0,2);
+  document.getElementById('viajesList').innerHTML=p.length?p.map(vj=>{
+    const par=parsePar(vj.paradas_snap),oc=calcOcupacion(par),pct=Math.min(oc*100,100);
+    const color=oc>=1?'var(--red)':oc>=0.75?'var(--yellow)':'var(--gold)';
+    return`<div class="flete-prox" onclick="ir('flete')"><div style="display:flex;justify-content:space-between;align-items:center"><div class="vp-nombre">${vj.nombre}${vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div><div style="color:var(--gold);font-size:.72rem;font-weight:700">${fFecha(vj.fecha)}</div></div><div class="cap-bar-track" style="margin:9px 0 6px"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div><div style="font-size:.7rem;color:var(--text3)">${par.length} paradas${vj.km_real?' · '+vj.km_real+' km reales':''} · ${Math.round(oc*100)}% cargado</div></div>`;
+  }).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin fletes programados</div>';
 }
 function renderFpDisponibles(){
   const pub=viajesData.filter(v=>v.publico);
@@ -626,10 +707,7 @@ function renderFpDisponibles(){
     const color=oc>=1?'var(--red)':oc>=0.75?'var(--yellow)':'var(--green)';
     const pct=Math.min(oc*100,100);
     return`<div class="disp-card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-        <div style="font-weight:800;font-size:.84rem;color:var(--gold)">🚛 ${vj.nombre}</div>
-        <span style="font-size:.68rem;font-weight:700;color:${color}">${libre}% libre</span>
-      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-weight:800;font-size:.84rem;color:var(--gold)">🚛 ${vj.nombre}</div><span style="font-size:.68rem;font-weight:700;color:${color}">${libre}% libre</span></div>
       <div style="font-size:.7rem;color:var(--text3);margin-bottom:7px">📅 ${fFecha(vj.fecha)} · ${p.length} paradas${vj.km_real?' · '+vj.km_real+' km':''}</div>
       ${p.map((x,i)=>`<div style="font-size:.68rem;color:var(--text2);padding:2px 0"> ${i+1}. ${x.cliente||x.nombre||'—'} · ${x.localidad||''}</div>`).join('')}
       <div class="cap-bar-wrap" style="margin-top:8px"><div class="cap-bar-label"><span>Capacidad</span><span style="color:${color};font-weight:700">${Math.round(oc*100)}%</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>
@@ -693,10 +771,7 @@ function renderViajes(){
     return`<div class="viaje-card${estaAbierto?' activo':''}" id="vjcard-${vj.id}" style="border-color:${estaAbierto?'var(--gold)':vj.publico?'#2a8c50':'var(--border)'}">
       <div class="viaje-header" onclick="toggleViaje('${vj.id}')" style="cursor:pointer">
         <span style="font-size:.8rem;color:${estaAbierto?'var(--gold)':'var(--text3)'};transition:transform .2s;display:inline-block;transform:rotate(${estaAbierto?'90':'0'}deg)">▶</span>
-        <div class="viaje-info">
-          <div class="viaje-nombre">🚛 ${vj.nombre}${vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div>
-          <div class="viaje-meta"><span>${p.length} parada${p.length!==1?'s':''}</span>${vj.km_real?`<span class="viaje-km">📍 ${vj.km_real} km</span>`:''}<span>📅 ${fFecha(vj.fecha)}</span></div>
-        </div>
+        <div class="viaje-info"><div class="viaje-nombre">🚛 ${vj.nombre}${vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div><div class="viaje-meta"><span>${p.length} parada${p.length!==1?'s':''}</span>${vj.km_real?`<span class="viaje-km">📍 ${vj.km_real} km</span>`:''}<span>📅 ${fFecha(vj.fecha)}</span></div></div>
         <button class="vbtn del" onclick="event.stopPropagation();eliminarViaje('${vj.id}')">✕</button>
       </div>
       <div class="viaje-body${estaAbierto?' open':''}" id="vbody-${vj.id}">
@@ -716,29 +791,21 @@ function toggleViaje(id){
   const yaAbierto=viajeAbierto===id;
   viajeAbierto=yaAbierto?null:id;
   renderViajes();
-  if(!yaAbierto){
-    setTimeout(()=>{
-      if(mapFlete&&directionsRenderer){mostrarRutaViaje(id);}
-      else if(typeof google!=='undefined'){initMapaFlete();setTimeout(()=>mostrarRutaViaje(id),700);}
-    },100);
-  } else {
-    if(directionsRenderer)directionsRenderer.setDirections({routes:[]});
-    const ri=document.getElementById('ruta-info');if(ri)ri.style.display='none';
-  }
+  if(!yaAbierto){setTimeout(()=>{if(mapFlete&&directionsRenderer){mostrarRutaViaje(id);}else if(typeof google!=='undefined'){initMapaFlete();setTimeout(()=>mostrarRutaViaje(id),700);}},100);}
+  else{if(directionsRenderer)directionsRenderer.setDirections({routes:[]});const ri=document.getElementById('ruta-info');if(ri)ri.style.display='none';}
 }
 async function eliminarViaje(id){
   if(!confirm('¿Eliminar este viaje?'))return;
   const{error}=await sb.from('viajes').delete().eq('id',id);
   if(error){toast('Error: '+error.message);return;}
-  viajesData=viajesData.filter(v=>v.id!==id);
-  if(viajeAbierto===id)viajeAbierto=null;
-  renderViajes();renderProxFletes();toast('Viaje eliminado');
+  viajesData=viajesData.filter(v=>v.id!==id);if(viajeAbierto===id)viajeAbierto=null;
+  renderViajes();renderProxFletes();renderStats();toast('Viaje eliminado');
 }
 async function togglePublico(id,val){
   const{error}=await sb.from('viajes').update({publico:val}).eq('id',id);
   if(error){toast('Error: '+error.message);return;}
   const vj=viajesData.find(v=>v.id===id);if(vj)vj.publico=val;
-  renderViajes();
+  renderViajes();renderProxFletes();
   toast(val?'✅ Flete publicado — visible para todos los vendedores':'Flete ocultado');
 }
 async function quitarDelViaje(vjId,idx){
@@ -820,10 +887,7 @@ function renderListaAgregar(lista,mostrarDist){
     const sel=agregarVentasSeleccionadas.has(v.id);
     let info='';
     if(mostrarDist&&v._dist!=null){info=(v._dist<=RADIO_COSTADO)?` · <strong style="color:var(--gold)">${v._dist} km al costado</strong>`:` · <span class="tag-ade">${v._ade} km adelante</span>`;}
-    return`<div class="checkrow${sel?' sel':''}" onclick="toggleSelAgregar('${v.id}')">
-      <input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelAgregar('${v.id}')"/>
-      <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.8rem">${v.cliente||'—'}</div><div style="font-size:.67rem;color:var(--text3);margin-top:1px">${paradaTexto(v)} · ${v.localidad||''}${info}</div>${eTag(v.estado)}</div>
-    </div>`;
+    return`<div class="checkrow${sel?' sel':''}" onclick="toggleSelAgregar('${v.id}')"><input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelAgregar('${v.id}')"/><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.8rem">${v.cliente||'—'}</div><div style="font-size:.67rem;color:var(--text3);margin-top:1px">${paradaTexto(v)} · ${v.localidad||''}${info}</div>${eTag(v.estado)}</div></div>`;
   }).join('');
 }
 function toggleSelAgregar(id){
@@ -860,7 +924,8 @@ function cerrarAgregar(){document.getElementById('overlayAgregar').classList.rem
 
 // ── CRUD VENTAS ──────────────────────────────────────────────
 async function guardarVenta(){
-  const productos=prodItems.map(it=>({producto:it.prod,modelo:itemModeloStr(it)})).filter(p=>p.modelo);
+  const productos=prodItems.map(it=>({producto:it.prod,modelo:itemModeloStr(it),cantidad:it.cantidad||1,precio:parseFloat(it.precio)||0,costo_producto:parseFloat(it.costoP)||0,costo_flete:parseFloat(it.costoF)||0})).filter(p=>p.modelo);
+  const tot=(f)=>productos.reduce((s,p)=>s+(p[f]||0)*(p.cantidad||1),0);
   const data={
     cliente:document.getElementById('f-cliente').value.trim(),
     telefono:document.getElementById('f-telefono').value.trim(),
@@ -868,9 +933,9 @@ async function guardarVenta(){
     producto:productos[0]?.producto||(prodItems[0]?.prod||'Silo Aéreo'),
     modelo:productos[0]?.modelo||'',
     productos:productos,
-    precio:parseFloat(document.getElementById('f-precio').value)||null,
-    costo_producto:parseFloat(document.getElementById('f-costo-producto').value)||null,
-    costo_flete:parseFloat(document.getElementById('f-costo-flete').value)||null,
+    precio:tot('precio')||null,
+    costo_producto:tot('costo_producto')||null,
+    costo_flete:tot('costo_flete')||null,
     estado:document.getElementById('f-estado').value,
     fecha_entrega:document.getElementById('f-fecha-entrega').value||null,
     localidad:document.getElementById('f-localidad').value.trim(),
@@ -894,16 +959,16 @@ async function guardarNuevoViaje(){
   if(!n){toast('El nombre es requerido');return;}
   const{error}=await sb.from('viajes').insert([{nombre:n,fecha:f||null,pedido_ids:[],paradas_snap:[],publico:false}]);
   if(error){toast('Error: '+error.message);return;}
-  toast('Viaje creado ✓');cerrarNuevoViaje();
+  toast('Viaje creado ✓');cerrarNuevoViaje();ir('flete');
   const{data}=await sb.from('viajes').select('*').order('fecha');
-  viajesData=data||[];renderViajes();renderProxFletes();
+  viajesData=data||[];renderViajes();renderProxFletes();renderStats();
 }
 function abrirNueva(){
   editId=null;modalLat=null;modalLng=null;
   document.getElementById('modalTitle').textContent='Nueva venta';
-  ['f-cliente','f-telefono','f-cuit','f-precio','f-costo-producto','f-costo-flete','f-fecha-entrega','f-localidad','f-notas'].forEach(id=>document.getElementById(id).value='');
+  ['f-cliente','f-telefono','f-cuit','f-fecha-entrega','f-localidad','f-notas'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-estado').value='Confirmado';
-  prodItems=[{prod:'Silo Aéreo',modelo:'',cono:'35',fibra:false,libre:''}];
+  prodItems=[{prod:'Silo Aéreo',modelo:'',cono:'35',fibra:false,libre:'',cantidad:1,precio:'',costoP:'',costoF:'',open:true}];
   renderProdItems();
   if(modalMarker)modalMarker.setVisible(false);
   document.getElementById('overlay').classList.add('on');
@@ -916,16 +981,14 @@ function abrirEditar(id){
   document.getElementById('f-cliente').value=v.cliente||'';document.getElementById('f-telefono').value=v.telefono||'';
   document.getElementById('f-cuit').value=v.cuit||'';
   cargarProdItems(v);
-  document.getElementById('f-precio').value=v.precio||'';document.getElementById('f-costo-producto').value=v.costo_producto||'';
-  document.getElementById('f-costo-flete').value=v.costo_flete||'';document.getElementById('f-estado').value=v.estado||'Confirmado';
+  document.getElementById('f-estado').value=v.estado||'Confirmado';
   document.getElementById('f-fecha-entrega').value=v.fecha_entrega||'';document.getElementById('f-localidad').value=v.localidad||'';
   document.getElementById('f-notas').value=v.notas||'';
   document.getElementById('overlay').classList.add('on');
   setTimeout(()=>{
     if(mapModal){google.maps.event.trigger(mapModal,'resize');
       if(modalLat&&modalLng){const pos={lat:parseFloat(modalLat),lng:parseFloat(modalLng)};mapModal.setCenter(pos);mapModal.setZoom(12);if(modalMarker){modalMarker.setPosition(pos);modalMarker.setVisible(true);}}
-      else if(modalMarker)modalMarker.setVisible(false);
-    }
+      else if(modalMarker)modalMarker.setVisible(false);}
   },200);
 }
 function cerrarModal(){document.getElementById('overlay').classList.remove('on');editId=null;}
@@ -957,7 +1020,7 @@ function verCliente(i){
     <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">${[{v:cv.length,l:'ventas'},{v:ent,l:'entregadas'},{v:'$'+fNum(fact),l:'facturado'}].map(x=>`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:9px 13px;min-width:80px"><div style="font-size:1rem;font-weight:900;color:var(--gold)">${x.v}</div><div style="font-size:.65rem;color:var(--text3);margin-top:1px">${x.l}</div></div>`).join('')}</div>
     <div class="rent-card"><div class="rent-title">📊 Rentabilidad</div><div class="rent-row"><span>Precio de venta</span><span>$${fNum(fact)}</span></div><div class="rent-row"><span>Costo producto</span><span style="color:var(--red)">- $${fNum(cp)}</span></div><div class="rent-row"><span>Costo flete</span><span style="color:var(--red)">- $${fNum(cf)}</span></div><div class="rent-row"><span>Ganancia neta</span><span style="color:var(--green)">$${fNum(gan)} (${rp}%)</span></div></div>
     <div class="inicio-stitle" style="margin-bottom:8px;margin-top:4px">Historial</div>
-    ${cv.map(v=>`<div class="pendiente-card" onclick="abrirEditar('${v.id}')"><div class="pc-info"><div class="pc-cli">${paradaTexto(v)}</div><div class="pc-sub">${v.localidad||''} · ${fFecha(v.fecha_entrega)}</div></div><div style="text-align:right">${eTag(v.estado)}<div style="font-size:.78rem;font-weight:700;color:var(--gold);margin-top:4px">${v.precio?'$'+fNum(v.precio):''}</div></div></div>`).join('')}`;
+    ${cv.map(v=>`<div class="pend-row" onclick="abrirEditar('${v.id}')"><div class="pc-info"><div class="pc-cli">${paradaTexto(v)}</div><div class="pc-sub">${v.localidad||''} · ${fFecha(v.fecha_entrega)}</div></div><div style="text-align:right">${eTag(v.estado)}<div style="font-size:.78rem;font-weight:700;color:var(--gold);margin-top:4px">${v.precio?'$'+fNum(v.precio):''}</div></div></div>`).join('')}`;
 }
 
 // ── GOOGLE MAPS ───────────────────────────────────────────────
@@ -968,17 +1031,12 @@ function initMaps(){
     modalMarker=new google.maps.Marker({map:mapModal,draggable:true,visible:false});
     mapModal.addListener('click',e=>{modalLat=e.latLng.lat();modalLng=e.latLng.lng();modalMarker.setPosition(e.latLng);modalMarker.setVisible(true);});
     modalMarker.addListener('dragend',e=>{modalLat=e.latLng.lat();modalLng=e.latLng.lng();});
-    // Autocomplete de Localidad
     const locInp=document.getElementById('f-localidad');
     if(locInp){
       locAutocomplete=new google.maps.places.Autocomplete(locInp,{componentRestrictions:{country:'ar'}});
       locAutocomplete.addListener('place_changed',()=>{
         const pl=locAutocomplete.getPlace();
-        if(pl.geometry){
-          modalLat=pl.geometry.location.lat();modalLng=pl.geometry.location.lng();
-          mapModal.setCenter(pl.geometry.location);mapModal.setZoom(11);
-          modalMarker.setPosition(pl.geometry.location);modalMarker.setVisible(true);
-        }
+        if(pl.geometry){modalLat=pl.geometry.location.lat();modalLng=pl.geometry.location.lng();mapModal.setCenter(pl.geometry.location);mapModal.setZoom(11);modalMarker.setPosition(pl.geometry.location);modalMarker.setVisible(true);}
       });
     }
   }
@@ -992,7 +1050,6 @@ function initMapaMapa(){
   mapMapa=new google.maps.Map(el,{center:{lat:FAB_LAT,lng:FAB_LNG},zoom:6,mapTypeId:'hybrid'});
   actMarkersMapa();
 }
-const COL={'Confirmado':'#c9a840','En producción':'#c0a0ff','Listo para entregar':'#5ab8ff','En camino':'#ffc040','Entregado':'#5adf8a'};
 function actMarkersMapa(){
   if(!mapMapa)return;
   markersArr.forEach(m=>m.setMap(null));markersArr=[];
@@ -1038,16 +1095,9 @@ function mostrarRutaViaje(id){
       if(st){st.textContent=`✓ ${km} km de ida · ${tiempoStr}`;st.style.background='#0d2e18';st.style.color='var(--green)';}
       const orden=res.routes[0].waypoint_order;
       let paradasOrden;
-      if(orden&&orden.length){paradasOrden=orden.map(i=>restItems[i].parada);paradasOrden.push(destItem.parada);}
-      else{paradasOrden=[...restItems.map(x=>x.parada),destItem.parada];}
-      sb.from('viajes').update({km_real:km,paradas_snap:paradasOrden}).eq('id',id).then(()=>{
-        const vj2=viajesData.find(v=>v.id===id);if(vj2){vj2.km_real=km;vj2.paradas_snap=paradasOrden;}
-        const kmSpan=document.querySelector(`#vjcard-${id} .viaje-km`);if(kmSpan)kmSpan.textContent=`📍 ${km} km`;
-      });
-    } else {
-      if(ri){ri.textContent='No se pudo calcular la ruta ('+status+')';ri.style.display='block';}
-      if(st){st.textContent='⚠️ Error: '+status;st.style.background='#2a1010';st.style.color='var(--red)';}
-    }
+      if(orden&&orden.length){paradasOrden=orden.map(i=>restItems[i].parada);paradasOrden.push(destItem.parada);}else{paradasOrden=[...restItems.map(x=>x.parada),destItem.parada];}
+      sb.from('viajes').update({km_real:km,paradas_snap:paradasOrden}).eq('id',id).then(()=>{const vj2=viajesData.find(v=>v.id===id);if(vj2){vj2.km_real=km;vj2.paradas_snap=paradasOrden;}const kmSpan=document.querySelector(`#vjcard-${id} .viaje-km`);if(kmSpan)kmSpan.textContent=`📍 ${km} km`;});
+    } else {if(ri){ri.textContent='No se pudo calcular la ruta ('+status+')';ri.style.display='block';}if(st){st.textContent='⚠️ Error: '+status;st.style.background='#2a1010';st.style.color='var(--red)';}}
   });
 }
 function initMapaSim(){
@@ -1057,11 +1107,7 @@ function initMapaSim(){
   simDirRenderer=new google.maps.DirectionsRenderer({map:simMap,polylineOptions:{strokeColor:'#4a90d9',strokeWeight:5}});
   const inp=document.getElementById('sim-input');
   const ac=new google.maps.places.Autocomplete(inp,{componentRestrictions:{country:'ar'},types:['(cities)']});
-  ac.addListener('place_changed',()=>{
-    const pl=ac.getPlace();if(!pl.geometry)return;
-    simParadas.push({nombre:pl.name||inp.value,lat:pl.geometry.location.lat(),lng:pl.geometry.location.lng()});
-    inp.value='';renderSimParadas();if(simParadas.length>=1)calcularRutaSim();
-  });
+  ac.addListener('place_changed',()=>{const pl=ac.getPlace();if(!pl.geometry)return;simParadas.push({nombre:pl.name||inp.value,lat:pl.geometry.location.lat(),lng:pl.geometry.location.lng()});inp.value='';renderSimParadas();if(simParadas.length>=1)calcularRutaSim();});
 }
 function renderSimParadas(){
   const el=document.getElementById('sim-body');
@@ -1086,8 +1132,7 @@ function calcularRutaSim(){
       const hrs=Math.floor(mins/60),minR=mins%60,tiempoStr=hrs>0?`${hrs}h ${minR}m`:`${minR}m`;
       document.getElementById('sim-total').textContent=km;
       const si=document.getElementById('sim-ruta-info');if(si){si.textContent=`🚛 Ida: ${km} km · ${tiempoStr}`;si.style.display='block';}
-      const orden=res.routes[0].waypoint_order;
-      let nuevas;
+      const orden=res.routes[0].waypoint_order;let nuevas;
       if(orden&&orden.length){nuevas=orden.map(i=>rest[i]);nuevas.push(destPar);}else{nuevas=[...rest,destPar];}
       simParadas=nuevas;renderSimParadas();
     } else {toast('No se pudo calcular la ruta: '+status);}
@@ -1113,8 +1158,12 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerra
 document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();}}));
 
 const ah=new Date(),hh=ah.getHours();
-document.getElementById('inicioBienvenida').textContent=(hh<12?'Buenos días':hh<18?'Buenas tardes':'Buenas noches')+' — Remeco';
+const saludo=(hh<12?'Buenos días':hh<18?'Buenas tardes':'Buenas noches')+', '+NOMBRE_CUENTA;
+document.getElementById('inicioBienvenida').textContent=saludo;
 document.getElementById('inicioFecha').textContent=ah.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+document.getElementById('ucNameTop').textContent=NOMBRE_CUENTA;
+document.getElementById('ucIniTop').textContent=NOMBRE_CUENTA.charAt(0).toUpperCase();
+document.getElementById('ini-uc').textContent=NOMBRE_CUENTA.charAt(0).toUpperCase();
 if(window.innerWidth<=768)document.getElementById('fabBtn').style.display='block';
 
 cargarDatos();
