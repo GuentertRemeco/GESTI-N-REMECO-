@@ -758,7 +758,7 @@ function renderStats(){
 }
 function renderPendientes(){
   const p=ventas.filter(v=>v.estado!=='Entregado').slice(0,4);
-  document.getElementById('pendientesList').innerHTML=p.length?p.map(v=>`<div class="pend-row" onclick="abrirEditar('${v.id}')"><span class="pend-dot" style="background:${COL[v.estado]||'#888'}"></span><div class="pc-info"><div class="pc-cli">${v.cliente||'—'}</div><div class="pc-sub">${paradaTexto(v)} · ${v.localidad||''}</div></div>${eTag(v.estado)}</div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin pedidos pendientes</div>';
+  document.getElementById('pendientesList').innerHTML=p.length?p.map(v=>`<div class="pend-row" onclick="verVenta('${v.id}')"><span class="pend-dot" style="background:${COL[v.estado]||'#888'}"></span><div class="pc-info"><div class="pc-cli">${v.cliente||'—'}</div><div class="pc-sub">${paradaTexto(v)} · ${v.localidad||''}</div></div>${eTag(v.estado)}</div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin pedidos pendientes</div>';
 }
 function renderProxFletes(){
   const hoy=new Date().toISOString().split('T')[0];
@@ -882,8 +882,9 @@ async function eliminarViaje(id){
   renderViajes();renderProxFletes();renderStats();toast('Viaje eliminado');
 }
 async function togglePublico(id,val){
-  const{error}=await sb.from('viajes').update({publico:val}).eq('id',id);
+  const{data:upd,error}=await sb.from('viajes').update({publico:val}).eq('id',id).select();
   if(error){toast('Error: '+error.message);return;}
+  if(!upd||!upd.length){alert('⚠️ No se guardó (permisos RLS de "viajes"). Corré el SQL de permisos en Supabase.');return;}
   const vj=viajesData.find(v=>v.id===id);if(vj)vj.publico=val;
   renderViajes();renderProxFletes();
   toast(val?'✅ Flete publicado — visible para todos los vendedores':'Flete ocultado');
@@ -893,8 +894,9 @@ async function quitarDelViaje(vjId,idx){
   const paradas=parsePar(vj.paradas_snap);
   const quitado=paradas.splice(idx,1)[0];
   const pedido_ids=parsePar(vj.pedido_ids||[]).filter(pid=>String(pid)!==String(quitado?.id));
-  const{error}=await sb.from('viajes').update({paradas_snap:paradas,pedido_ids}).eq('id',vjId);
+  const{data:upd,error}=await sb.from('viajes').update({paradas_snap:paradas,pedido_ids}).eq('id',vjId).select();
   if(error){toast('Error: '+error.message);return;}
+  if(!upd||!upd.length){alert('⚠️ No se guardó (permisos RLS de "viajes").');return;}
   vj.paradas_snap=paradas;vj.pedido_ids=pedido_ids;
   renderViajes();setTimeout(()=>mostrarRutaViaje(vjId),100);toast('Cliente quitado del viaje');
 }
@@ -909,7 +911,7 @@ function exportarViaje(id){
 }
 function exportarTodos(){if(viajeAbierto)exportarViaje(viajeAbierto);else if(viajesData.length)exportarViaje(viajesData[0].id);else toast('Sin viajes');}
 
-// ── Helpers exclusión (con parsePar para pedido_ids) ─────────
+// ── Helpers exclusión ────────────────────────────────────────
 function setClientesEnViaje(vj){
   const paradasArr=parsePar(vj?.paradas_snap||[]);
   const peds=parsePar(vj?.pedido_ids||[]);
@@ -991,13 +993,18 @@ async function confirmarAgregar(){
   if(!agregarVentasSeleccionadas.size){toast('Seleccioná al menos una venta');return;}
   const vj=viajesData.find(v=>v.id===agregarViajeId);if(!vj)return;
   const paradasActuales=parsePar(vj.paradas_snap);
-  const nuevas=ventas.filter(v=>agregarVentasSeleccionadas.has(v.id));
+  const yaIds=new Set(paradasActuales.map(x=>String(x.id)).filter(Boolean));
+  const nuevas=ventas.filter(v=>agregarVentasSeleccionadas.has(v.id)&&!yaIds.has(String(v.id)));
+  if(!nuevas.length){toast('Esos clientes ya están en el viaje');cerrarAgregar();return;}
   const paradasNuevas=[...paradasActuales,...nuevas.map(v=>({cliente:v.cliente,producto:v.producto,modelo:v.modelo,productos:v.productos||null,localidad:v.localidad,lat:v.lat,lng:v.lng,id:v.id}))];
-  const pedido_ids=[...parsePar(vj.pedido_ids||[]),...nuevas.map(v=>v.id)];
-  const{error}=await sb.from('viajes').update({paradas_snap:paradasNuevas,pedido_ids}).eq('id',agregarViajeId);
+  const pedido_ids=[...new Set([...parsePar(vj.pedido_ids||[]).map(String),...nuevas.map(v=>String(v.id))])];
+  const{data:upd,error}=await sb.from('viajes').update({paradas_snap:paradasNuevas,pedido_ids}).eq('id',agregarViajeId).select();
   if(error){toast('Error: '+error.message);return;}
-  vj.paradas_snap=paradasNuevas;vj.pedido_ids=pedido_ids;
-  cerrarAgregar();viajeAbierto=agregarViajeId;setFletePlaceholder(false);renderViajes();
+  if(!upd||!upd.length){alert('⚠️ No se guardó en la base de datos.\n\nEs un problema de PERMISOS (RLS) de la tabla "viajes".\nCorré el SQL de permisos en Supabase y volvé a probar.');return;}
+  const{data:vjAll}=await sb.from('viajes').select('*').order('fecha');
+  if(vjAll)viajesData=vjAll;
+  cerrarAgregar();viajeAbierto=agregarViajeId;setFletePlaceholder(false);
+  renderViajes();renderProxFletes();renderStats();
   setTimeout(()=>mostrarRutaViaje(agregarViajeId),200);
   toast(`✓ ${nuevas.length} cliente${nuevas.length>1?'s':''} agregado${nuevas.length>1?'s':''} al viaje`);
 }
@@ -1066,7 +1073,7 @@ function abrirNueva(){
   document.getElementById('overlay').classList.add('on');
   setTimeout(()=>{if(mapModal)google.maps.event.trigger(mapModal,'resize');},200);
 }
-function verVenta(id){abrirEditar(id,true);}  // ← desde CLIENTES: solo lectura
+function verVenta(id){abrirEditar(id,true);}  // ← desde INICIO y CLIENTES: solo lectura
 function abrirEditar(id,ro){
   ro=!!ro;
   const v=ventas.find(x=>x.id===id);if(!v)return;
@@ -1192,6 +1199,8 @@ function mostrarRutaViaje(id){
       const orden=res.routes[0].waypoint_order;
       let paradasOrden;
       if(orden&&orden.length){paradasOrden=orden.map(i=>restItems[i].parada);paradasOrden.push(destItem.parada);}else{paradasOrden=[...restItems.map(x=>x.parada),destItem.parada];}
+      const sinLoc=paradas.filter(p=>!aLoc(p));
+      if(sinLoc.length)paradasOrden=[...paradasOrden,...sinLoc];
       sb.from('viajes').update({km_real:km,paradas_snap:paradasOrden}).eq('id',id).then(()=>{const vj2=viajesData.find(v=>v.id===id);if(vj2){vj2.km_real=km;vj2.paradas_snap=paradasOrden;}const kmSpan=document.querySelector(`#vjcard-${id} .viaje-km`);if(kmSpan)kmSpan.textContent=`📍 ${km} km`;});
     } else {if(ri){ri.textContent='No se pudo calcular la ruta ('+status+')';ri.style.display='block';}if(st){st.textContent='⚠️ Error: '+status;st.style.background='#2a1010';st.style.color='var(--red)';}}
   });
@@ -1256,7 +1265,6 @@ document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=
 const ah=new Date();
 document.getElementById('inicioFecha').textContent=ah.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 aplicarPerfil();
-if(!getPerfil().nombre)setTimeout(abrirPerfilEditar,600);
 if(window.innerWidth<=768)document.getElementById('fabBtn').style.display='block';
 
 cargarDatos();
