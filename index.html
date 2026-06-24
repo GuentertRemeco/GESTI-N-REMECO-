@@ -31,9 +31,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .bnav-icon{font-size:1.3rem;line-height:1}
 .bnav-label{font-size:.58rem;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
 .inicio-wrap{flex:1;overflow-y:auto;padding:16px}
-.inicio-header{margin-bottom:18px}
+.inicio-header{margin-bottom:16px}
 .inicio-titulo{font-size:1.35rem;font-weight:900;color:var(--gold)}
 .inicio-sub{font-size:.78rem;color:var(--text3);margin-top:3px}
+.qa-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.qa-btn{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:7px;transition:all .15s;font-family:inherit;color:var(--text)}
+.qa-btn:hover{border-color:var(--gold);background:var(--bg3)}
+.qa-btn .ic{font-size:1.6rem;line-height:1}
+.qa-btn .tx{font-size:.78rem;font-weight:700}
+.qa-btn.primary{background:var(--gold);color:#111820;border-color:var(--gold)}
 .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
 .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:13px;cursor:pointer;transition:border-color .15s}
 .stat-card:hover{border-color:var(--gold)}
@@ -71,7 +77,7 @@ thead{position:sticky;top:0;background:var(--bg2);z-index:10}
 th{padding:9px 10px;text-align:left;color:var(--text3);font-size:.63rem;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);font-weight:700;white-space:nowrap}
 td{padding:9px 10px;border-bottom:1px solid #1a2a3a;vertical-align:middle}
 tr:hover td{background:var(--bg3)}
-.etag{display:inline-flex;align-items:center;padding:3px 8px;border-radius:12px;font-size:.63rem;font-weight:700;white-space:nowrap;gap:4px}
+.etag{display:inline-flex;align-items:center;padding:3px 8px;border-radius:12px;font-size:.63rem;font-weight:700;white-space:nowrap;gap:4px;cursor:pointer}
 .e0{background:#1a3a20;color:var(--green)}.e1{background:#3a2800;color:var(--yellow)}
 .e2{background:#2a1a40;color:var(--purple)}.e3{background:#0d2e4a;color:var(--blue)}.e4{background:#1a3a1a;color:#40df40}
 .act-btns{display:flex;gap:3px}
@@ -156,8 +162,19 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .bd{background:var(--border);color:var(--text);border:1px solid var(--border2)}
 .bv{background:#1a5230;color:#9fe;border:1px solid #2a8c50}
 .bp{background:#0d2e18;color:var(--green);border:1px solid #2a8c50}
-.opt-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:7px;padding:6px 11px;font-size:.74rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.opt-btn{background:var(--bg);border:1px solid var(--border2);color:var(--text2);border-radius:7px;padding:5px 10px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
 .opt-btn.on{background:var(--gold);color:#111820;border-color:var(--gold)}
+.prod-item{background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:8px;margin-bottom:6px}
+.prod-row{display:flex;gap:6px;align-items:center}
+.prod-item select,.prod-item input{background:var(--bg);border:1px solid #1e3a55;color:var(--text);border-radius:6px;padding:7px 9px;font-size:.8rem;font-family:inherit}
+.prod-tipo{flex:0 0 42%}.prod-modelo{flex:1;min-width:0}
+.prod-del{background:#2a1010;border:1px solid #5a2020;color:#fcc;border-radius:6px;padding:6px 9px;cursor:pointer;flex:0 0 auto;font-size:.7rem}
+.prod-extras{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.add-prod{background:var(--bg3);border:1px dashed var(--border2);color:var(--text2);border-radius:7px;padding:7px;width:100%;font-size:.74rem;cursor:pointer;font-family:inherit}
+.add-prod:hover{border-color:var(--gold);color:var(--gold)}
+#estadoMenu{display:none;position:fixed;background:#15202e;border:1px solid var(--gold);border-radius:9px;padding:5px;z-index:6000;box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.em-item{padding:5px 8px;cursor:pointer;border-radius:6px}
+.em-item:hover{background:var(--bg3)}
 .disp-card{background:var(--bg2);border:1px solid #2a8c50;border-radius:9px;margin-bottom:8px;padding:11px 13px}
 .checkrow{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;cursor:pointer;transition:background .12s;border:1px solid transparent}
 .checkrow:hover{background:var(--bg3);border-color:var(--border2)}
@@ -181,7 +198,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   .cli-wrap{flex-direction:column}
   .cli-list{width:100%;max-height:36vh;border-right:none;border-bottom:1px solid var(--border);display:flex;overflow-x:auto;overflow-y:hidden}
   .cli-item{min-width:150px;border-bottom:none;border-right:1px solid #1a2a3a;flex-shrink:0}
-  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .stats-grid{grid-template-columns:repeat(3,1fr)}
   .frow{flex-direction:column;gap:0}
   .modal{padding:14px;max-height:92vh}
 }
@@ -218,25 +235,26 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div class="inicio-titulo" id="inicioBienvenida">Remeco Gestión</div>
       <div class="inicio-sub" id="inicioFecha"></div>
     </div>
+    <div class="qa-row">
+      <button class="qa-btn primary" onclick="abrirNueva()"><span class="ic">➕</span><span class="tx">Nueva venta</span></button>
+      <button class="qa-btn" onclick="ir('flete')"><span class="ic">🚛</span><span class="tx">Fletes</span></button>
+      <button class="qa-btn" onclick="ir('mapa')"><span class="ic">🗺️</span><span class="tx">Mapa</span></button>
+    </div>
     <div class="stats-grid" id="statsGrid">
       <div class="stat-card"><div class="sp"></div></div>
       <div class="stat-card"><div class="sp"></div></div>
       <div class="stat-card"><div class="sp"></div></div>
     </div>
-    <div style="margin-bottom:20px">
-      <div class="inicio-stitle">Pedidos pendientes</div>
+    <div style="margin-bottom:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+        <div class="inicio-stitle" style="margin-bottom:0">Pedidos pendientes</div>
+        <button class="bd" style="padding:3px 11px;font-size:.66rem" onclick="ir('ventas')">Ver todos</button>
+      </div>
       <div id="pendientesList"><div class="sp"></div></div>
     </div>
-    <div style="margin-bottom:20px">
-      <div class="inicio-stitle">Próximos fletes</div>
-      <div id="viajesList"><div class="sp"></div></div>
-    </div>
     <div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
-        <div class="inicio-stitle" style="color:var(--green);margin-bottom:0">🚛 Fletes disponibles para cargar</div>
-        <button class="bp" style="padding:4px 11px;font-size:.68rem" onclick="ir('flete');setTimeout(()=>switchFpTab('disponibles'),400)">Ver todos</button>
-      </div>
-      <div id="fletesPublicos"><div style="color:var(--text3);font-size:.78rem;padding:8px 0">Cargando...</div></div>
+      <div class="inicio-stitle">Próximo flete</div>
+      <div id="viajesList"><div class="sp"></div></div>
     </div>
     <button class="bg" onclick="abrirNueva()" id="fabBtn"
       style="position:fixed;bottom:calc(var(--bnav-h)+14px);right:16px;border-radius:50px;padding:12px 20px;font-size:.82rem;box-shadow:0 4px 20px rgba(201,168,64,.35);z-index:800;display:none">+ Nueva</button>
@@ -265,7 +283,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <select class="vbar-sort" id="sortSelect"><option>Más reciente</option><option>Más antiguo</option><option>Mayor precio</option><option>Menor precio</option><option>Cliente A–Z</option></select>
     </div>
   </div>
-  <div class="vtable-wrap"><table><thead><tr><th>Cliente</th><th>Producto</th><th>Localidad</th><th>Precio</th><th>Estado</th><th>Entrega</th><th></th></tr></thead><tbody id="vtbody"><tr><td colspan="7"><div class="sp"></div></td></tr></tbody></table></div>
+  <div class="vtable-wrap"><table><thead><tr><th>Cliente</th><th>Producto</th><th>Localidad</th><th>Flete</th><th>Precio</th><th>Estado</th><th>Entrega</th><th></th></tr></thead><tbody id="vtbody"><tr><td colspan="8"><div class="sp"></div></td></tr></tbody></table></div>
   <div class="vcards-wrap" id="vcards"><div class="sp"></div></div>
 </div>
 
@@ -348,15 +366,12 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     </div>
     <div class="frow">
       <div class="fg"><label>CUIT</label><input id="f-cuit" placeholder="20-12345678-9"/></div>
-      <div class="fg"><label>Zona de flete</label><input id="f-zona" placeholder="Ej: Rosario"/></div>
+      <div class="fg"><label>Estado</label><select id="f-estado"><option>Confirmado</option><option>En producción</option><option>Listo para entregar</option><option>En camino</option><option>Entregado</option></select></div>
     </div>
-    <div class="frow">
-      <div class="fg"><label>Producto</label><select id="f-producto" onchange="onProductoChange()"><option>Silo Aéreo</option><option>Autoconsumo</option></select></div>
-      <div class="fg"><label>Modelo / Tonelaje</label><select id="f-modelo" onchange="onModeloChange()"></select></div>
-    </div>
-    <div class="fg" id="extras-box" style="display:none">
-      <label id="extras-label">Base</label>
-      <div id="extras-opts" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    <div class="fg">
+      <label>Productos</label>
+      <div id="prod-container"></div>
+      <button type="button" class="add-prod" onclick="prodAgregar()">+ Agregar otro producto</button>
     </div>
     <div class="frow">
       <div class="fg"><label>Precio venta (ARS)</label><input id="f-precio" type="number" placeholder="0"/></div>
@@ -364,14 +379,11 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     </div>
     <div class="frow">
       <div class="fg"><label>Costo flete (ARS)</label><input id="f-costo-flete" type="number" placeholder="0"/></div>
-      <div class="fg"><label>Estado</label><select id="f-estado"><option>Confirmado</option><option>En producción</option><option>Listo para entregar</option><option>En camino</option><option>Entregado</option></select></div>
-    </div>
-    <div class="frow">
       <div class="fg"><label>Fecha de entrega</label><input id="f-fecha-entrega" type="date"/></div>
-      <div class="fg"><label>Localidad</label><input id="f-localidad" placeholder="Ciudad..."/></div>
     </div>
+    <div class="fg"><label>Localidad</label><input id="f-localidad" placeholder="Escribí la ciudad y elegí de la lista..." autocomplete="off"/></div>
     <div class="fg"><label>Notas</label><textarea id="f-notas" placeholder="Info adicional..." rows="2"></textarea></div>
-    <p class="mmhint">📍 Tocá el mapa para marcar la ubicación exacta (importante para las rutas)</p>
+    <p class="mmhint">📍 Elegí la localidad arriba o tocá el mapa para marcar la ubicación exacta</p>
     <div id="mmap-div" style="height:180px;border-radius:8px;overflow:hidden;border:1px solid #1e3a55;margin-bottom:4px"></div>
     <div class="mact">
       <button class="bd" onclick="cerrarModal()">Cancelar</button>
@@ -411,6 +423,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   </div>
 </div>
 
+<div id="estadoMenu"></div>
 <div id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -421,22 +434,20 @@ const sb=supabase.createClient(SURL,SKEY);
 
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-36.38,FAB_LNG=-64.97;
-const RADIO_COSTADO=100;
-const RADIO_ADELANTE=300;
+const RADIO_COSTADO=100,RADIO_ADELANTE=300;
 
 const AEREO_MODELOS=['6TN','10TN','16TN','22TN','28TN','30TN','40TN','50TN','60TN','62TN','72TN','80TN','100TN','120TN','140TN','150TN','175TN','200TN'];
 const AUTO_MODELOS=['2 TN 12 bocas','2 TN 18 bocas','4 TN','7 TN','7 TN con alero al medio','12 TN','12 TN alero grande','12 TN con alero al medio','18 TN alero al medio'];
-let conoSel='35',fibraSel=false;
-
 const CAP_AEREO={'6':8,'10':8,'16':6,'22':6,'28':6,'30':3,'40':3,'50':3,'60':3,'62':3,'72':3,'80':2,'100':2,'120':2,'140':2,'150':1,'175':1,'200':1};
 const CAP_AUTO={'2':20,'4':20,'7':8,'12':5,'18':5};
 
 let ventas=[],viajesData=[],editId=null,modalLat=null,modalLng=null;
 let filterEstado='',filterProd='';
-let mapMapa=null,mapFlete=null,mapModal=null,simMap=null;
+let mapMapa=null,mapFlete=null,mapModal=null,simMap=null,locAutocomplete=null;
 let markersArr=[],modalMarker=null,directionsRenderer=null,simDirRenderer=null;
 let simParadas=[],viajeAbierto=null;
 let agregarViajeId=null,agregarVentasSeleccionadas=new Set(),agregarVentasDisponibles=[];
+let prodItems=[];
 const BNAV={inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes'};
 
 // ── NAVEGACIÓN ───────────────────────────────────────────────
@@ -455,13 +466,9 @@ function ir(pg){
   const fab=document.getElementById('fabBtn');
   if(fab)fab.style.display=(pg==='inicio'&&window.innerWidth<=768)?'block':'none';
   if(pg==='mapa'&&typeof google!=='undefined')initMapaMapa();
-  if(pg==='flete'&&typeof google!=='undefined'){
-    initMapaFlete();
-    if(viajeAbierto)setTimeout(()=>mostrarRutaViaje(viajeAbierto),400);
-  }
+  if(pg==='flete'&&typeof google!=='undefined'){initMapaFlete();if(viajeAbierto)setTimeout(()=>mostrarRutaViaje(viajeAbierto),400);}
   if(pg==='simular'&&typeof google!=='undefined')initMapaSim();
 }
-
 function switchFpTab(tab){
   document.getElementById('tab-programados').classList.toggle('on',tab==='programados');
   document.getElementById('tab-disponibles').classList.toggle('on',tab==='disponibles');
@@ -476,22 +483,33 @@ function fNum(n){n=parseFloat(n)||0;if(n>=1000000)return(n/1000000).toFixed(1)+'
 function fFecha(d){if(!d)return'—';const[y,m,dd]=d.split('-');return`${parseInt(dd)} ${['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][parseInt(m)-1]} ${y}`;}
 function eTag(e){const mp={'Confirmado':['e0','✅'],'En producción':['e1','⚙️'],'Listo para entregar':['e2','📦'],'En camino':['e3','🚛'],'Entregado':['e4','✔']};const[c,i]=mp[e]||['e0','●'];return`<span class="etag ${c}">${i} ${e||'—'}</span>`;}
 function parsePar(s){if(!s)return[];try{return Array.isArray(s)?s:JSON.parse(s);}catch{return[];}}
-function distKm(lat1,lng1,lat2,lng2){
-  const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
+function distKm(lat1,lng1,lat2,lng2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
 function distAlPath(la,ln,path){let m=Infinity;for(const pt of path){const d=distKm(pt.lat,pt.lng,la,ln);if(d<m)m=d;}return m;}
+
+// ── CAPACIDAD (detección robusta auto vs aéreo) ──────────────
+function esAutoconsumo(producto,modelo){
+  const t=((producto||'')+' '+(modelo||'')).toLowerCase();
+  if(/silo|a[eé]reo|cono/.test(t))return false;
+  if(/auto|alero|boca|cambio de base/.test(t))return true;
+  return false;
+}
 function getMaxPorCamion(producto,modelo){
-  const esAuto=/autoconsumo/i.test(producto||'');
+  const esAuto=esAutoconsumo(producto,modelo);
   const tabla=esAuto?CAP_AUTO:CAP_AEREO;
-  const num=parseFloat((modelo||'').match(/\d+(?:\.\d+)?/)?.[0]||0); // primer número del modelo
+  const num=parseFloat((modelo||'').match(/\d+(?:\.\d+)?/)?.[0]||0);
   if(!num)return esAuto?20:8;
   let best=null,bestDiff=Infinity;
   for(const k of Object.keys(tabla)){const diff=Math.abs(parseFloat(k)-num);if(diff<bestDiff){bestDiff=diff;best=tabla[k];}}
   return best||(esAuto?20:6);
 }
-function calcOcupacion(paradas){let t=0;paradas.forEach(p=>{t+=1/getMaxPorCamion(p.producto,p.modelo);});return t;}
+function productosDe(obj){
+  let arr=[];
+  if(obj&&obj.productos){try{arr=Array.isArray(obj.productos)?obj.productos:JSON.parse(obj.productos);}catch{}}
+  if(!arr.length&&obj)arr=[{producto:obj.producto,modelo:obj.modelo}];
+  return arr.filter(a=>a&&(a.producto||a.modelo));
+}
+function ocupacionItem(obj){return productosDe(obj).reduce((s,a)=>s+1/getMaxPorCamion(a.producto,a.modelo),0);}
+function calcOcupacion(paradas){return paradas.reduce((s,p)=>s+ocupacionItem(p),0);}
 function barraCapacidad(paradas){
   if(!paradas.length)return'';
   const oc=calcOcupacion(paradas),pct=Math.min(oc*100,100),camiones=Math.ceil(oc);
@@ -499,63 +517,72 @@ function barraCapacidad(paradas){
   const label=oc>=1?`${camiones} camión${camiones>1?'es':''} lleno${camiones>1?'s':''}`:`${Math.round(oc*100)}% cargado`;
   return`<div class="cap-bar-wrap"><div class="cap-bar-label"><span>Capacidad</span><span style="color:${color};font-weight:700">${label}</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>`;
 }
+function productosTexto(v){
+  const arr=productosDe(v);
+  if(!arr.length)return'—';
+  return arr.map(a=>`${a.producto||''} <span style="color:var(--text3)">${a.modelo||''}</span>`).join(' <span style="color:var(--gold)">+</span> ');
+}
+function paradaTexto(x){return productosDe(x).map(a=>`${a.producto||''} ${a.modelo||''}`).join(' + ')||'—';}
 
-// ── MODELOS / TONELAJE ───────────────────────────────────────
-function llenarSelectModelos(prod,sel){
-  const ms=prod==='Autoconsumo'?AUTO_MODELOS:AEREO_MODELOS;
-  document.getElementById('f-modelo').innerHTML='<option value="">-- Seleccioná --</option>'+ms.map(m=>`<option ${m===sel?'selected':''}>${m}</option>`).join('');
+// ── PRODUCTOS (multi + personalizado) ────────────────────────
+function modelosDe(prod){return prod==='Autoconsumo'?AUTO_MODELOS:AEREO_MODELOS;}
+function renderProdItems(){
+  const cont=document.getElementById('prod-container');
+  cont.innerHTML=prodItems.map((it,idx)=>{
+    let modeloField;
+    if(it.prod==='Personalizado'){
+      modeloField=`<input class="prod-modelo" placeholder="Escribí el producto..." value="${(it.libre||'').replace(/"/g,'&quot;')}" oninput="prodSetLibre(${idx},this.value)"/>`;
+    } else {
+      const ms=modelosDe(it.prod);
+      const opts=(it.modelo&&!ms.includes(it.modelo))?[it.modelo,...ms]:ms;
+      modeloField=`<select class="prod-modelo" onchange="prodSetModelo(${idx},this.value)"><option value="">-- Modelo --</option>${opts.map(m=>`<option ${m===it.modelo?'selected':''}>${m}</option>`).join('')}</select>`;
+    }
+    let extras='';
+    if(it.prod==='Silo Aéreo'&&it.modelo){
+      extras=`<div class="prod-extras">${[['35','Cono 35°'],['45','45°'],['55','55°']].map(([a,t])=>`<button type="button" class="opt-btn${(it.cono||'35')===a?' on':''}" onclick="prodSetCono(${idx},'${a}')">${t}</button>`).join('')}</div>`;
+    } else if(it.prod==='Autoconsumo'&&(it.modelo.startsWith('12 TN')||it.modelo.startsWith('18 TN'))){
+      extras=`<div class="prod-extras"><button type="button" class="opt-btn${it.fibra?' on':''}" onclick="prodToggleFibra(${idx})">${it.fibra?'✓ ':''}Incluye base de fibra</button></div>`;
+    }
+    return`<div class="prod-item">
+      <div class="prod-row">
+        <select class="prod-tipo" onchange="prodSetTipo(${idx},this.value)">
+          ${['Silo Aéreo','Autoconsumo','Personalizado'].map(p=>`<option ${p===it.prod?'selected':''}>${p}</option>`).join('')}
+        </select>
+        ${modeloField}
+        ${prodItems.length>1?`<button type="button" class="prod-del" onclick="prodQuitar(${idx})">✕</button>`:''}
+      </div>${extras}
+    </div>`;
+  }).join('');
 }
-function onProductoChange(){
-  conoSel='35';fibraSel=false;
-  llenarSelectModelos(document.getElementById('f-producto').value,'');
-  actualizarExtras();
+function prodSetTipo(i,v){prodItems[i]={prod:v,modelo:'',cono:'35',fibra:false,libre:''};renderProdItems();}
+function prodSetModelo(i,v){prodItems[i].modelo=v;renderProdItems();}
+function prodSetLibre(i,v){prodItems[i].libre=v;}
+function prodSetCono(i,v){prodItems[i].cono=v;renderProdItems();}
+function prodToggleFibra(i){prodItems[i].fibra=!prodItems[i].fibra;renderProdItems();}
+function prodQuitar(i){prodItems.splice(i,1);renderProdItems();}
+function prodAgregar(){prodItems.push({prod:'Silo Aéreo',modelo:'',cono:'35',fibra:false,libre:''});renderProdItems();}
+function itemModeloStr(it){
+  if(it.prod==='Personalizado')return it.libre||'';
+  if(!it.modelo)return '';
+  if(it.prod==='Silo Aéreo')return it.modelo+' · Cono '+(it.cono||'35')+'°';
+  if(it.prod==='Autoconsumo'&&(it.modelo.startsWith('12 TN')||it.modelo.startsWith('18 TN'))&&it.fibra)return it.modelo+' · Base de fibra';
+  return it.modelo;
 }
-function onModeloChange(){actualizarExtras();}
-function esModeloFibra(m){return m.startsWith('12 TN')||m.startsWith('18 TN');}
-function actualizarExtras(){
-  const prod=document.getElementById('f-producto').value;
-  const modelo=document.getElementById('f-modelo').value;
-  const box=document.getElementById('extras-box');
-  const lbl=document.getElementById('extras-label');
-  const opts=document.getElementById('extras-opts');
-  if(prod==='Silo Aéreo'&&modelo){
-    lbl.textContent='Tipo de cono / base';
-    opts.innerHTML=[['35','Cono estándar 35°'],['45','45°'],['55','55°']]
-      .map(([a,t])=>`<button type="button" class="opt-btn${conoSel===a?' on':''}" onclick="setCono('${a}')">${t}</button>`).join('');
-    box.style.display='block';
-  } else if(prod==='Autoconsumo'&&esModeloFibra(modelo)){
-    lbl.textContent='Opcional';
-    opts.innerHTML=`<button type="button" class="opt-btn${fibraSel?' on':''}" onclick="toggleFibra()">${fibraSel?'✓ ':''}Incluye base de fibra</button>`;
-    box.style.display='block';
-  } else {
-    box.style.display='none';
-  }
+function parseProdItem(prod,modeloFull){
+  prod=prod||'Silo Aéreo';
+  if(prod==='Personalizado')return{prod,modelo:'',cono:'35',fibra:false,libre:modeloFull||''};
+  if(!['Silo Aéreo','Autoconsumo','Personalizado'].includes(prod))prod=esAutoconsumo(prod,modeloFull)?'Autoconsumo':'Silo Aéreo';
+  const it={prod,modelo:'',cono:'35',fibra:false,libre:''};
+  const partes=(modeloFull||'').split(' · ');
+  it.modelo=partes[0]||'';
+  partes.slice(1).forEach(t=>{const c=t.match(/Cono\s*(\d+)/i);if(c)it.cono=c[1];if(/fibra/i.test(t))it.fibra=true;});
+  return it;
 }
-function setCono(a){conoSel=a;actualizarExtras();}
-function toggleFibra(){fibraSel=!fibraSel;actualizarExtras();}
-function modeloFinal(){
-  const prod=document.getElementById('f-producto').value;
-  const m=document.getElementById('f-modelo').value;
-  if(!m)return '';
-  if(prod==='Silo Aéreo')return m+' · Cono '+conoSel+'°';
-  if(prod==='Autoconsumo'&&esModeloFibra(m)&&fibraSel)return m+' · Base de fibra';
-  return m;
-}
-function cargarModeloEnForm(prod,modeloGuardado){
-  llenarSelectModelos(prod,'');
-  conoSel='35';fibraSel=false;
-  if(modeloGuardado){
-    const partes=modeloGuardado.split(' · ');
-    const base=partes[0];
-    const sel=document.getElementById('f-modelo');
-    if(![...sel.options].some(o=>o.value===base)){sel.insertAdjacentHTML('beforeend',`<option>${base}</option>`);}
-    sel.value=base;
-    partes.slice(1).forEach(t=>{
-      const cono=t.match(/Cono\s*(\d+)/i);if(cono)conoSel=cono[1];
-      if(/fibra/i.test(t))fibraSel=true;
-    });
-  }
-  actualizarExtras();
+function cargarProdItems(v){
+  let arr=productosDe(v);
+  if(!arr.length)arr=[{producto:'Silo Aéreo',modelo:''}];
+  prodItems=arr.map(a=>parseProdItem(a.producto,a.modelo));
+  renderProdItems();
 }
 
 // ── DATOS ────────────────────────────────────────────────────
@@ -564,51 +591,30 @@ async function cargarDatos(){
   if(ve){toast('⚠️ Error Supabase: '+ve.message);console.error(ve);}
   else{ventas=v||[];renderVentas();renderStats();renderPendientes();renderClientes();}
   const{data:vj,error:vje}=await sb.from('viajes').select('*').order('fecha');
-  if(!vje){viajesData=vj||[];renderViajes();renderProxFletes();renderFletesPublicos();}
+  if(!vje){viajesData=vj||[];renderViajes();renderProxFletes();}
   if(mapMapa)actMarkersMapa();
 }
 
 // ── INICIO ───────────────────────────────────────────────────
 function renderStats(){
-  const tot=ventas.length,pend=ventas.filter(v=>v.estado!=='Entregado').length;
   const ahora=new Date();
   const eM=ventas.filter(v=>{const d=new Date(v.created_at);return d.getMonth()===ahora.getMonth()&&d.getFullYear()===ahora.getFullYear();});
   const fact=eM.reduce((s,v)=>s+(parseFloat(v.precio)||0),0);
-  const clis=new Set(ventas.map(v=>v.cliente).filter(Boolean)).size;
-  const gan=ventas.reduce((s,v)=>s+(parseFloat(v.precio)||0)-(parseFloat(v.costo_producto)||0)-(parseFloat(v.costo_flete)||0),0);
-  const rp=fact>0?((gan/fact)*100).toFixed(1)+'%':'—';
+  const pend=ventas.filter(v=>v.estado!=='Entregado').length;
   document.getElementById('statsGrid').innerHTML=[
-    {val:tot,lbl:'Ventas totales'},{val:pend,lbl:'Pendientes',sub:pend?pend+' en curso':''},
-    {val:'$'+fNum(fact),lbl:'Facturado mes'},{val:clis,lbl:'Clientes activos'},
-    {val:viajesData.length,lbl:'Viajes activos'},{val:rp,lbl:'Rentabilidad mes'}
-  ].map(s=>`<div class="stat-card"><div class="stat-val">${s.val}</div><div class="stat-label">${s.lbl}</div>${s.sub?`<div class="stat-sub">${s.sub}</div>`:''}</div>`).join('');
+    {val:ventas.length,lbl:'Ventas totales'},
+    {val:pend,lbl:'Pendientes',sub:pend?pend+' en curso':''},
+    {val:'$'+fNum(fact),lbl:'Facturado mes'}
+  ].map(s=>`<div class="stat-card" onclick="ir('ventas')"><div class="stat-val">${s.val}</div><div class="stat-label">${s.lbl}</div>${s.sub?`<div class="stat-sub">${s.sub}</div>`:''}</div>`).join('');
 }
 function renderPendientes(){
-  const p=ventas.filter(v=>v.estado!=='Entregado').slice(0,6);
-  document.getElementById('pendientesList').innerHTML=p.length?p.map(v=>`<div class="pendiente-card" onclick="abrirEditar('${v.id}')"><div class="pc-info"><div class="pc-cli">${v.cliente||'—'}</div><div class="pc-sub">${v.producto||''} ${v.modelo||''} · ${v.localidad||''}</div></div><div>${eTag(v.estado)}</div></div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin pedidos pendientes</div>';
+  const p=ventas.filter(v=>v.estado!=='Entregado').slice(0,3);
+  document.getElementById('pendientesList').innerHTML=p.length?p.map(v=>`<div class="pendiente-card" onclick="abrirEditar('${v.id}')"><div class="pc-info"><div class="pc-cli">${v.cliente||'—'}</div><div class="pc-sub">${paradaTexto(v)} · ${v.localidad||''}</div></div><div>${eTag(v.estado)}</div></div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin pedidos pendientes</div>';
 }
 function renderProxFletes(){
   const hoy=new Date().toISOString().split('T')[0];
-  const p=viajesData.filter(v=>v.fecha>=hoy).slice(0,3);
+  const p=viajesData.filter(v=>v.fecha>=hoy).slice(0,1);
   document.getElementById('viajesList').innerHTML=p.length?p.map(v=>`<div class="viaje-prox" onclick="ir('flete')"><div style="display:flex;align-items:center"><div class="vp-nombre">🚛 ${v.nombre}</div>${v.publico?'<span class="flete-pub-badge">PUBLICADO</span>':''}</div><div class="vp-meta">📅 ${fFecha(v.fecha)}${v.km_real?' · '+v.km_real+' km':''}</div></div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin fletes programados</div>';
-}
-function renderFletesPublicos(){
-  const pub=viajesData.filter(v=>v.publico);
-  const el=document.getElementById('fletesPublicos');if(!el)return;
-  if(!pub.length){el.innerHTML='<div style="color:var(--text3);font-size:.78rem;padding:8px 0">No hay fletes publicados actualmente</div>';return;}
-  el.innerHTML=pub.map(vj=>{
-    const p=parsePar(vj.paradas_snap),oc=calcOcupacion(p);
-    const libre=Math.max(0,(1-oc)*100).toFixed(0);
-    const color=oc>=1?'var(--red)':oc>=0.75?'var(--yellow)':'var(--green)';
-    const pct=Math.min(oc*100,100);
-    return`<div class="viaje-prox" onclick="ir('flete');setTimeout(()=>switchFpTab('disponibles'),400)" style="border-color:#2a8c50">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <div class="vp-nombre">🚛 ${vj.nombre}</div><span style="font-size:.65rem;font-weight:700;color:${color}">${libre}% libre</span>
-      </div>
-      <div class="vp-meta">📅 ${fFecha(vj.fecha)} · ${p.length} paradas${vj.km_real?' · '+vj.km_real+' km':''}</div>
-      <div class="cap-bar-wrap" style="margin-top:6px"><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>
-    </div>`;
-  }).join('');
 }
 function renderFpDisponibles(){
   const pub=viajesData.filter(v=>v.publico);
@@ -637,9 +643,9 @@ function renderVentas(){
   let l=[...ventas];
   const q=(document.getElementById('buscar').value||'').toLowerCase();
   if(filterEstado)l=l.filter(v=>v.estado===filterEstado);
-  if(filterProd==='a')l=l.filter(v=>/aéreo|aereo|silo/i.test(v.producto||''));
-  if(filterProd==='c')l=l.filter(v=>/autoconsumo/i.test(v.producto||''));
-  if(q)l=l.filter(v=>(v.cliente||'').toLowerCase().includes(q)||(v.localidad||'').toLowerCase().includes(q)||(v.producto||'').toLowerCase().includes(q));
+  if(filterProd==='a')l=l.filter(v=>productosDe(v).some(a=>!esAutoconsumo(a.producto,a.modelo)));
+  if(filterProd==='c')l=l.filter(v=>productosDe(v).some(a=>esAutoconsumo(a.producto,a.modelo)));
+  if(q)l=l.filter(v=>(v.cliente||'').toLowerCase().includes(q)||(v.localidad||'').toLowerCase().includes(q)||paradaTexto(v).toLowerCase().includes(q));
   const s=document.getElementById('sortSelect').value;
   if(s==='Más antiguo')l.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
   else if(s==='Mayor precio')l.sort((a,b)=>(b.precio||0)-(a.precio||0));
@@ -648,9 +654,33 @@ function renderVentas(){
   else l.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
   document.getElementById('vCount').textContent=`${l.length} venta${l.length!==1?'s':''}`;
   const em='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">Sin resultados</div></div>';
-  document.getElementById('vtbody').innerHTML=l.length?l.map(v=>`<tr onclick="abrirEditar('${v.id}')" style="cursor:pointer"><td><strong>${v.cliente||'—'}</strong><br><span style="font-size:.68rem;color:var(--text3)">${v.cuit||''}</span></td><td>${v.producto||'—'} <span style="font-size:.68rem;color:var(--text3)">${v.modelo||''}</span></td><td>${v.localidad||'—'}</td><td style="color:var(--gold);font-weight:700">${v.precio?'$'+fNum(v.precio):'—'}</td><td>${eTag(v.estado)}</td><td style="font-size:.72rem">${fFecha(v.fecha_entrega)}</td><td><div class="act-btns"><button class="ab" onclick="event.stopPropagation();abrirEditar('${v.id}')">✏️</button><button class="ab del" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div></td></tr>`).join(''):`<tr><td colspan="7">${em}</td></tr>`;
-  document.getElementById('vcards').innerHTML=l.length?l.map(v=>`<div class="vcard" onclick="abrirEditar('${v.id}')"><div class="vcard-header"><div class="vcard-main"><div class="vcard-name">${v.cliente||'—'}</div><div style="margin-bottom:4px">${eTag(v.estado)}</div><div class="vcard-loc">📍 ${v.localidad||'—'} · ${v.producto||''} ${v.modelo||''}</div></div><div class="vcard-right"><div class="vcard-price">${v.precio?'$'+fNum(v.precio):'—'}</div></div></div><div class="vcard-footer"><div class="vcard-date">${v.fecha_entrega?'📅 '+fFecha(v.fecha_entrega):'Sin fecha'}</div><div class="vcard-actions"><button class="vcard-btn" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div></div></div>`).join(''):em;
+  document.getElementById('vtbody').innerHTML=l.length?l.map(v=>`<tr onclick="abrirEditar('${v.id}')" style="cursor:pointer"><td><strong>${v.cliente||'—'}</strong><br><span style="font-size:.68rem;color:var(--text3)">${v.cuit||''}</span></td><td>${productosTexto(v)}</td><td>${v.localidad||'—'}</td><td style="font-size:.74rem;color:var(--text2)">${v.costo_flete?'$'+fNum(v.costo_flete):'—'}</td><td style="color:var(--gold);font-weight:700">${v.precio?'$'+fNum(v.precio):'—'}</td><td><span onclick="menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></td><td style="font-size:.72rem">${fFecha(v.fecha_entrega)}</td><td><div class="act-btns"><button class="ab" onclick="event.stopPropagation();abrirEditar('${v.id}')">✏️</button><button class="ab del" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div></td></tr>`).join(''):`<tr><td colspan="8">${em}</td></tr>`;
+  document.getElementById('vcards').innerHTML=l.length?l.map(v=>`<div class="vcard" onclick="abrirEditar('${v.id}')"><div class="vcard-header"><div class="vcard-main"><div class="vcard-name">${v.cliente||'—'}</div><div style="margin-bottom:4px"><span onclick="menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></div><div class="vcard-loc">📍 ${v.localidad||'—'} · ${paradaTexto(v)}</div></div><div class="vcard-right"><div class="vcard-price">${v.precio?'$'+fNum(v.precio):'—'}</div>${v.costo_flete?`<div style="font-size:.66rem;color:var(--text3)">Flete $${fNum(v.costo_flete)}</div>`:''}</div></div><div class="vcard-footer"><div class="vcard-date">${v.fecha_entrega?'📅 '+fFecha(v.fecha_entrega):'Sin fecha'}</div><div class="vcard-actions"><button class="vcard-btn" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div></div></div>`).join(''):em;
 }
+
+// ── ESTADO RÁPIDO ────────────────────────────────────────────
+function menuEstado(ev,id){
+  ev.stopPropagation();
+  const m=document.getElementById('estadoMenu');
+  const ests=['Confirmado','En producción','Listo para entregar','En camino','Entregado'];
+  m.innerHTML=ests.map(e=>`<div class="em-item" onclick="setEstadoRapido('${id}','${e}')">${eTag(e)}</div>`).join('');
+  const r=ev.currentTarget.getBoundingClientRect();
+  m.style.display='block';
+  m.style.left=Math.min(r.left,window.innerWidth-230)+'px';
+  m.style.top=Math.min(r.bottom+4,window.innerHeight-280)+'px';
+}
+async function setEstadoRapido(id,est){
+  document.getElementById('estadoMenu').style.display='none';
+  const{error}=await sb.from('ventas').update({estado:est}).eq('id',id);
+  if(error){toast('Error: '+error.message);return;}
+  const v=ventas.find(x=>x.id===id);if(v)v.estado=est;
+  renderVentas();renderStats();renderPendientes();renderClientes();
+  toast('Estado actualizado ✓');
+}
+document.addEventListener('click',e=>{
+  const m=document.getElementById('estadoMenu');
+  if(m.style.display==='block'&&!m.contains(e.target)&&!e.target.closest('.etag'))m.style.display='none';
+});
 
 // ── VIAJES ───────────────────────────────────────────────────
 function renderViajes(){
@@ -659,39 +689,29 @@ function renderViajes(){
   el.innerHTML=viajesData.map(vj=>{
     const p=parsePar(vj.paradas_snap);
     const estaAbierto=viajeAbierto===vj.id;
-    const pubColor=vj.publico?'#2a8c50':'var(--border2)';
-    const pubBg=vj.publico?'#0d2e18':'var(--bg3)';
-    const pubTxt=vj.publico?'var(--green)':'var(--text3)';
+    const pubColor=vj.publico?'#2a8c50':'var(--border2)',pubBg=vj.publico?'#0d2e18':'var(--bg3)',pubTxt=vj.publico?'var(--green)':'var(--text3)';
     return`<div class="viaje-card${estaAbierto?' activo':''}" id="vjcard-${vj.id}" style="border-color:${estaAbierto?'var(--gold)':vj.publico?'#2a8c50':'var(--border)'}">
       <div class="viaje-header" onclick="toggleViaje('${vj.id}')" style="cursor:pointer">
         <span style="font-size:.8rem;color:${estaAbierto?'var(--gold)':'var(--text3)'};transition:transform .2s;display:inline-block;transform:rotate(${estaAbierto?'90':'0'}deg)">▶</span>
         <div class="viaje-info">
           <div class="viaje-nombre">🚛 ${vj.nombre}${vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div>
-          <div class="viaje-meta">
-            <span>${p.length} parada${p.length!==1?'s':''}</span>
-            ${vj.km_real?`<span class="viaje-km">📍 ${vj.km_real} km</span>`:''}
-            <span>📅 ${fFecha(vj.fecha)}</span>
-          </div>
+          <div class="viaje-meta"><span>${p.length} parada${p.length!==1?'s':''}</span>${vj.km_real?`<span class="viaje-km">📍 ${vj.km_real} km</span>`:''}<span>📅 ${fFecha(vj.fecha)}</span></div>
         </div>
         <button class="vbtn del" onclick="event.stopPropagation();eliminarViaje('${vj.id}')">✕</button>
       </div>
       <div class="viaje-body${estaAbierto?' open':''}" id="vbody-${vj.id}">
         ${estaAbierto?'<div class="ruta-cargando" id="ruta-status-'+vj.id+'">🗺️ Calculando ruta más corta...</div>':''}
-        ${p.length?p.map((x,i)=>`<div class="vp-item"><div class="vp-num">${i+1}</div><div class="vp-info"><div class="vp-cli">${x.cliente||x.nombre||'—'}</div><div class="vp-sub">${x.producto||''} ${x.modelo||''} · ${x.localidad||''}</div></div><button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.75rem;padding:3px" onclick="quitarDelViaje('${vj.id}',${i})">✕</button></div>`).join(''):'<div style="font-size:.72rem;color:var(--text3);padding:6px 0;text-align:center">Sin paradas — tocá "Agregar clientes"</div>'}
+        ${p.length?p.map((x,i)=>`<div class="vp-item"><div class="vp-num">${i+1}</div><div class="vp-info"><div class="vp-cli">${x.cliente||x.nombre||'—'}</div><div class="vp-sub">${paradaTexto(x)} · ${x.localidad||''}</div></div><button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.75rem;padding:3px" onclick="quitarDelViaje('${vj.id}',${i})">✕</button></div>`).join(''):'<div style="font-size:.72rem;color:var(--text3);padding:6px 0;text-align:center">Sin paradas — tocá "Agregar clientes"</div>'}
         ${barraCapacidad(p)}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px">
           <button class="bv" style="font-size:.68rem;padding:5px" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes</button>
           <button class="bp" style="font-size:.68rem;padding:5px" onclick="optimizarViaje('${vj.id}')">🎯 Optimizar</button>
-          <button style="background:${pubBg};border:1px solid ${pubColor};color:${pubTxt};border-radius:7px;font-size:.68rem;padding:5px;cursor:pointer;font-weight:600;font-family:inherit;grid-column:span 2" onclick="togglePublico('${vj.id}',${!vj.publico})">
-            ${vj.publico?'✅ Publicado — tocá para ocultar':'📢 Publicar flete disponible'}
-          </button>
+          <button style="background:${pubBg};border:1px solid ${pubColor};color:${pubTxt};border-radius:7px;font-size:.68rem;padding:5px;cursor:pointer;font-weight:600;font-family:inherit;grid-column:span 2" onclick="togglePublico('${vj.id}',${!vj.publico})">${vj.publico?'✅ Publicado — tocá para ocultar':'📢 Publicar flete disponible'}</button>
         </div>
       </div>
     </div>`;
   }).join('');
 }
-
-// ── ACORDEÓN + AUTO-RUTA ─────────────────────────────────────
 function toggleViaje(id){
   const yaAbierto=viajeAbierto===id;
   viajeAbierto=yaAbierto?null:id;
@@ -706,7 +726,6 @@ function toggleViaje(id){
     const ri=document.getElementById('ruta-info');if(ri)ri.style.display='none';
   }
 }
-
 async function eliminarViaje(id){
   if(!confirm('¿Eliminar este viaje?'))return;
   const{error}=await sb.from('viajes').delete().eq('id',id);
@@ -715,15 +734,13 @@ async function eliminarViaje(id){
   if(viajeAbierto===id)viajeAbierto=null;
   renderViajes();renderProxFletes();toast('Viaje eliminado');
 }
-
 async function togglePublico(id,val){
   const{error}=await sb.from('viajes').update({publico:val}).eq('id',id);
   if(error){toast('Error: '+error.message);return;}
   const vj=viajesData.find(v=>v.id===id);if(vj)vj.publico=val;
-  renderViajes();renderFletesPublicos();
+  renderViajes();
   toast(val?'✅ Flete publicado — visible para todos los vendedores':'Flete ocultado');
 }
-
 async function quitarDelViaje(vjId,idx){
   const vj=viajesData.find(v=>v.id===vjId);if(!vj)return;
   const paradas=parsePar(vj.paradas_snap);
@@ -732,72 +749,53 @@ async function quitarDelViaje(vjId,idx){
   const{error}=await sb.from('viajes').update({paradas_snap:paradas,pedido_ids}).eq('id',vjId);
   if(error){toast('Error: '+error.message);return;}
   vj.paradas_snap=paradas;vj.pedido_ids=pedido_ids;
-  renderViajes();
-  setTimeout(()=>mostrarRutaViaje(vjId),100);
-  toast('Cliente quitado del viaje');
+  renderViajes();setTimeout(()=>mostrarRutaViaje(vjId),100);toast('Cliente quitado del viaje');
 }
-
 function exportarViaje(id){
   const vj=viajesData.find(v=>v.id===id);if(!vj)return;
   const p=parsePar(vj.paradas_snap),oc=calcOcupacion(p);
   let t=`*🚛 ${vj.nombre}*\n📅 ${fFecha(vj.fecha)}\n🏭 Salida: Remeco, La Pampa\n\n`;
-  p.forEach((x,i)=>{t+=`${i+1}. *${x.cliente||x.nombre||'—'}*\n   ${x.producto||''} ${x.modelo||''} · ${x.localidad||''}\n\n`;});
+  p.forEach((x,i)=>{t+=`${i+1}. *${x.cliente||x.nombre||'—'}*\n   ${paradaTexto(x)} · ${x.localidad||''}\n\n`;});
   if(vj.km_real)t+=`📍 Total ida: ${vj.km_real} km\n`;
   t+=`📦 Capacidad: ${Math.round(oc*100)}% (${Math.ceil(oc)} camión${Math.ceil(oc)>1?'es':''})`;
   navigator.clipboard.writeText(t).then(()=>toast('Copiado para WhatsApp ✓')).catch(()=>alert(t));
 }
 function exportarTodos(){if(viajeAbierto)exportarViaje(viajeAbierto);else if(viajesData.length)exportarViaje(viajesData[0].id);else toast('Sin viajes');}
 
-// ── Helper: clientes que YA están en el viaje (ids + nombres) ──
+// ── Helpers exclusión ────────────────────────────────────────
 function setClientesEnViaje(vj){
   const paradasArr=parsePar(vj?.paradas_snap||[]);
   const ids=new Set([...(vj?.pedido_ids||[]).map(String),...paradasArr.map(x=>String(x.id)).filter(Boolean)]);
   const nombres=new Set(paradasArr.map(x=>(x.cliente||'').trim().toLowerCase()).filter(Boolean));
   return{ids,nombres};
 }
-function noEstaEnViaje(v,enViaje){
-  return !enViaje.ids.has(String(v.id)) && !enViaje.nombres.has((v.cliente||'').trim().toLowerCase());
-}
+function noEstaEnViaje(v,enViaje){return !enViaje.ids.has(String(v.id))&&!enViaje.nombres.has((v.cliente||'').trim().toLowerCase());}
 
-// ── OPTIMIZAR: clientes cerca de la ruta ─────────────────────
+// ── OPTIMIZAR ────────────────────────────────────────────────
 function optimizarViaje(id){
   const vj=viajesData.find(v=>v.id===id);if(!vj)return;
   if(typeof google==='undefined'){toast('El mapa todavía no cargó');return;}
   const paradas=parsePar(vj.paradas_snap).filter(x=>x.lat&&x.lng);
   if(!paradas.length){toast('Agregá al menos una parada con ubicación marcada');return;}
-
   let idxDest=0,maxD=-1;
   paradas.forEach((p,i)=>{const d=distKm(FAB_LAT,FAB_LNG,parseFloat(p.lat),parseFloat(p.lng));if(d>maxD){maxD=d;idxDest=i;}});
-  const destPar=paradas[idxDest];
-  const rest=paradas.filter((_,i)=>i!==idxDest);
+  const destPar=paradas[idxDest],rest=paradas.filter((_,i)=>i!==idxDest);
   const destination={lat:parseFloat(destPar.lat),lng:parseFloat(destPar.lng)};
   const waypoints=rest.map(p=>({location:{lat:parseFloat(p.lat),lng:parseFloat(p.lng)},stopover:true}));
-
   toast('🎯 Buscando clientes cerca de la ruta...');
-  new google.maps.DirectionsService().route({
-    origin:FABRICA,destination,waypoints,
-    optimizeWaypoints:true,provideRouteAlternatives:false,
-    travelMode:google.maps.TravelMode.DRIVING,region:'ar'
-  },(res,status)=>{
+  new google.maps.DirectionsService().route({origin:FABRICA,destination,waypoints,optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{
     if(status!=='OK'){toast('No se pudo calcular la ruta: '+status);return;}
     const path=res.routes[0].overview_path.map(p=>({lat:p.lat(),lng:p.lng()}));
     const enViaje=setClientesEnViaje(vj);
-
     const cand=ventas.filter(v=>v.estado!=='Entregado'&&v.lat&&v.lng&&noEstaEnViaje(v,enViaje)).map(v=>{
       const la=parseFloat(v.lat),ln=parseFloat(v.lng);
-      const lateral=distAlPath(la,ln,path);
-      const adelante=distKm(destination.lat,destination.lng,la,ln);
+      const lateral=distAlPath(la,ln,path),adelante=distKm(destination.lat,destination.lng,la,ln);
       return {...v,_dist:Math.round(lateral),_ade:Math.round(adelante)};
-    }).filter(v=> v._dist<=RADIO_COSTADO || v._ade<=RADIO_ADELANTE )
-      .sort((a,b)=>a._dist-b._dist);
-
-    agregarViajeId=id;
-    agregarVentasSeleccionadas=new Set();
-    agregarVentasDisponibles=cand;
+    }).filter(v=>v._dist<=RADIO_COSTADO||v._ade<=RADIO_ADELANTE).sort((a,b)=>a._dist-b._dist);
+    agregarViajeId=id;agregarVentasSeleccionadas=new Set();agregarVentasDisponibles=cand;
     document.getElementById('agregar-viaje-nombre').textContent=`Viaje: ${vj.nombre}${vj.km_real?' · '+vj.km_real+' km':''}`;
     document.getElementById('agregar-buscar').value='';
-    document.getElementById('agregar-hint').innerHTML=
-      `🎯 <strong>${cand.length}</strong> clientes a ≤${RADIO_COSTADO} km al costado de la ruta, o ≤${RADIO_ADELANTE} km más adelante`;
+    document.getElementById('agregar-hint').innerHTML=`🎯 <strong>${cand.length}</strong> clientes a ≤${RADIO_COSTADO} km al costado de la ruta, o ≤${RADIO_ADELANTE} km más adelante`;
     renderListaAgregar(cand,true);
     document.getElementById('overlayAgregar').classList.add('on');
   });
@@ -821,24 +819,15 @@ function renderListaAgregar(lista,mostrarDist){
   el.innerHTML=lista.map(v=>{
     const sel=agregarVentasSeleccionadas.has(v.id);
     let info='';
-    if(mostrarDist&&v._dist!=null){
-      info=(v._dist<=RADIO_COSTADO)
-        ? ` · <strong style="color:var(--gold)">${v._dist} km al costado</strong>`
-        : ` · <span class="tag-ade">${v._ade} km adelante</span>`;
-    }
+    if(mostrarDist&&v._dist!=null){info=(v._dist<=RADIO_COSTADO)?` · <strong style="color:var(--gold)">${v._dist} km al costado</strong>`:` · <span class="tag-ade">${v._ade} km adelante</span>`;}
     return`<div class="checkrow${sel?' sel':''}" onclick="toggleSelAgregar('${v.id}')">
       <input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelAgregar('${v.id}')"/>
-      <div style="flex:1;min-width:0">
-        <div style="font-weight:700;font-size:.8rem">${v.cliente||'—'}</div>
-        <div style="font-size:.67rem;color:var(--text3);margin-top:1px">${v.producto||''} ${v.modelo||''} · ${v.localidad||''}${info}</div>
-        ${eTag(v.estado)}
-      </div>
+      <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.8rem">${v.cliente||'—'}</div><div style="font-size:.67rem;color:var(--text3);margin-top:1px">${paradaTexto(v)} · ${v.localidad||''}${info}</div>${eTag(v.estado)}</div>
     </div>`;
   }).join('');
 }
 function toggleSelAgregar(id){
-  if(agregarVentasSeleccionadas.has(id))agregarVentasSeleccionadas.delete(id);
-  else agregarVentasSeleccionadas.add(id);
+  if(agregarVentasSeleccionadas.has(id))agregarVentasSeleccionadas.delete(id);else agregarVentasSeleccionadas.add(id);
   const q=document.getElementById('agregar-buscar').value.toLowerCase();
   const mostrarDist=agregarVentasDisponibles.some(v=>v._dist!=null);
   let lista=agregarVentasDisponibles;
@@ -853,27 +842,17 @@ function mostrarTodosAgregar(){
   agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&noEstaEnViaje(v,enViaje));
   renderListaAgregar(agregarVentasDisponibles,false);
 }
-document.addEventListener('DOMContentLoaded',()=>{
-  const inp=document.getElementById('agregar-buscar');
-  if(inp)inp.addEventListener('input',()=>{
-    const q=inp.value.toLowerCase();
-    const mostrarDist=agregarVentasDisponibles.some(v=>v._dist!=null);
-    renderListaAgregar(agregarVentasDisponibles.filter(v=>(v.cliente||'').toLowerCase().includes(q)||(v.localidad||'').toLowerCase().includes(q)),mostrarDist);
-  });
-});
 async function confirmarAgregar(){
   if(!agregarVentasSeleccionadas.size){toast('Seleccioná al menos una venta');return;}
   const vj=viajesData.find(v=>v.id===agregarViajeId);if(!vj)return;
   const paradasActuales=parsePar(vj.paradas_snap);
   const nuevas=ventas.filter(v=>agregarVentasSeleccionadas.has(v.id));
-  const paradasNuevas=[...paradasActuales,...nuevas.map(v=>({cliente:v.cliente,producto:v.producto,modelo:v.modelo,localidad:v.localidad,lat:v.lat,lng:v.lng,id:v.id}))];
+  const paradasNuevas=[...paradasActuales,...nuevas.map(v=>({cliente:v.cliente,producto:v.producto,modelo:v.modelo,productos:v.productos||null,localidad:v.localidad,lat:v.lat,lng:v.lng,id:v.id}))];
   const pedido_ids=[...(vj.pedido_ids||[]),...nuevas.map(v=>v.id)];
   const{error}=await sb.from('viajes').update({paradas_snap:paradasNuevas,pedido_ids}).eq('id',agregarViajeId);
   if(error){toast('Error: '+error.message);return;}
   vj.paradas_snap=paradasNuevas;vj.pedido_ids=pedido_ids;
-  cerrarAgregar();
-  viajeAbierto=agregarViajeId;
-  renderViajes();
+  cerrarAgregar();viajeAbierto=agregarViajeId;renderViajes();
   setTimeout(()=>mostrarRutaViaje(agregarViajeId),200);
   toast(`✓ ${nuevas.length} cliente${nuevas.length>1?'s':''} agregado${nuevas.length>1?'s':''} al viaje`);
 }
@@ -881,13 +860,14 @@ function cerrarAgregar(){document.getElementById('overlayAgregar').classList.rem
 
 // ── CRUD VENTAS ──────────────────────────────────────────────
 async function guardarVenta(){
+  const productos=prodItems.map(it=>({producto:it.prod,modelo:itemModeloStr(it)})).filter(p=>p.modelo);
   const data={
     cliente:document.getElementById('f-cliente').value.trim(),
     telefono:document.getElementById('f-telefono').value.trim(),
     cuit:document.getElementById('f-cuit').value.trim(),
-    zona:document.getElementById('f-zona').value.trim(),
-    producto:document.getElementById('f-producto').value,
-    modelo:modeloFinal(),
+    producto:productos[0]?.producto||(prodItems[0]?.prod||'Silo Aéreo'),
+    modelo:productos[0]?.modelo||'',
+    productos:productos,
     precio:parseFloat(document.getElementById('f-precio').value)||null,
     costo_producto:parseFloat(document.getElementById('f-costo-producto').value)||null,
     costo_flete:parseFloat(document.getElementById('f-costo-flete').value)||null,
@@ -921,10 +901,11 @@ async function guardarNuevoViaje(){
 function abrirNueva(){
   editId=null;modalLat=null;modalLng=null;
   document.getElementById('modalTitle').textContent='Nueva venta';
-  ['f-cliente','f-telefono','f-cuit','f-zona','f-precio','f-costo-producto','f-costo-flete','f-fecha-entrega','f-localidad','f-notas'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('f-producto').value='Silo Aéreo';
+  ['f-cliente','f-telefono','f-cuit','f-precio','f-costo-producto','f-costo-flete','f-fecha-entrega','f-localidad','f-notas'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-estado').value='Confirmado';
-  cargarModeloEnForm('Silo Aéreo','');
+  prodItems=[{prod:'Silo Aéreo',modelo:'',cono:'35',fibra:false,libre:''}];
+  renderProdItems();
+  if(modalMarker)modalMarker.setVisible(false);
   document.getElementById('overlay').classList.add('on');
   setTimeout(()=>{if(mapModal)google.maps.event.trigger(mapModal,'resize');},200);
 }
@@ -933,9 +914,8 @@ function abrirEditar(id){
   editId=id;modalLat=v.lat;modalLng=v.lng;
   document.getElementById('modalTitle').textContent='Editar venta';
   document.getElementById('f-cliente').value=v.cliente||'';document.getElementById('f-telefono').value=v.telefono||'';
-  document.getElementById('f-cuit').value=v.cuit||'';document.getElementById('f-zona').value=v.zona||'';
-  document.getElementById('f-producto').value=v.producto||'Silo Aéreo';
-  cargarModeloEnForm(v.producto||'Silo Aéreo',v.modelo||'');
+  document.getElementById('f-cuit').value=v.cuit||'';
+  cargarProdItems(v);
   document.getElementById('f-precio').value=v.precio||'';document.getElementById('f-costo-producto').value=v.costo_producto||'';
   document.getElementById('f-costo-flete').value=v.costo_flete||'';document.getElementById('f-estado').value=v.estado||'Confirmado';
   document.getElementById('f-fecha-entrega').value=v.fecha_entrega||'';document.getElementById('f-localidad').value=v.localidad||'';
@@ -943,7 +923,9 @@ function abrirEditar(id){
   document.getElementById('overlay').classList.add('on');
   setTimeout(()=>{
     if(mapModal){google.maps.event.trigger(mapModal,'resize');
-      if(modalLat&&modalLng){const pos={lat:parseFloat(modalLat),lng:parseFloat(modalLng)};mapModal.setCenter(pos);mapModal.setZoom(12);if(modalMarker){modalMarker.setPosition(pos);modalMarker.setVisible(true);}}}
+      if(modalLat&&modalLng){const pos={lat:parseFloat(modalLat),lng:parseFloat(modalLng)};mapModal.setCenter(pos);mapModal.setZoom(12);if(modalMarker){modalMarker.setPosition(pos);modalMarker.setVisible(true);}}
+      else if(modalMarker)modalMarker.setVisible(false);
+    }
   },200);
 }
 function cerrarModal(){document.getElementById('overlay').classList.remove('on');editId=null;}
@@ -975,7 +957,7 @@ function verCliente(i){
     <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">${[{v:cv.length,l:'ventas'},{v:ent,l:'entregadas'},{v:'$'+fNum(fact),l:'facturado'}].map(x=>`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:9px 13px;min-width:80px"><div style="font-size:1rem;font-weight:900;color:var(--gold)">${x.v}</div><div style="font-size:.65rem;color:var(--text3);margin-top:1px">${x.l}</div></div>`).join('')}</div>
     <div class="rent-card"><div class="rent-title">📊 Rentabilidad</div><div class="rent-row"><span>Precio de venta</span><span>$${fNum(fact)}</span></div><div class="rent-row"><span>Costo producto</span><span style="color:var(--red)">- $${fNum(cp)}</span></div><div class="rent-row"><span>Costo flete</span><span style="color:var(--red)">- $${fNum(cf)}</span></div><div class="rent-row"><span>Ganancia neta</span><span style="color:var(--green)">$${fNum(gan)} (${rp}%)</span></div></div>
     <div class="inicio-stitle" style="margin-bottom:8px;margin-top:4px">Historial</div>
-    ${cv.map(v=>`<div class="pendiente-card" onclick="abrirEditar('${v.id}')"><div class="pc-info"><div class="pc-cli">${v.producto||'—'} ${v.modelo||''}</div><div class="pc-sub">${v.localidad||''} · ${fFecha(v.fecha_entrega)}</div></div><div style="text-align:right">${eTag(v.estado)}<div style="font-size:.78rem;font-weight:700;color:var(--gold);margin-top:4px">${v.precio?'$'+fNum(v.precio):''}</div></div></div>`).join('')}`;
+    ${cv.map(v=>`<div class="pendiente-card" onclick="abrirEditar('${v.id}')"><div class="pc-info"><div class="pc-cli">${paradaTexto(v)}</div><div class="pc-sub">${v.localidad||''} · ${fFecha(v.fecha_entrega)}</div></div><div style="text-align:right">${eTag(v.estado)}<div style="font-size:.78rem;font-weight:700;color:var(--gold);margin-top:4px">${v.precio?'$'+fNum(v.precio):''}</div></div></div>`).join('')}`;
 }
 
 // ── GOOGLE MAPS ───────────────────────────────────────────────
@@ -986,12 +968,24 @@ function initMaps(){
     modalMarker=new google.maps.Marker({map:mapModal,draggable:true,visible:false});
     mapModal.addListener('click',e=>{modalLat=e.latLng.lat();modalLng=e.latLng.lng();modalMarker.setPosition(e.latLng);modalMarker.setVisible(true);});
     modalMarker.addListener('dragend',e=>{modalLat=e.latLng.lat();modalLng=e.latLng.lng();});
+    // Autocomplete de Localidad
+    const locInp=document.getElementById('f-localidad');
+    if(locInp){
+      locAutocomplete=new google.maps.places.Autocomplete(locInp,{componentRestrictions:{country:'ar'}});
+      locAutocomplete.addListener('place_changed',()=>{
+        const pl=locAutocomplete.getPlace();
+        if(pl.geometry){
+          modalLat=pl.geometry.location.lat();modalLng=pl.geometry.location.lng();
+          mapModal.setCenter(pl.geometry.location);mapModal.setZoom(11);
+          modalMarker.setPosition(pl.geometry.location);modalMarker.setVisible(true);
+        }
+      });
+    }
   }
   if(document.getElementById('page-mapa').classList.contains('on'))initMapaMapa();
   if(document.getElementById('page-flete').classList.contains('on'))initMapaFlete();
   if(document.getElementById('page-simular').classList.contains('on'))initMapaSim();
 }
-
 function initMapaMapa(){
   if(mapMapa){actMarkersMapa();return;}
   const el=document.getElementById('map-mapa');if(!el||typeof google==='undefined')return;
@@ -1008,60 +1002,35 @@ function actMarkersMapa(){
   ventas.forEach(v=>{
     if(!v.lat||!v.lng)return;
     const mk=new google.maps.Marker({position:{lat:parseFloat(v.lat),lng:parseFloat(v.lng)},map:mapMapa,title:v.cliente,icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:COL[v.estado]||'#c9a840',fillOpacity:1,strokeColor:'#fff',strokeWeight:2,scale:9}});
-    const iw=new google.maps.InfoWindow({content:`<div style="font-family:sans-serif;min-width:150px"><strong>${v.cliente}</strong><br>${v.producto||''} ${v.modelo||''}<br>📍 ${v.localidad||''}<br><span style="color:${COL[v.estado]||'#333'}">${v.estado||''}</span><br>${v.precio?'<strong>$'+fNum(v.precio)+'</strong>':''}${v.fecha_entrega?'<br>📅 '+fFecha(v.fecha_entrega):''}</div>`});
+    const iw=new google.maps.InfoWindow({content:`<div style="font-family:sans-serif;min-width:150px"><strong>${v.cliente}</strong><br>${paradaTexto(v)}<br>📍 ${v.localidad||''}<br><span style="color:${COL[v.estado]||'#333'}">${v.estado||''}</span><br>${v.precio?'<strong>$'+fNum(v.precio)+'</strong>':''}${v.fecha_entrega?'<br>📅 '+fFecha(v.fecha_entrega):''}</div>`});
     mk.addListener('click',()=>iw.open(mapMapa,mk));markersArr.push(mk);
   });
 }
-
 function initMapaFlete(){
   if(mapFlete)return;
   const el=document.getElementById('map-flete');if(!el||typeof google==='undefined')return;
   mapFlete=new google.maps.Map(el,{center:{lat:FAB_LAT,lng:FAB_LNG},zoom:6,mapTypeId:'roadmap'});
   directionsRenderer=new google.maps.DirectionsRenderer({map:mapFlete,suppressMarkers:false,polylineOptions:{strokeColor:'#4a90d9',strokeWeight:5}});
 }
-
 function mostrarRutaViaje(id){
   if(!mapFlete||!directionsRenderer)return;
   directionsRenderer.setDirections({routes:[]});
   const ri=document.getElementById('ruta-info');if(ri)ri.style.display='none';
-
   const vj=viajesData.find(v=>v.id===id);if(!vj)return;
   const paradas=parsePar(vj.paradas_snap);
   const st=document.getElementById('ruta-status-'+id);
-
-  if(!paradas.length){
-    if(st){st.textContent='Sin paradas — agregá clientes';st.style.background='#2a1010';st.style.color='var(--red)';}
-    return;
-  }
-
-  const aLoc=p=>{
-    if(p.lat&&p.lng)return{lat:parseFloat(p.lat),lng:parseFloat(p.lng)};
-    if(p.localidad)return p.localidad+', Argentina';
-    return null;
-  };
+  if(!paradas.length){if(st){st.textContent='Sin paradas — agregá clientes';st.style.background='#2a1010';st.style.color='var(--red)';}return;}
+  const aLoc=p=>{if(p.lat&&p.lng)return{lat:parseFloat(p.lat),lng:parseFloat(p.lng)};if(p.localidad)return p.localidad+', Argentina';return null;};
   const conLoc=paradas.map(p=>({parada:p,loc:aLoc(p),coords:(p.lat&&p.lng)?{lat:parseFloat(p.lat),lng:parseFloat(p.lng)}:null})).filter(x=>x.loc);
-  if(!conLoc.length){
-    if(st){st.textContent='⚠️ Las paradas no tienen localidad ni coordenadas';st.style.background='#2a1010';st.style.color='var(--red)';}
-    return;
-  }
-
+  if(!conLoc.length){if(st){st.textContent='⚠️ Las paradas no tienen localidad ni coordenadas';st.style.background='#2a1010';st.style.color='var(--red)';}return;}
   let idxDest=conLoc.length-1,maxD=-1;
   conLoc.forEach((x,i)=>{if(x.coords){const d=distKm(FAB_LAT,FAB_LNG,x.coords.lat,x.coords.lng);if(d>maxD){maxD=d;idxDest=i;}}});
-  const destItem=conLoc[idxDest];
-  const restItems=conLoc.filter((_,i)=>i!==idxDest);
-  const destination=destItem.loc;
-  const waypoints=restItems.map(x=>({location:x.loc,stopover:true}));
-
+  const destItem=conLoc[idxDest],restItems=conLoc.filter((_,i)=>i!==idxDest);
+  const destination=destItem.loc,waypoints=restItems.map(x=>({location:x.loc,stopover:true}));
   if(st){st.textContent='🗺️ Calculando ruta más corta...';st.style.background='#1a2c40';st.style.color='var(--gold)';}
-
-  new google.maps.DirectionsService().route({
-    origin:FABRICA,destination,waypoints,
-    optimizeWaypoints:true,provideRouteAlternatives:false,
-    travelMode:google.maps.TravelMode.DRIVING,region:'ar'
-  },(res,status)=>{
+  new google.maps.DirectionsService().route({origin:FABRICA,destination,waypoints,optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{
     if(status==='OK'){
-      directionsRenderer.setDirections(res);
-      directionsRenderer.setRouteIndex(0);
+      directionsRenderer.setDirections(res);directionsRenderer.setRouteIndex(0);
       const km=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
       const mins=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.duration.value,0)/60);
       const hrs=Math.floor(mins/60),minR=mins%60,tiempoStr=hrs>0?`${hrs}h ${minR}m`:`${minR}m`;
@@ -1072,10 +1041,8 @@ function mostrarRutaViaje(id){
       if(orden&&orden.length){paradasOrden=orden.map(i=>restItems[i].parada);paradasOrden.push(destItem.parada);}
       else{paradasOrden=[...restItems.map(x=>x.parada),destItem.parada];}
       sb.from('viajes').update({km_real:km,paradas_snap:paradasOrden}).eq('id',id).then(()=>{
-        const vj2=viajesData.find(v=>v.id===id);
-        if(vj2){vj2.km_real=km;vj2.paradas_snap=paradasOrden;}
-        const kmSpan=document.querySelector(`#vjcard-${id} .viaje-km`);
-        if(kmSpan)kmSpan.textContent=`📍 ${km} km`;
+        const vj2=viajesData.find(v=>v.id===id);if(vj2){vj2.km_real=km;vj2.paradas_snap=paradasOrden;}
+        const kmSpan=document.querySelector(`#vjcard-${id} .viaje-km`);if(kmSpan)kmSpan.textContent=`📍 ${km} km`;
       });
     } else {
       if(ri){ri.textContent='No se pudo calcular la ruta ('+status+')';ri.style.display='block';}
@@ -1083,7 +1050,6 @@ function mostrarRutaViaje(id){
     }
   });
 }
-
 function initMapaSim(){
   if(simMap)return;
   const el=document.getElementById('map-sim');if(!el||typeof google==='undefined')return;
@@ -1094,59 +1060,35 @@ function initMapaSim(){
   ac.addListener('place_changed',()=>{
     const pl=ac.getPlace();if(!pl.geometry)return;
     simParadas.push({nombre:pl.name||inp.value,lat:pl.geometry.location.lat(),lng:pl.geometry.location.lng()});
-    inp.value='';renderSimParadas();
-    if(simParadas.length>=1)calcularRutaSim();
+    inp.value='';renderSimParadas();if(simParadas.length>=1)calcularRutaSim();
   });
 }
-
 function renderSimParadas(){
   const el=document.getElementById('sim-body');
-  if(!simParadas.length){
-    el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">Escribí una localidad para agregar paradas.<br>La ruta parte desde la fábrica en La Pampa.</div>';
-    document.getElementById('sim-total').textContent='0';return;
-  }
+  if(!simParadas.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">Escribí una localidad para agregar paradas.<br>La ruta parte desde la fábrica en La Pampa.</div>';document.getElementById('sim-total').textContent='0';return;}
   el.innerHTML=`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:7px;padding:7px 10px;margin-bottom:4px;display:flex;align-items:center;gap:7px;opacity:.7"><div class="vp-num">🏭</div><div style="font-weight:700;font-size:.75rem;color:var(--text3)">Remeco – La Pampa (origen fijo)</div></div>`+
   simParadas.map((p,i)=>`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:7px;padding:7px 10px;margin-bottom:4px;display:flex;align-items:center;gap:7px"><div class="vp-num">${i+1}</div><div style="flex:1;font-weight:700;font-size:.78rem">${p.nombre}</div><button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.82rem;padding:3px" onclick="eliminarParadaSim(${i})">✕</button></div>`).join('');
 }
-function eliminarParadaSim(i){
-  simParadas.splice(i,1);renderSimParadas();
-  if(simParadas.length>=1)calcularRutaSim();
-  else{if(simDirRenderer)simDirRenderer.setDirections({routes:[]});document.getElementById('sim-total').textContent='0';const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';}
-}
-function limpiarSim(){
-  simParadas=[];renderSimParadas();
-  if(simDirRenderer)simDirRenderer.setDirections({routes:[]});
-  document.getElementById('sim-total').textContent='0';
-  const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';
-}
-
+function eliminarParadaSim(i){simParadas.splice(i,1);renderSimParadas();if(simParadas.length>=1)calcularRutaSim();else{if(simDirRenderer)simDirRenderer.setDirections({routes:[]});document.getElementById('sim-total').textContent='0';const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';}}
+function limpiarSim(){simParadas=[];renderSimParadas();if(simDirRenderer)simDirRenderer.setDirections({routes:[]});document.getElementById('sim-total').textContent='0';const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';}
 function calcularRutaSim(){
   if(!simMap||!simDirRenderer||!simParadas.length)return;
   simDirRenderer.setDirections({routes:[]});
   let idxDest=simParadas.length-1,maxD=-1;
   simParadas.forEach((p,i)=>{const d=distKm(FAB_LAT,FAB_LNG,p.lat,p.lng);if(d>maxD){maxD=d;idxDest=i;}});
-  const destPar=simParadas[idxDest];
-  const rest=simParadas.filter((_,i)=>i!==idxDest);
-  const destination={lat:destPar.lat,lng:destPar.lng};
-  const waypoints=rest.map(p=>({location:{lat:p.lat,lng:p.lng},stopover:true}));
-  new google.maps.DirectionsService().route({
-    origin:FABRICA,destination,waypoints,
-    optimizeWaypoints:true,provideRouteAlternatives:false,
-    travelMode:google.maps.TravelMode.DRIVING,region:'ar'
-  },(res,status)=>{
+  const destPar=simParadas[idxDest],rest=simParadas.filter((_,i)=>i!==idxDest);
+  const destination={lat:destPar.lat,lng:destPar.lng},waypoints=rest.map(p=>({location:{lat:p.lat,lng:p.lng},stopover:true}));
+  new google.maps.DirectionsService().route({origin:FABRICA,destination,waypoints,optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{
     if(status==='OK'){
-      simDirRenderer.setDirections(res);
-      simDirRenderer.setRouteIndex(0);
+      simDirRenderer.setDirections(res);simDirRenderer.setRouteIndex(0);
       const km=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
       const mins=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.duration.value,0)/60);
       const hrs=Math.floor(mins/60),minR=mins%60,tiempoStr=hrs>0?`${hrs}h ${minR}m`:`${minR}m`;
       document.getElementById('sim-total').textContent=km;
-      const si=document.getElementById('sim-ruta-info');
-      if(si){si.textContent=`🚛 Ida: ${km} km · ${tiempoStr}`;si.style.display='block';}
+      const si=document.getElementById('sim-ruta-info');if(si){si.textContent=`🚛 Ida: ${km} km · ${tiempoStr}`;si.style.display='block';}
       const orden=res.routes[0].waypoint_order;
       let nuevas;
-      if(orden&&orden.length){nuevas=orden.map(i=>rest[i]);nuevas.push(destPar);}
-      else{nuevas=[...rest,destPar];}
+      if(orden&&orden.length){nuevas=orden.map(i=>rest[i]);nuevas.push(destPar);}else{nuevas=[...rest,destPar];}
       simParadas=nuevas;renderSimParadas();
     } else {toast('No se pudo calcular la ruta: '+status);}
   });
@@ -1155,6 +1097,11 @@ function calcularRutaSim(){
 // ── EVENTOS ───────────────────────────────────────────────────
 document.getElementById('buscar').addEventListener('input',()=>renderVentas());
 document.getElementById('sortSelect').addEventListener('change',()=>renderVentas());
+document.getElementById('agregar-buscar').addEventListener('input',function(){
+  const q=this.value.toLowerCase();
+  const mostrarDist=agregarVentasDisponibles.some(v=>v._dist!=null);
+  renderListaAgregar(agregarVentasDisponibles.filter(v=>(v.cliente||'').toLowerCase().includes(q)||(v.localidad||'').toLowerCase().includes(q)),mostrarDist);
+});
 document.querySelectorAll('.chip').forEach(chip=>{
   chip.addEventListener('click',()=>{
     if(chip.dataset.estado!==undefined){document.querySelectorAll('.chip[data-estado]').forEach(c=>c.classList.remove('on'));chip.classList.add('on');filterEstado=chip.dataset.estado;}
@@ -1169,7 +1116,6 @@ const ah=new Date(),hh=ah.getHours();
 document.getElementById('inicioBienvenida').textContent=(hh<12?'Buenos días':hh<18?'Buenas tardes':'Buenas noches')+' — Remeco';
 document.getElementById('inicioFecha').textContent=ah.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 if(window.innerWidth<=768)document.getElementById('fabBtn').style.display='block';
-llenarSelectModelos('Silo Aéreo','');
 
 cargarDatos();
 </script>
