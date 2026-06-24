@@ -23,7 +23,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .ntab.on{color:var(--gold);border-bottom-color:var(--gold);background:var(--bg2)}
 .nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
 .bell{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:9px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem}
-.user-chip{display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:3px 12px 3px 4px}
+.user-chip{display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:3px 12px 3px 4px;cursor:pointer;transition:border-color .15s}
+.user-chip:hover{border-color:var(--gold)}
 .uc-ini{width:26px;height:26px;border-radius:50%;background:var(--gold);color:#111820;font-weight:900;font-size:.8rem;display:flex;align-items:center;justify-content:center}
 .uc-name{font-size:.78rem;font-weight:700;white-space:nowrap}
 .page{display:none;flex:1;overflow:hidden;flex-direction:column;min-height:0}
@@ -34,13 +35,13 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .bnav-item.on::after{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:var(--gold);border-radius:0 0 2px 2px}
 .bnav-icon{font-size:1.3rem;line-height:1}
 .bnav-label{font-size:.58rem;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
-.inicio-wrap{flex:1;overflow-y:auto;padding:16px;max-width:760px;width:100%;margin:0 auto}
+.inicio-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;max-width:760px;width:100%;margin:0 auto}
 .ini-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
 .ini-fecha{font-size:.72rem;color:var(--text3);text-transform:capitalize;margin-bottom:4px}
 .ini-saludo{font-size:1.5rem;font-weight:900;color:var(--text)}
 .ini-user{display:flex;align-items:center;gap:8px}
 .ini-bell{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.1rem}
-.ini-uc{width:42px;height:42px;border-radius:11px;background:var(--gold);color:#111820;font-weight:900;font-size:1.05rem;display:flex;align-items:center;justify-content:center}
+.ini-uc{width:42px;height:42px;border-radius:11px;background:var(--gold);color:#111820;font-weight:900;font-size:1.05rem;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .ini-cards-big{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 .ic-big{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px}
 .ic-label{font-size:.64rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px}
@@ -82,7 +83,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .vbar-meta{display:flex;align-items:center;justify-content:space-between;margin-top:7px}
 .vbar-count{font-size:.7rem;color:var(--text3)}
 .vbar-sort{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:6px;padding:4px 8px;font-size:.7rem;font-family:inherit;cursor:pointer}
-.vtable-wrap{flex:1;overflow-y:auto}
+.vtable-wrap{flex:1;overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;font-size:.78rem}
 thead{position:sticky;top:0;background:var(--bg2);z-index:10}
 th{padding:9px 10px;text-align:left;color:var(--text3);font-size:.63rem;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);font-weight:700;white-space:nowrap}
@@ -98,7 +99,7 @@ tr:hover td{background:var(--bg3)}
 .empty-state{text-align:center;padding:50px 20px;color:var(--text3)}
 .empty-icon{font-size:2.5rem;margin-bottom:10px;opacity:.5}
 .empty-msg{font-size:.84rem}
-.vcards-wrap{flex:1;overflow-y:auto;padding:8px}
+.vcards-wrap{flex:1;overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch;padding:8px 8px 20px}
 .vcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:7px;overflow:hidden}
 .vcard-header{padding:10px 12px;display:flex;align-items:flex-start;gap:8px}
 .vcard-main{flex:1;min-width:0}
@@ -117,7 +118,7 @@ tr:hover td{background:var(--bg3)}
 .fp-tab.on{color:var(--gold);border-bottom-color:var(--gold)}
 .fp-header{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .fp-title{font-size:.63rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold)}
-.fp-body{flex:1;overflow-y:auto;padding:7px}
+.fp-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:7px}
 .viaje-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;margin-bottom:8px;overflow:hidden;transition:border-color .2s}
 .viaje-card.activo{border-color:var(--gold)}
 .viaje-header{padding:8px 11px;display:flex;align-items:center;gap:7px}
@@ -139,6 +140,7 @@ tr:hover td{background:var(--bg3)}
 .cap-bar-track{background:var(--border);border-radius:4px;height:7px;overflow:hidden}
 .cap-bar-fill{height:100%;border-radius:4px;transition:width .4s}
 .ruta-cargando{text-align:center;padding:8px;font-size:.68rem;color:var(--gold);background:#1a2c40;border-radius:6px;margin-bottom:6px}
+.flete-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:6;text-align:center;padding:30px}
 .sim-panel{width:300px;min-width:260px;background:var(--bg);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
 .sim-header{padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
 .sim-title{font-size:.63rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin-bottom:7px}
@@ -150,7 +152,7 @@ tr:hover td{background:var(--bg3)}
 .cli-name{font-weight:700;font-size:.82rem}
 .cli-tel{font-size:.7rem;color:var(--blue);margin-top:2px}
 .cli-cnt{font-size:.66rem;color:var(--text3);margin-top:1px}
-.cli-detail-wrap{flex:1;overflow-y:auto;padding:16px}
+.cli-detail-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px}
 .rent-card{background:var(--bg3);border:1px solid #1e3a55;border-radius:10px;padding:14px;margin-bottom:14px}
 .rent-title{font-size:.67rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:10px}
 .rent-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a2a3a;font-size:.78rem}
@@ -163,6 +165,7 @@ tr:hover td{background:var(--bg3)}
 .fg label{display:block;font-size:.63rem;color:var(--text2);margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 .fg input,.fg select,.fg textarea{width:100%;background:var(--bg3);border:1px solid #1e3a55;color:var(--text);border-radius:7px;padding:8px 11px;font-size:.83rem;font-family:inherit}
 .fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--gold)}
+.fg input:disabled,.fg select:disabled,.fg textarea:disabled{opacity:.7;cursor:not-allowed}
 .frow{display:flex;gap:8px}.frow .fg{flex:1}
 .mmhint{font-size:.68rem;color:var(--text3);margin-bottom:8px}
 .mact{display:flex;gap:8px;justify-content:flex-end;margin-top:13px}
@@ -193,8 +196,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .tot-box{background:var(--bg3);border:1px solid #1e3a55;border-radius:9px;padding:10px 12px;display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
 .tot-box>div{display:flex;justify-content:space-between;font-size:.78rem}
 .tot-box span{color:var(--text3)}
-#estadoMenu{display:none;position:fixed;background:#15202e;border:1px solid var(--gold);border-radius:9px;padding:5px;z-index:6000;box-shadow:0 6px 20px rgba(0,0,0,.5)}
-.em-item{padding:5px 8px;cursor:pointer;border-radius:6px}
+#estadoMenu,#perfilMenu{display:none;position:fixed;background:#15202e;border:1px solid var(--gold);border-radius:9px;padding:5px;z-index:6000;box-shadow:0 6px 20px rgba(0,0,0,.5);min-width:160px}
+.em-item{padding:7px 9px;cursor:pointer;border-radius:6px;font-size:.8rem}
 .em-item:hover{background:var(--bg3)}
 .disp-card{background:var(--bg2);border:1px solid #2a8c50;border-radius:9px;margin-bottom:8px;padding:11px 13px}
 .checkrow{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;cursor:pointer;transition:background .12s;border:1px solid transparent}
@@ -213,9 +216,9 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 @media(max-width:768px){
   .topnav{display:none}.bnav{display:flex!important}
   body{padding-bottom:var(--bnav-h)}
-  .vtable-wrap{display:none}.vcards-wrap{display:flex;flex-direction:column}
+  .vtable-wrap{display:none}.vcards-wrap{display:flex;flex-direction:column;padding-bottom:calc(var(--bnav-h) + 20px)}
   .flete-wrap,.simular-wrap{flex-direction:column-reverse}
-  .flete-panel,.sim-panel{width:100%;max-height:54vh;border-left:none;border-top:1px solid var(--border)}
+  .flete-panel,.sim-panel{width:100%;max-height:55vh;border-left:none;border-top:1px solid var(--border)}
   .cli-wrap{flex-direction:column}
   .cli-list{width:100%;max-height:36vh;border-right:none;border-bottom:1px solid var(--border);display:flex;overflow-x:auto;overflow-y:hidden}
   .cli-item{min-width:150px;border-bottom:none;border-right:1px solid #1a2a3a;flex-shrink:0}
@@ -238,7 +241,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <button class="ntab" onclick="ir('clientes')">👤 Clientes</button>
   <div class="nav-right">
     <div class="bell" title="Notificaciones">🔔</div>
-    <div class="user-chip"><span class="uc-ini" id="ucIniTop">H</span><span class="uc-name" id="ucNameTop">Hernán</span></div>
+    <div class="user-chip" onclick="abrirPerfilMenu(event)"><span class="uc-ini" id="ucIniTop">U</span><span class="uc-name" id="ucNameTop">Usuario</span></div>
     <button class="bg" onclick="abrirNueva()" style="padding:6px 13px;font-size:.75rem">+ Nueva venta</button>
   </div>
 </nav>
@@ -256,7 +259,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div class="inicio-wrap">
     <div class="ini-top">
       <div><div class="ini-fecha" id="inicioFecha"></div><div class="ini-saludo" id="inicioBienvenida">Remeco</div></div>
-      <div class="ini-user"><div class="ini-bell" title="Notificaciones">🔔</div><div class="ini-uc" id="ini-uc">H</div></div>
+      <div class="ini-user"><div class="ini-bell" title="Notificaciones">🔔</div><div class="ini-uc" id="ini-uc" onclick="abrirPerfilMenu(event)">U</div></div>
     </div>
     <div class="ini-cards-big">
       <div class="ic-big"><div class="ic-label">Facturado · <span id="ic-mes"></span></div><div class="ic-val" id="ic-fact">$0</div><div class="ic-sub" id="ic-fact-sub"></div></div>
@@ -318,6 +321,9 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div class="flete-wrap">
     <div id="map-flete" style="flex:1;position:relative">
       <div id="ruta-info" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(10,16,24,.9);border:1px solid var(--gold);border-radius:20px;padding:6px 16px;font-size:.75rem;font-weight:700;color:var(--gold);z-index:10;pointer-events:none;white-space:nowrap"></div>
+      <div class="flete-ph" id="flete-placeholder">
+        <div style="color:var(--text3)"><div style="font-size:2.6rem;margin-bottom:12px">🗺️</div><div style="font-size:.92rem;font-weight:600;color:var(--text2)">Seleccioná un viaje<br>para ver el recorrido</div></div>
+      </div>
     </div>
     <div class="flete-panel">
       <div class="fp-tabs">
@@ -383,6 +389,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 <div class="overlay" id="overlay">
   <div class="modal">
     <h2 id="modalTitle">Nueva venta</h2>
+    <p class="mmhint" id="roHint" style="display:none;color:var(--gold);font-weight:700">🔒 Solo lectura — para modificar, andá a la pestaña Ventas</p>
     <div class="frow">
       <div class="fg"><label>Cliente *</label><input id="f-cliente" placeholder="Nombre completo"/></div>
       <div class="fg"><label>Teléfono</label><input id="f-telefono" placeholder="3584123456" type="tel"/></div>
@@ -394,7 +401,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <div class="fg">
       <label>Productos</label>
       <div id="prod-container"></div>
-      <button type="button" class="add-prod" onclick="prodAgregar()">+ Agregar otro producto</button>
+      <button type="button" class="add-prod" id="btnAddProd" onclick="prodAgregar()">+ Agregar otro producto</button>
     </div>
     <div class="fg">
       <div class="tot-box">
@@ -410,8 +417,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <p class="mmhint">📍 Elegí la localidad arriba o tocá el mapa para marcar la ubicación exacta</p>
     <div id="mmap-div" style="height:180px;border-radius:8px;overflow:hidden;border:1px solid #1e3a55;margin-bottom:4px"></div>
     <div class="mact">
-      <button class="bd" onclick="cerrarModal()">Cancelar</button>
-      <button class="bg" onclick="guardarVenta()">Guardar</button>
+      <button class="bd" id="btnCancelarVenta" onclick="cerrarModal()">Cancelar</button>
+      <button class="bg" id="btnGuardarVenta" onclick="guardarVenta()">Guardar</button>
     </div>
   </div>
 </div>
@@ -447,7 +454,21 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   </div>
 </div>
 
+<!-- MODAL PERFIL -->
+<div class="overlay" id="overlayPerfil">
+  <div class="modal-sm">
+    <h2 style="font-size:.88rem;color:var(--gold);margin-bottom:12px">Mi perfil</h2>
+    <div class="fg"><label>Nombre</label><input id="p-nombre" placeholder="Tu nombre"/></div>
+    <div class="fg"><label>Email</label><input id="p-email" type="email" placeholder="tu@email.com"/></div>
+    <div class="mact">
+      <button class="bd" onclick="cerrarPerfilEditar()">Cancelar</button>
+      <button class="bg" onclick="guardarPerfil()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div id="estadoMenu"></div>
+<div id="perfilMenu"></div>
 <div id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -456,7 +477,6 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const NOMBRE_CUENTA='Hernán';  // ← CAMBIÁ ACÁ EL NOMBRE DE LA CUENTA
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-36.38,FAB_LNG=-64.97;
 const RADIO_COSTADO=100,RADIO_ADELANTE=300;
@@ -466,7 +486,7 @@ const AUTO_MODELOS=['2 TN 12 bocas','2 TN 18 bocas','4 TN','7 TN','7 TN con aler
 const CAP_AEREO={'6':8,'10':8,'16':6,'22':6,'28':6,'30':3,'40':3,'50':3,'60':3,'62':3,'72':3,'80':2,'100':2,'120':2,'140':2,'150':1,'175':1,'200':1};
 const CAP_AUTO={'2':20,'4':20,'7':8,'12':5,'18':5};
 
-let ventas=[],viajesData=[],editId=null,modalLat=null,modalLng=null;
+let ventas=[],viajesData=[],editId=null,modalLat=null,modalLng=null,modalReadOnly=false;
 let filterEstado='',filterProd='';
 let mapMapa=null,mapFlete=null,mapModal=null,simMap=null,locAutocomplete=null;
 let markersArr=[],modalMarker=null,directionsRenderer=null,simDirRenderer=null;
@@ -475,6 +495,57 @@ let agregarViajeId=null,agregarVentasSeleccionadas=new Set(),agregarVentasDispon
 let prodItems=[];
 const BNAV={inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes'};
 const COL={'Confirmado':'#5adf8a','En producción':'#ffc040','Listo para entregar':'#c0a0ff','En camino':'#5ab8ff','Entregado':'#40df40'};
+
+// ── PERFIL LOCAL ─────────────────────────────────────────────
+function getPerfil(){try{return JSON.parse(localStorage.getItem('remeco_perfil'))||{};}catch{return{};}}
+function savePerfil(p){localStorage.setItem('remeco_perfil',JSON.stringify(p));}
+function aplicarPerfil(){
+  const p=getPerfil();
+  const nombre=p.nombre||'Usuario';
+  const ini=nombre.charAt(0).toUpperCase();
+  const hh=new Date().getHours();
+  document.getElementById('inicioBienvenida').textContent=(hh<12?'Buenos días':hh<18?'Buenas tardes':'Buenas noches')+', '+nombre;
+  document.getElementById('ucNameTop').textContent=nombre;
+  document.getElementById('ucIniTop').textContent=ini;
+  document.getElementById('ini-uc').textContent=ini;
+}
+function abrirPerfilMenu(ev){
+  ev.stopPropagation();
+  const p=getPerfil();
+  const m=document.getElementById('perfilMenu');
+  m.innerHTML=`
+    <div style="padding:10px 11px;border-bottom:1px solid var(--border)">
+      <div style="font-weight:800;font-size:.86rem">${p.nombre||'Sin configurar'}</div>
+      <div style="font-size:.72rem;color:var(--text3);margin-top:2px">${p.email||'Agregá tu email'}</div>
+    </div>
+    <div class="em-item" onclick="abrirPerfilEditar()">👤 Ver / editar perfil</div>
+    <div class="em-item" onclick="cerrarSesion()" style="color:var(--red)">🚪 Cerrar sesión</div>`;
+  const r=ev.currentTarget.getBoundingClientRect();
+  m.style.display='block';
+  m.style.right=Math.max(8,window.innerWidth-r.right)+'px';
+  m.style.left='auto';
+  m.style.top=(r.bottom+6)+'px';
+}
+function abrirPerfilEditar(){
+  const pm=document.getElementById('perfilMenu');if(pm)pm.style.display='none';
+  const p=getPerfil();
+  document.getElementById('p-nombre').value=p.nombre||'';
+  document.getElementById('p-email').value=p.email||'';
+  document.getElementById('overlayPerfil').classList.add('on');
+}
+function cerrarPerfilEditar(){document.getElementById('overlayPerfil').classList.remove('on');}
+function guardarPerfil(){
+  const nombre=document.getElementById('p-nombre').value.trim();
+  const email=document.getElementById('p-email').value.trim();
+  if(!nombre){toast('Poné tu nombre');return;}
+  savePerfil({nombre,email});aplicarPerfil();cerrarPerfilEditar();toast('Perfil guardado ✓');
+}
+function cerrarSesion(){
+  document.getElementById('perfilMenu').style.display='none';
+  if(!confirm('¿Cerrar sesión? Se borrará tu nombre y email de este dispositivo.'))return;
+  localStorage.removeItem('remeco_perfil');aplicarPerfil();toast('Sesión cerrada');
+  setTimeout(abrirPerfilEditar,300);
+}
 
 // ── NAVEGACIÓN ───────────────────────────────────────────────
 function ir(pg){
@@ -492,7 +563,7 @@ function ir(pg){
   const fab=document.getElementById('fabBtn');
   if(fab)fab.style.display=(pg==='inicio'&&window.innerWidth<=768)?'block':'none';
   if(pg==='mapa'&&typeof google!=='undefined')initMapaMapa();
-  if(pg==='flete'&&typeof google!=='undefined'){initMapaFlete();if(viajeAbierto)setTimeout(()=>mostrarRutaViaje(viajeAbierto),400);}
+  if(pg==='flete'&&typeof google!=='undefined'){initMapaFlete();setFletePlaceholder(!viajeAbierto);if(viajeAbierto)setTimeout(()=>mostrarRutaViaje(viajeAbierto),400);}
   if(pg==='simular'&&typeof google!=='undefined')initMapaSim();
 }
 function switchFpTab(tab){
@@ -502,6 +573,7 @@ function switchFpTab(tab){
   document.getElementById('panel-disponibles').style.display=tab==='disponibles'?'flex':'none';
   if(tab==='disponibles')renderFpDisponibles();
 }
+function setFletePlaceholder(show){const el=document.getElementById('flete-placeholder');if(el)el.style.display=show?'flex':'none';}
 
 // ── UTILS ────────────────────────────────────────────────────
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',2800);}
@@ -551,7 +623,7 @@ function productosTexto(v){
 }
 function paradaTexto(x){return productosDe(x).map(a=>nombreProd(a)).join(' + ')||'—';}
 
-// ── PRODUCTOS (multi · cantidad · precios · plegable) ────────
+// ── PRODUCTOS ────────────────────────────────────────────────
 function modelosDe(prod){return prod==='Autoconsumo'?AUTO_MODELOS:AEREO_MODELOS;}
 function itemModeloStr(it){
   if(it.prod==='Personalizado')return it.libre||'';
@@ -573,7 +645,7 @@ function renderProdItems(){
     const header=`<div class="prod-head" onclick="prodToggleOpen(${idx})">
       <span class="prod-arrow">${it.open?'▼':'▶'}</span>
       <div style="flex:1;min-width:0"><div class="prod-htitle">Producto ${idx+1}</div><div class="prod-hsum">${itemResumen(it)}</div></div>
-      ${prodItems.length>1?`<button type="button" class="prod-del" onclick="event.stopPropagation();prodQuitar(${idx})">✕</button>`:''}
+      ${(prodItems.length>1&&!modalReadOnly)?`<button type="button" class="prod-del" onclick="event.stopPropagation();prodQuitar(${idx})">✕</button>`:''}
     </div>`;
     if(!it.open)return`<div class="prod-item">${header}</div>`;
     let modeloField;
@@ -743,7 +815,7 @@ function menuEstado(ev,id){
   const ests=['Confirmado','En producción','Listo para entregar','En camino','Entregado'];
   m.innerHTML=ests.map(e=>`<div class="em-item" onclick="setEstadoRapido('${id}','${e}')">${eTag(e)}</div>`).join('');
   const r=ev.currentTarget.getBoundingClientRect();
-  m.style.display='block';
+  m.style.display='block';m.style.right='auto';
   m.style.left=Math.min(r.left,window.innerWidth-230)+'px';
   m.style.top=Math.min(r.bottom+4,window.innerHeight-280)+'px';
 }
@@ -756,8 +828,10 @@ async function setEstadoRapido(id,est){
   toast('Estado actualizado ✓');
 }
 document.addEventListener('click',e=>{
-  const m=document.getElementById('estadoMenu');
-  if(m.style.display==='block'&&!m.contains(e.target)&&!e.target.closest('.etag'))m.style.display='none';
+  const em=document.getElementById('estadoMenu');
+  if(em.style.display==='block'&&!em.contains(e.target)&&!e.target.closest('.etag'))em.style.display='none';
+  const pm=document.getElementById('perfilMenu');
+  if(pm&&pm.style.display==='block'&&!pm.contains(e.target)&&!e.target.closest('.user-chip')&&!e.target.closest('.ini-uc'))pm.style.display='none';
 });
 
 // ── VIAJES ───────────────────────────────────────────────────
@@ -791,14 +865,20 @@ function toggleViaje(id){
   const yaAbierto=viajeAbierto===id;
   viajeAbierto=yaAbierto?null:id;
   renderViajes();
-  if(!yaAbierto){setTimeout(()=>{if(mapFlete&&directionsRenderer){mostrarRutaViaje(id);}else if(typeof google!=='undefined'){initMapaFlete();setTimeout(()=>mostrarRutaViaje(id),700);}},100);}
-  else{if(directionsRenderer)directionsRenderer.setDirections({routes:[]});const ri=document.getElementById('ruta-info');if(ri)ri.style.display='none';}
+  if(!yaAbierto){
+    setFletePlaceholder(false);
+    setTimeout(()=>{if(mapFlete&&directionsRenderer){mostrarRutaViaje(id);}else if(typeof google!=='undefined'){initMapaFlete();setTimeout(()=>mostrarRutaViaje(id),700);}},100);
+  } else {
+    if(directionsRenderer)directionsRenderer.setDirections({routes:[]});
+    const ri=document.getElementById('ruta-info');if(ri)ri.style.display='none';
+    setFletePlaceholder(true);
+  }
 }
 async function eliminarViaje(id){
   if(!confirm('¿Eliminar este viaje?'))return;
   const{error}=await sb.from('viajes').delete().eq('id',id);
   if(error){toast('Error: '+error.message);return;}
-  viajesData=viajesData.filter(v=>v.id!==id);if(viajeAbierto===id)viajeAbierto=null;
+  viajesData=viajesData.filter(v=>v.id!==id);if(viajeAbierto===id){viajeAbierto=null;setFletePlaceholder(true);}
   renderViajes();renderProxFletes();renderStats();toast('Viaje eliminado');
 }
 async function togglePublico(id,val){
@@ -812,7 +892,7 @@ async function quitarDelViaje(vjId,idx){
   const vj=viajesData.find(v=>v.id===vjId);if(!vj)return;
   const paradas=parsePar(vj.paradas_snap);
   const quitado=paradas.splice(idx,1)[0];
-  const pedido_ids=(vj.pedido_ids||[]).filter(pid=>String(pid)!==String(quitado?.id));
+  const pedido_ids=parsePar(vj.pedido_ids||[]).filter(pid=>String(pid)!==String(quitado?.id));
   const{error}=await sb.from('viajes').update({paradas_snap:paradas,pedido_ids}).eq('id',vjId);
   if(error){toast('Error: '+error.message);return;}
   vj.paradas_snap=paradas;vj.pedido_ids=pedido_ids;
@@ -829,10 +909,11 @@ function exportarViaje(id){
 }
 function exportarTodos(){if(viajeAbierto)exportarViaje(viajeAbierto);else if(viajesData.length)exportarViaje(viajesData[0].id);else toast('Sin viajes');}
 
-// ── Helpers exclusión ────────────────────────────────────────
+// ── Helpers exclusión (con parsePar para pedido_ids) ─────────
 function setClientesEnViaje(vj){
   const paradasArr=parsePar(vj?.paradas_snap||[]);
-  const ids=new Set([...(vj?.pedido_ids||[]).map(String),...paradasArr.map(x=>String(x.id)).filter(Boolean)]);
+  const peds=parsePar(vj?.pedido_ids||[]);
+  const ids=new Set([...peds.map(String),...paradasArr.map(x=>String(x.id)).filter(Boolean)]);
   const nombres=new Set(paradasArr.map(x=>(x.cliente||'').trim().toLowerCase()).filter(Boolean));
   return{ids,nombres};
 }
@@ -912,11 +993,11 @@ async function confirmarAgregar(){
   const paradasActuales=parsePar(vj.paradas_snap);
   const nuevas=ventas.filter(v=>agregarVentasSeleccionadas.has(v.id));
   const paradasNuevas=[...paradasActuales,...nuevas.map(v=>({cliente:v.cliente,producto:v.producto,modelo:v.modelo,productos:v.productos||null,localidad:v.localidad,lat:v.lat,lng:v.lng,id:v.id}))];
-  const pedido_ids=[...(vj.pedido_ids||[]),...nuevas.map(v=>v.id)];
+  const pedido_ids=[...parsePar(vj.pedido_ids||[]),...nuevas.map(v=>v.id)];
   const{error}=await sb.from('viajes').update({paradas_snap:paradasNuevas,pedido_ids}).eq('id',agregarViajeId);
   if(error){toast('Error: '+error.message);return;}
   vj.paradas_snap=paradasNuevas;vj.pedido_ids=pedido_ids;
-  cerrarAgregar();viajeAbierto=agregarViajeId;renderViajes();
+  cerrarAgregar();viajeAbierto=agregarViajeId;setFletePlaceholder(false);renderViajes();
   setTimeout(()=>mostrarRutaViaje(agregarViajeId),200);
   toast(`✓ ${nuevas.length} cliente${nuevas.length>1?'s':''} agregado${nuevas.length>1?'s':''} al viaje`);
 }
@@ -924,6 +1005,7 @@ function cerrarAgregar(){document.getElementById('overlayAgregar').classList.rem
 
 // ── CRUD VENTAS ──────────────────────────────────────────────
 async function guardarVenta(){
+  if(modalReadOnly){cerrarModal();return;}
   const productos=prodItems.map(it=>({producto:it.prod,modelo:itemModeloStr(it),cantidad:it.cantidad||1,precio:parseFloat(it.precio)||0,costo_producto:parseFloat(it.costoP)||0,costo_flete:parseFloat(it.costoF)||0})).filter(p=>p.modelo);
   const tot=(f)=>productos.reduce((s,p)=>s+(p[f]||0)*(p.cantidad||1),0);
   const data={
@@ -963,27 +1045,40 @@ async function guardarNuevoViaje(){
   const{data}=await sb.from('viajes').select('*').order('fecha');
   viajesData=data||[];renderViajes();renderProxFletes();renderStats();
 }
+function setModalRO(ro){
+  modalReadOnly=ro;
+  ['f-cliente','f-telefono','f-cuit','f-estado','f-fecha-entrega','f-localidad','f-notas'].forEach(id=>document.getElementById(id).disabled=ro);
+  const pc=document.getElementById('prod-container');
+  pc.style.pointerEvents=ro?'none':'auto';pc.style.opacity=ro?'.85':'1';
+  document.getElementById('btnAddProd').style.display=ro?'none':'block';
+  document.getElementById('btnGuardarVenta').style.display=ro?'none':'inline-block';
+  document.getElementById('btnCancelarVenta').textContent=ro?'Cerrar':'Cancelar';
+  document.getElementById('roHint').style.display=ro?'block':'none';
+}
 function abrirNueva(){
   editId=null;modalLat=null;modalLng=null;
   document.getElementById('modalTitle').textContent='Nueva venta';
   ['f-cliente','f-telefono','f-cuit','f-fecha-entrega','f-localidad','f-notas'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-estado').value='Confirmado';
   prodItems=[{prod:'Silo Aéreo',modelo:'',cono:'35',fibra:false,libre:'',cantidad:1,precio:'',costoP:'',costoF:'',open:true}];
-  renderProdItems();
+  setModalRO(false);renderProdItems();
   if(modalMarker)modalMarker.setVisible(false);
   document.getElementById('overlay').classList.add('on');
   setTimeout(()=>{if(mapModal)google.maps.event.trigger(mapModal,'resize');},200);
 }
-function abrirEditar(id){
+function verVenta(id){abrirEditar(id,true);}  // ← desde CLIENTES: solo lectura
+function abrirEditar(id,ro){
+  ro=!!ro;
   const v=ventas.find(x=>x.id===id);if(!v)return;
   editId=id;modalLat=v.lat;modalLng=v.lng;
-  document.getElementById('modalTitle').textContent='Editar venta';
+  document.getElementById('modalTitle').textContent=ro?'Venta — Solo lectura':'Editar venta';
   document.getElementById('f-cliente').value=v.cliente||'';document.getElementById('f-telefono').value=v.telefono||'';
   document.getElementById('f-cuit').value=v.cuit||'';
   cargarProdItems(v);
   document.getElementById('f-estado').value=v.estado||'Confirmado';
   document.getElementById('f-fecha-entrega').value=v.fecha_entrega||'';document.getElementById('f-localidad').value=v.localidad||'';
   document.getElementById('f-notas').value=v.notas||'';
+  setModalRO(ro);
   document.getElementById('overlay').classList.add('on');
   setTimeout(()=>{
     if(mapModal){google.maps.event.trigger(mapModal,'resize');
@@ -991,7 +1086,7 @@ function abrirEditar(id){
       else if(modalMarker)modalMarker.setVisible(false);}
   },200);
 }
-function cerrarModal(){document.getElementById('overlay').classList.remove('on');editId=null;}
+function cerrarModal(){document.getElementById('overlay').classList.remove('on');editId=null;modalReadOnly=false;}
 function abrirNuevoViaje(){document.getElementById('overlayViaje').classList.add('on');}
 function cerrarNuevoViaje(){document.getElementById('overlayViaje').classList.remove('on');}
 
@@ -1019,8 +1114,8 @@ function verCliente(i){
     <div style="margin-top:5px;margin-bottom:12px">${c.telefono?`<div style="color:var(--blue);font-size:.83rem">📞 ${c.telefono}</div>`:''}${c.cuit?`<div style="color:var(--text2);font-size:.76rem;margin-top:3px">CUIT: ${c.cuit}</div>`:''}</div>
     <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">${[{v:cv.length,l:'ventas'},{v:ent,l:'entregadas'},{v:'$'+fNum(fact),l:'facturado'}].map(x=>`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:9px 13px;min-width:80px"><div style="font-size:1rem;font-weight:900;color:var(--gold)">${x.v}</div><div style="font-size:.65rem;color:var(--text3);margin-top:1px">${x.l}</div></div>`).join('')}</div>
     <div class="rent-card"><div class="rent-title">📊 Rentabilidad</div><div class="rent-row"><span>Precio de venta</span><span>$${fNum(fact)}</span></div><div class="rent-row"><span>Costo producto</span><span style="color:var(--red)">- $${fNum(cp)}</span></div><div class="rent-row"><span>Costo flete</span><span style="color:var(--red)">- $${fNum(cf)}</span></div><div class="rent-row"><span>Ganancia neta</span><span style="color:var(--green)">$${fNum(gan)} (${rp}%)</span></div></div>
-    <div class="inicio-stitle" style="margin-bottom:8px;margin-top:4px">Historial</div>
-    ${cv.map(v=>`<div class="pend-row" onclick="abrirEditar('${v.id}')"><div class="pc-info"><div class="pc-cli">${paradaTexto(v)}</div><div class="pc-sub">${v.localidad||''} · ${fFecha(v.fecha_entrega)}</div></div><div style="text-align:right">${eTag(v.estado)}<div style="font-size:.78rem;font-weight:700;color:var(--gold);margin-top:4px">${v.precio?'$'+fNum(v.precio):''}</div></div></div>`).join('')}`;
+    <div class="inicio-stitle" style="margin-bottom:8px;margin-top:4px">Historial (solo lectura)</div>
+    ${cv.map(v=>`<div class="pend-row" onclick="verVenta('${v.id}')"><div class="pc-info"><div class="pc-cli">${paradaTexto(v)}</div><div class="pc-sub">${v.localidad||''} · ${fFecha(v.fecha_entrega)}</div></div><div style="text-align:right">${eTag(v.estado)}<div style="font-size:.78rem;font-weight:700;color:var(--gold);margin-top:4px">${v.precio?'$'+fNum(v.precio):''}</div></div></div>`).join('')}`;
 }
 
 // ── GOOGLE MAPS ───────────────────────────────────────────────
@@ -1029,12 +1124,13 @@ function initMaps(){
   if(mm){
     mapModal=new google.maps.Map(mm,{center:{lat:FAB_LAT,lng:FAB_LNG},zoom:6,mapTypeId:'hybrid',disableDefaultUI:true,zoomControl:true});
     modalMarker=new google.maps.Marker({map:mapModal,draggable:true,visible:false});
-    mapModal.addListener('click',e=>{modalLat=e.latLng.lat();modalLng=e.latLng.lng();modalMarker.setPosition(e.latLng);modalMarker.setVisible(true);});
-    modalMarker.addListener('dragend',e=>{modalLat=e.latLng.lat();modalLng=e.latLng.lng();});
+    mapModal.addListener('click',e=>{if(modalReadOnly)return;modalLat=e.latLng.lat();modalLng=e.latLng.lng();modalMarker.setPosition(e.latLng);modalMarker.setVisible(true);});
+    modalMarker.addListener('dragend',e=>{if(modalReadOnly)return;modalLat=e.latLng.lat();modalLng=e.latLng.lng();});
     const locInp=document.getElementById('f-localidad');
     if(locInp){
       locAutocomplete=new google.maps.places.Autocomplete(locInp,{componentRestrictions:{country:'ar'}});
       locAutocomplete.addListener('place_changed',()=>{
+        if(modalReadOnly)return;
         const pl=locAutocomplete.getPlace();
         if(pl.geometry){modalLat=pl.geometry.location.lat();modalLng=pl.geometry.location.lng();mapModal.setCenter(pl.geometry.location);mapModal.setZoom(11);modalMarker.setPosition(pl.geometry.location);modalMarker.setVisible(true);}
       });
@@ -1154,16 +1250,13 @@ document.querySelectorAll('.chip').forEach(chip=>{
     renderVentas();
   });
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();}});
-document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();}}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();}});
+document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();}}));
 
-const ah=new Date(),hh=ah.getHours();
-const saludo=(hh<12?'Buenos días':hh<18?'Buenas tardes':'Buenas noches')+', '+NOMBRE_CUENTA;
-document.getElementById('inicioBienvenida').textContent=saludo;
+const ah=new Date();
 document.getElementById('inicioFecha').textContent=ah.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-document.getElementById('ucNameTop').textContent=NOMBRE_CUENTA;
-document.getElementById('ucIniTop').textContent=NOMBRE_CUENTA.charAt(0).toUpperCase();
-document.getElementById('ini-uc').textContent=NOMBRE_CUENTA.charAt(0).toUpperCase();
+aplicarPerfil();
+if(!getPerfil().nombre)setTimeout(abrirPerfilEditar,600);
 if(window.innerWidth<=768)document.getElementById('fabBtn').style.display='block';
 
 cargarDatos();
