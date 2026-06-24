@@ -490,6 +490,7 @@ let ventas=[],viajesData=[],editId=null,modalLat=null,modalLng=null,modalReadOnl
 let filterEstado='',filterProd='';
 let mapMapa=null,mapFlete=null,mapModal=null,simMap=null,locAutocomplete=null;
 let markersArr=[],modalMarker=null,directionsRenderer=null,simDirRenderer=null;
+let fleteMarkers=[],simMarkers=[];
 let simParadas=[],viajeAbierto=null;
 let agregarViajeId=null,agregarVentasSeleccionadas=new Set(),agregarVentasDisponibles=[];
 let prodItems=[];
@@ -583,6 +584,12 @@ function eTag(e){const mp={'Confirmado':['e0','✅'],'En producción':['e1','⚙
 function parsePar(s){if(!s)return[];try{return Array.isArray(s)?s:JSON.parse(s);}catch{return[];}}
 function distKm(lat1,lng1,lat2,lng2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
 function distAlPath(la,ln,path){let m=Infinity;for(const pt of path){const d=distKm(pt.lat,pt.lng,la,ln);if(d<m)m=d;}return m;}
+
+// ── MARCADORES NUMERADOS ─────────────────────────────────────
+function clearFleteMarkers(){fleteMarkers.forEach(m=>m.setMap(null));fleteMarkers=[];}
+function clearSimMarkers(){simMarkers.forEach(m=>m.setMap(null));simMarkers=[];}
+function markerFabrica(map){return new google.maps.Marker({position:{lat:FAB_LAT,lng:FAB_LNG},map,zIndex:9999,label:{text:'🏭',fontSize:'18px'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:16,fillColor:'#1a5230',fillOpacity:1,strokeColor:'#fff',strokeWeight:2},title:'🏭 Fábrica Remeco — La Pampa'});}
+function markerNumero(map,lat,lng,n,title){return new google.maps.Marker({position:{lat,lng},map,zIndex:500,label:{text:String(n),color:'#111820',fontWeight:'900',fontSize:'12px'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:13,fillColor:'#c9a840',fillOpacity:1,strokeColor:'#fff',strokeWeight:2},title:title||''});}
 
 // ── CAPACIDAD ────────────────────────────────────────────────
 function esAutoconsumo(producto,modelo){
@@ -870,6 +877,7 @@ function toggleViaje(id){
     setTimeout(()=>{if(mapFlete&&directionsRenderer){mostrarRutaViaje(id);}else if(typeof google!=='undefined'){initMapaFlete();setTimeout(()=>mostrarRutaViaje(id),700);}},100);
   } else {
     if(directionsRenderer)directionsRenderer.setDirections({routes:[]});
+    clearFleteMarkers();
     const ri=document.getElementById('ruta-info');if(ri)ri.style.display='none';
     setFletePlaceholder(true);
   }
@@ -878,7 +886,7 @@ async function eliminarViaje(id){
   if(!confirm('¿Eliminar este viaje?'))return;
   const{error}=await sb.from('viajes').delete().eq('id',id);
   if(error){toast('Error: '+error.message);return;}
-  viajesData=viajesData.filter(v=>v.id!==id);if(viajeAbierto===id){viajeAbierto=null;setFletePlaceholder(true);}
+  viajesData=viajesData.filter(v=>v.id!==id);if(viajeAbierto===id){viajeAbierto=null;clearFleteMarkers();setFletePlaceholder(true);}
   renderViajes();renderProxFletes();renderStats();toast('Viaje eliminado');
 }
 async function togglePublico(id,val){
@@ -1073,7 +1081,7 @@ function abrirNueva(){
   document.getElementById('overlay').classList.add('on');
   setTimeout(()=>{if(mapModal)google.maps.event.trigger(mapModal,'resize');},200);
 }
-function verVenta(id){abrirEditar(id,true);}  // ← desde INICIO y CLIENTES: solo lectura
+function verVenta(id){abrirEditar(id,true);}
 function abrirEditar(id,ro){
   ro=!!ro;
   const v=ventas.find(x=>x.id===id);if(!v)return;
@@ -1156,7 +1164,7 @@ function initMapaMapa(){
 function actMarkersMapa(){
   if(!mapMapa)return;
   markersArr.forEach(m=>m.setMap(null));markersArr=[];
-  const fabM=new google.maps.Marker({position:{lat:FAB_LAT,lng:FAB_LNG},map:mapMapa,title:'Remeco – Fábrica',icon:{url:'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'}});
+  const fabM=new google.maps.Marker({position:{lat:FAB_LAT,lng:FAB_LNG},map:mapMapa,title:'Remeco – Fábrica',label:{text:'🏭',fontSize:'16px'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:14,fillColor:'#1a5230',fillOpacity:1,strokeColor:'#fff',strokeWeight:2}});
   const fabIW=new google.maps.InfoWindow({content:'<div style="font-family:sans-serif"><strong>🏭 Metalúrgica Remeco</strong><br>Colonia Menonita, Campo 2, La Pampa</div>'});
   fabM.addListener('click',()=>fabIW.open(mapMapa,fabM));markersArr.push(fabM);
   ventas.forEach(v=>{
@@ -1170,11 +1178,11 @@ function initMapaFlete(){
   if(mapFlete)return;
   const el=document.getElementById('map-flete');if(!el||typeof google==='undefined')return;
   mapFlete=new google.maps.Map(el,{center:{lat:FAB_LAT,lng:FAB_LNG},zoom:6,mapTypeId:'roadmap'});
-  directionsRenderer=new google.maps.DirectionsRenderer({map:mapFlete,suppressMarkers:false,polylineOptions:{strokeColor:'#4a90d9',strokeWeight:5}});
+  directionsRenderer=new google.maps.DirectionsRenderer({map:mapFlete,suppressMarkers:true,polylineOptions:{strokeColor:'#4a90d9',strokeWeight:5}});
 }
 function mostrarRutaViaje(id){
   if(!mapFlete||!directionsRenderer)return;
-  directionsRenderer.setDirections({routes:[]});
+  directionsRenderer.setDirections({routes:[]});clearFleteMarkers();
   const ri=document.getElementById('ruta-info');if(ri)ri.style.display='none';
   const vj=viajesData.find(v=>v.id===id);if(!vj)return;
   const paradas=parsePar(vj.paradas_snap);
@@ -1201,6 +1209,10 @@ function mostrarRutaViaje(id){
       if(orden&&orden.length){paradasOrden=orden.map(i=>restItems[i].parada);paradasOrden.push(destItem.parada);}else{paradasOrden=[...restItems.map(x=>x.parada),destItem.parada];}
       const sinLoc=paradas.filter(p=>!aLoc(p));
       if(sinLoc.length)paradasOrden=[...paradasOrden,...sinLoc];
+      // Marcadores numerados + fábrica
+      clearFleteMarkers();
+      fleteMarkers.push(markerFabrica(mapFlete));
+      paradasOrden.forEach((p,i)=>{if(p.lat&&p.lng)fleteMarkers.push(markerNumero(mapFlete,parseFloat(p.lat),parseFloat(p.lng),i+1,(p.cliente||'')+' · '+(p.localidad||'')));});
       sb.from('viajes').update({km_real:km,paradas_snap:paradasOrden}).eq('id',id).then(()=>{const vj2=viajesData.find(v=>v.id===id);if(vj2){vj2.km_real=km;vj2.paradas_snap=paradasOrden;}const kmSpan=document.querySelector(`#vjcard-${id} .viaje-km`);if(kmSpan)kmSpan.textContent=`📍 ${km} km`;});
     } else {if(ri){ri.textContent='No se pudo calcular la ruta ('+status+')';ri.style.display='block';}if(st){st.textContent='⚠️ Error: '+status;st.style.background='#2a1010';st.style.color='var(--red)';}}
   });
@@ -1209,7 +1221,7 @@ function initMapaSim(){
   if(simMap)return;
   const el=document.getElementById('map-sim');if(!el||typeof google==='undefined')return;
   simMap=new google.maps.Map(el,{center:{lat:FAB_LAT,lng:FAB_LNG},zoom:6,mapTypeId:'roadmap'});
-  simDirRenderer=new google.maps.DirectionsRenderer({map:simMap,polylineOptions:{strokeColor:'#4a90d9',strokeWeight:5}});
+  simDirRenderer=new google.maps.DirectionsRenderer({map:simMap,suppressMarkers:true,polylineOptions:{strokeColor:'#4a90d9',strokeWeight:5}});
   const inp=document.getElementById('sim-input');
   const ac=new google.maps.places.Autocomplete(inp,{componentRestrictions:{country:'ar'},types:['(cities)']});
   ac.addListener('place_changed',()=>{const pl=ac.getPlace();if(!pl.geometry)return;simParadas.push({nombre:pl.name||inp.value,lat:pl.geometry.location.lat(),lng:pl.geometry.location.lng()});inp.value='';renderSimParadas();if(simParadas.length>=1)calcularRutaSim();});
@@ -1220,11 +1232,11 @@ function renderSimParadas(){
   el.innerHTML=`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:7px;padding:7px 10px;margin-bottom:4px;display:flex;align-items:center;gap:7px;opacity:.7"><div class="vp-num">🏭</div><div style="font-weight:700;font-size:.75rem;color:var(--text3)">Remeco – La Pampa (origen fijo)</div></div>`+
   simParadas.map((p,i)=>`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:7px;padding:7px 10px;margin-bottom:4px;display:flex;align-items:center;gap:7px"><div class="vp-num">${i+1}</div><div style="flex:1;font-weight:700;font-size:.78rem">${p.nombre}</div><button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.82rem;padding:3px" onclick="eliminarParadaSim(${i})">✕</button></div>`).join('');
 }
-function eliminarParadaSim(i){simParadas.splice(i,1);renderSimParadas();if(simParadas.length>=1)calcularRutaSim();else{if(simDirRenderer)simDirRenderer.setDirections({routes:[]});document.getElementById('sim-total').textContent='0';const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';}}
-function limpiarSim(){simParadas=[];renderSimParadas();if(simDirRenderer)simDirRenderer.setDirections({routes:[]});document.getElementById('sim-total').textContent='0';const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';}
+function eliminarParadaSim(i){simParadas.splice(i,1);renderSimParadas();if(simParadas.length>=1)calcularRutaSim();else{if(simDirRenderer)simDirRenderer.setDirections({routes:[]});clearSimMarkers();document.getElementById('sim-total').textContent='0';const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';}}
+function limpiarSim(){simParadas=[];renderSimParadas();if(simDirRenderer)simDirRenderer.setDirections({routes:[]});clearSimMarkers();document.getElementById('sim-total').textContent='0';const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';}
 function calcularRutaSim(){
   if(!simMap||!simDirRenderer||!simParadas.length)return;
-  simDirRenderer.setDirections({routes:[]});
+  simDirRenderer.setDirections({routes:[]});clearSimMarkers();
   let idxDest=simParadas.length-1,maxD=-1;
   simParadas.forEach((p,i)=>{const d=distKm(FAB_LAT,FAB_LNG,p.lat,p.lng);if(d>maxD){maxD=d;idxDest=i;}});
   const destPar=simParadas[idxDest],rest=simParadas.filter((_,i)=>i!==idxDest);
@@ -1240,6 +1252,9 @@ function calcularRutaSim(){
       const orden=res.routes[0].waypoint_order;let nuevas;
       if(orden&&orden.length){nuevas=orden.map(i=>rest[i]);nuevas.push(destPar);}else{nuevas=[...rest,destPar];}
       simParadas=nuevas;renderSimParadas();
+      clearSimMarkers();
+      simMarkers.push(markerFabrica(simMap));
+      nuevas.forEach((p,i)=>{simMarkers.push(markerNumero(simMap,p.lat,p.lng,i+1,p.nombre));});
     } else {toast('No se pudo calcular la ruta: '+status);}
   });
 }
