@@ -930,6 +930,7 @@ function setClientesEnViaje(vj){
   return{ids,nombres};
 }
 function noEstaEnViaje(v,enViaje){return !enViaje.ids.has(String(v.id))&&!enViaje.nombres.has((v.cliente||'').trim().toLowerCase());}
+function clientesEnTodosLosViajes(){const ids=new Set(),nombres=new Set();(viajesData||[]).forEach(vj=>{const e=setClientesEnViaje(vj);e.ids.forEach(x=>ids.add(x));e.nombres.forEach(x=>nombres.add(x));});return{ids,nombres};}
 
 // ── OPTIMIZAR ────────────────────────────────────────────────
 function optimizarViaje(id){
@@ -946,7 +947,7 @@ function optimizarViaje(id){
   new google.maps.DirectionsService().route({origin:FABRICA,destination,waypoints,optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{
     if(status!=='OK'){toast('No se pudo calcular la ruta: '+status);return;}
     const path=res.routes[0].overview_path.map(p=>({lat:p.lat(),lng:p.lng()}));
-    const enViaje=setClientesEnViaje(vj);
+    const enViaje=clientesEnTodosLosViajes();
     const cand=ventas.filter(v=>v.estado!=='Entregado'&&v.lat&&v.lng&&noEstaEnViaje(v,enViaje)).map(v=>{
       const la=parseFloat(v.lat),ln=parseFloat(v.lng);
       const lateral=distAlPath(la,ln,path),adelante=distKm(destination.lat,destination.lng,la,ln);
@@ -968,7 +969,7 @@ function abrirAgregar(vjId){
   document.getElementById('agregar-viaje-nombre').textContent=vj?`Viaje: ${vj.nombre}`:'';
   document.getElementById('agregar-buscar').value='';
   document.getElementById('agregar-hint').textContent='Seleccioná las ventas para agregar al viaje';
-  const enViaje=setClientesEnViaje(vj);
+  const enViaje=clientesEnTodosLosViajes();
   agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&noEstaEnViaje(v,enViaje));
   renderListaAgregar(agregarVentasDisponibles,false);
   document.getElementById('overlayAgregar').classList.add('on');
@@ -995,7 +996,7 @@ function mostrarTodosAgregar(){
   const vj=viajesData.find(v=>v.id===agregarViajeId);
   document.getElementById('agregar-hint').textContent='Todos los clientes pendientes';
   document.getElementById('agregar-buscar').value='';
-  const enViaje=setClientesEnViaje(vj);
+  const enViaje=clientesEnTodosLosViajes();
   agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&noEstaEnViaje(v,enViaje));
   renderListaAgregar(agregarVentasDisponibles,false);
 }
