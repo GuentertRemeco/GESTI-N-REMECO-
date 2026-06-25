@@ -159,6 +159,22 @@ tr:hover td{background:var(--bg3)}
 .rent-row:last-child{border-bottom:none;margin-top:6px;padding-top:8px;font-weight:800;font-size:.85rem}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:5000;align-items:center;justify-content:center;padding:12px}
 .overlay.on{display:flex}
+.authgate{display:none;position:fixed;inset:0;background:var(--bg);z-index:9000;align-items:center;justify-content:center;padding:16px}
+.authgate.on{display:flex}
+.authbox{background:#15202e;border:1px solid var(--gold);border-radius:14px;padding:26px 22px;width:100%;max-width:380px}
+.authbox .alogo{font-size:1.05rem;font-weight:900;color:var(--gold);letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:4px}
+.authbox .asub{font-size:.74rem;color:var(--text3);text-align:center;margin-bottom:20px}
+.authbox .fg{margin-bottom:11px}
+.authbox label{display:block;font-size:.63rem;color:var(--text2);margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.authbox input{width:100%;background:var(--bg3);border:1px solid #1e3a55;color:var(--text);border-radius:7px;padding:10px 11px;font-size:.85rem;font-family:inherit}
+.authbox input:focus{outline:none;border-color:var(--gold)}
+.authbox .abtn{width:100%;background:var(--gold);color:#111820;padding:11px;font-size:.85rem;font-weight:800;margin-top:6px}
+.authbox .abtn:hover{background:var(--gold2)}
+.authbox .abtn:disabled{opacity:.6;cursor:not-allowed}
+.authtoggle{text-align:center;font-size:.76rem;color:var(--text2);margin-top:16px}
+.authtoggle a{color:var(--gold);cursor:pointer;font-weight:700}
+.autherr{font-size:.74rem;color:var(--red);margin-top:10px;min-height:1em;text-align:center}
+.autherr.authok{color:var(--green)}
 .modal{background:#15202e;border:1px solid var(--gold);border-radius:14px;padding:18px;width:100%;max-width:500px;max-height:96vh;overflow-y:auto}
 .modal h2{font-size:.9rem;color:var(--gold);margin-bottom:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
 .fg{margin-bottom:9px}
@@ -230,6 +246,19 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 </style>
 </head>
 <body>
+
+<div class="authgate" id="authGate">
+  <div class="authbox">
+    <div class="alogo">Remeco Gestión</div>
+    <div class="asub" id="authSub">Iniciá sesión para continuar</div>
+    <div class="fg" id="authNombreFg" style="display:none"><label>Nombre</label><input id="auth-nombre" placeholder="Tu nombre"/></div>
+    <div class="fg"><label>Email</label><input id="auth-email" type="email" autocomplete="email" placeholder="tu@email.com" onkeydown="if(event.key==='Enter')authSubmit()"/></div>
+    <div class="fg"><label>Contraseña</label><input id="auth-pass" type="password" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')authSubmit()"/></div>
+    <button class="abtn" id="authBtn" onclick="authSubmit()">Entrar</button>
+    <div class="autherr" id="authErr"></div>
+    <div class="authtoggle" id="authToggle">¿No tenés cuenta? <a onclick="authToggleMode()">Registrate</a></div>
+  </div>
+</div>
 
 <nav class="topnav">
   <div class="nav-logo">Remeco <span>Gestión</span></div>
@@ -478,7 +507,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 const sb=supabase.createClient(SURL,SKEY);
 
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
-const FAB_LAT=-36.38,FAB_LNG=-64.97;
+const FAB_LAT=-37.5749,FAB_LNG=-63.8426;
 const RADIO_COSTADO=100,RADIO_ADELANTE=300;
 
 const AEREO_MODELOS=['6TN','10TN','16TN','22TN','28TN','30TN','40TN','50TN','60TN','62TN','72TN','80TN','100TN','120TN','140TN','150TN','175TN','200TN'];
@@ -542,11 +571,84 @@ function guardarPerfil(){
   if(!nombre){toast('Poné tu nombre');return;}
   savePerfil({nombre,email});aplicarPerfil();cerrarPerfilEditar();toast('Perfil guardado ✓');
 }
-function cerrarSesion(){
+async function cerrarSesion(){
   document.getElementById('perfilMenu').style.display='none';
-  if(!confirm('¿Cerrar sesión? Se borrará tu nombre y email de este dispositivo.'))return;
-  localStorage.removeItem('remeco_perfil');aplicarPerfil();toast('Sesión cerrada');
-  setTimeout(abrirPerfilEditar,300);
+  if(!confirm('¿Cerrar sesión?'))return;
+  await sb.auth.signOut();
+  ventas=[];viajesData=[];
+  localStorage.removeItem('remeco_perfil');
+  toast('Sesión cerrada');
+  // onAuthStateChange mostrará el gate de login automáticamente
+}
+
+// ── AUTENTICACIÓN (Supabase Auth) ────────────────────────────
+let authMode='login',authedUser=null;
+function mostrarGate(){document.getElementById('authGate').classList.add('on');}
+function ocultarGate(){document.getElementById('authGate').classList.remove('on');}
+function authMsg(t,ok){const e=document.getElementById('authErr');e.textContent=t||'';e.classList.toggle('authok',!!ok);}
+function authToggleMode(){
+  authMode=authMode==='login'?'signup':'login';
+  const s=authMode==='signup';
+  document.getElementById('authSub').textContent=s?'Creá tu cuenta':'Iniciá sesión para continuar';
+  document.getElementById('authNombreFg').style.display=s?'block':'none';
+  document.getElementById('authBtn').textContent=s?'Registrarme':'Entrar';
+  document.getElementById('auth-pass').setAttribute('autocomplete',s?'new-password':'current-password');
+  document.getElementById('authToggle').innerHTML=s
+    ?'¿Ya tenés cuenta? <a onclick="authToggleMode()">Iniciá sesión</a>'
+    :'¿No tenés cuenta? <a onclick="authToggleMode()">Registrate</a>';
+  authMsg('');
+}
+function traducirAuthError(m){
+  m=m||'Error de autenticación';
+  if(/Invalid login/i.test(m))return'Email o contraseña incorrectos';
+  if(/already registered|already been registered/i.test(m))return'Ese email ya está registrado';
+  if(/at least 6|Password should/i.test(m))return'La contraseña debe tener al menos 6 caracteres';
+  if(/Email not confirmed/i.test(m))return'Confirmá tu email antes de entrar (revisá tu casilla)';
+  if(/rate limit|too many/i.test(m))return'Demasiados intentos, esperá un momento';
+  return m;
+}
+async function authSubmit(){
+  const email=document.getElementById('auth-email').value.trim();
+  const pass=document.getElementById('auth-pass').value;
+  const btn=document.getElementById('authBtn');
+  if(!email||!pass){authMsg('Completá email y contraseña');return;}
+  btn.disabled=true;authMsg('');
+  try{
+    if(authMode==='signup'){
+      const nombre=document.getElementById('auth-nombre').value.trim();
+      const{data,error}=await sb.auth.signUp({email,password:pass,options:{data:{nombre}}});
+      if(error)throw error;
+      if(nombre)savePerfil({...getPerfil(),nombre,email});
+      if(!data.session){authMsg('Cuenta creada. Revisá tu email para confirmarla y luego iniciá sesión.',true);authToggleMode();btn.disabled=false;return;}
+      // si hay sesión, onAuthStateChange continúa el arranque
+    }else{
+      const{error}=await sb.auth.signInWithPassword({email,password:pass});
+      if(error)throw error;
+    }
+  }catch(err){
+    authMsg(traducirAuthError(err.message));
+    btn.disabled=false;
+  }
+}
+async function onSesionActiva(session){
+  ocultarGate();
+  document.getElementById('authBtn').disabled=false;
+  const p=getPerfil(),u=session.user,meta=u.user_metadata||{};
+  if(meta.nombre&&!p.nombre)savePerfil({...p,nombre:meta.nombre,email:u.email});
+  else if(!p.email)savePerfil({...p,email:u.email});
+  aplicarPerfil();
+  await cargarDatos();
+}
+function initAuth(){
+  sb.auth.onAuthStateChange((event,session)=>{
+    const uid=session&&session.user?session.user.id:null;
+    if(uid){
+      if(uid!==authedUser){authedUser=uid;onSesionActiva(session);}
+      else ocultarGate();
+    }else{
+      authedUser=null;mostrarGate();
+    }
+  });
 }
 
 // ── NAVEGACIÓN ───────────────────────────────────────────────
@@ -930,7 +1032,6 @@ function setClientesEnViaje(vj){
   return{ids,nombres};
 }
 function noEstaEnViaje(v,enViaje){return !enViaje.ids.has(String(v.id))&&!enViaje.nombres.has((v.cliente||'').trim().toLowerCase());}
-function clientesEnTodosLosViajes(){const ids=new Set(),nombres=new Set();(viajesData||[]).forEach(vj=>{const e=setClientesEnViaje(vj);e.ids.forEach(x=>ids.add(x));e.nombres.forEach(x=>nombres.add(x));});return{ids,nombres};}
 
 // ── OPTIMIZAR ────────────────────────────────────────────────
 function optimizarViaje(id){
@@ -947,7 +1048,7 @@ function optimizarViaje(id){
   new google.maps.DirectionsService().route({origin:FABRICA,destination,waypoints,optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{
     if(status!=='OK'){toast('No se pudo calcular la ruta: '+status);return;}
     const path=res.routes[0].overview_path.map(p=>({lat:p.lat(),lng:p.lng()}));
-    const enViaje=clientesEnTodosLosViajes();
+    const enViaje=setClientesEnViaje(vj);
     const cand=ventas.filter(v=>v.estado!=='Entregado'&&v.lat&&v.lng&&noEstaEnViaje(v,enViaje)).map(v=>{
       const la=parseFloat(v.lat),ln=parseFloat(v.lng);
       const lateral=distAlPath(la,ln,path),adelante=distKm(destination.lat,destination.lng,la,ln);
@@ -969,7 +1070,7 @@ function abrirAgregar(vjId){
   document.getElementById('agregar-viaje-nombre').textContent=vj?`Viaje: ${vj.nombre}`:'';
   document.getElementById('agregar-buscar').value='';
   document.getElementById('agregar-hint').textContent='Seleccioná las ventas para agregar al viaje';
-  const enViaje=clientesEnTodosLosViajes();
+  const enViaje=setClientesEnViaje(vj);
   agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&noEstaEnViaje(v,enViaje));
   renderListaAgregar(agregarVentasDisponibles,false);
   document.getElementById('overlayAgregar').classList.add('on');
@@ -996,7 +1097,7 @@ function mostrarTodosAgregar(){
   const vj=viajesData.find(v=>v.id===agregarViajeId);
   document.getElementById('agregar-hint').textContent='Todos los clientes pendientes';
   document.getElementById('agregar-buscar').value='';
-  const enViaje=clientesEnTodosLosViajes();
+  const enViaje=setClientesEnViaje(vj);
   agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&noEstaEnViaje(v,enViaje));
   renderListaAgregar(agregarVentasDisponibles,false);
 }
@@ -1060,7 +1161,6 @@ async function eliminarVenta(id){
 async function guardarNuevoViaje(){
   const n=document.getElementById('fv-nombre').value.trim(),f=document.getElementById('fv-fecha').value;
   if(!n){toast('El nombre es requerido');return;}
-  if(f&&isNaN(Date.parse(f))){toast('Fecha inválida');return;}
   const{error}=await sb.from('viajes').insert([{nombre:n,fecha:f||null,pedido_ids:[],paradas_snap:[],publico:false}]);
   if(error){toast('Error: '+error.message);return;}
   toast('Viaje creado ✓');cerrarNuevoViaje();ir('flete');
@@ -1291,7 +1391,7 @@ document.getElementById('inicioFecha').textContent=ah.toLocaleDateString('es-AR'
 aplicarPerfil();
 if(window.innerWidth<=768)document.getElementById('fabBtn').style.display='block';
 
-cargarDatos();
+initAuth();
 </script>
 
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCfazpbJrCmanf7yNvFo9e68l2DvdNX7lg&callback=initMaps&libraries=places"></script>
