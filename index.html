@@ -1059,6 +1059,7 @@ async function eliminarVenta(id){
 async function guardarNuevoViaje(){
   const n=document.getElementById('fv-nombre').value.trim(),f=document.getElementById('fv-fecha').value;
   if(!n){toast('El nombre es requerido');return;}
+  if(f&&isNaN(Date.parse(f))){toast('Fecha inválida');return;}
   const{error}=await sb.from('viajes').insert([{nombre:n,fecha:f||null,pedido_ids:[],paradas_snap:[],publico:false}]);
   if(error){toast('Error: '+error.message);return;}
   toast('Viaje creado ✓');cerrarNuevoViaje();ir('flete');
