@@ -495,6 +495,7 @@ let simParadas=[],viajeAbierto=null;
 let agregarViajeId=null,agregarVentasSeleccionadas=new Set(),agregarVentasDisponibles=[];
 let prodItems=[];
 const BNAV={inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes'};
+const ESTADOS=['Confirmado','En producción','Listo para entregar','En camino','Entregado'];
 const COL={'Confirmado':'#5adf8a','En producción':'#ffc040','Listo para entregar':'#c0a0ff','En camino':'#5ab8ff','Entregado':'#40df40'};
 
 // ── PERFIL LOCAL ─────────────────────────────────────────────
@@ -516,8 +517,8 @@ function abrirPerfilMenu(ev){
   const m=document.getElementById('perfilMenu');
   m.innerHTML=`
     <div style="padding:10px 11px;border-bottom:1px solid var(--border)">
-      <div style="font-weight:800;font-size:.86rem">${p.nombre||'Sin configurar'}</div>
-      <div style="font-size:.72rem;color:var(--text3);margin-top:2px">${p.email||'Agregá tu email'}</div>
+      <div style="font-weight:800;font-size:.86rem">${esc(p.nombre)||'Sin configurar'}</div>
+      <div style="font-size:.72rem;color:var(--text3);margin-top:2px">${esc(p.email)||'Agregá tu email'}</div>
     </div>
     <div class="em-item" onclick="abrirPerfilEditar()">👤 Ver / editar perfil</div>
     <div class="em-item" onclick="cerrarSesion()" style="color:var(--red)">🚪 Cerrar sesión</div>`;
@@ -578,9 +579,10 @@ function setFletePlaceholder(show){const el=document.getElementById('flete-place
 
 // ── UTILS ────────────────────────────────────────────────────
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',2800);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function fNum(n){n=parseFloat(n)||0;if(n>=1000000)return(n/1000000).toFixed(1).replace('.',',')+'M';if(n>=1000)return Math.round(n/1000)+'K';return Math.round(n).toLocaleString('es-AR');}
 function fFecha(d){if(!d)return'—';const[y,m,dd]=d.split('-');return`${parseInt(dd)} ${['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][parseInt(m)-1]} ${y}`;}
-function eTag(e){const mp={'Confirmado':['e0','✅'],'En producción':['e1','⚙️'],'Listo para entregar':['e2','📦'],'En camino':['e3','🚛'],'Entregado':['e4','✔']};const[c,i]=mp[e]||['e0','●'];return`<span class="etag ${c}">${i} ${e||'—'}</span>`;}
+function eTag(e){const mp={'Confirmado':['e0','✅'],'En producción':['e1','⚙️'],'Listo para entregar':['e2','📦'],'En camino':['e3','🚛'],'Entregado':['e4','✔']};const[c,i]=mp[e]||['e0','●'];return`<span class="etag ${c}">${i} ${esc(e)||'—'}</span>`;}
 function parsePar(s){if(!s)return[];try{return Array.isArray(s)?s:JSON.parse(s);}catch{return[];}}
 function distKm(lat1,lng1,lat2,lng2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
 function distAlPath(la,ln,path){let m=Infinity;for(const pt of path){const d=distKm(pt.lat,pt.lng,la,ln);if(d<m)m=d;}return m;}
@@ -622,11 +624,11 @@ function barraCapacidad(paradas){
   const label=oc>=1?`${camiones} camión${camiones>1?'es':''} lleno${camiones>1?'s':''}`:`${Math.round(oc*100)}% cargado`;
   return`<div class="cap-bar-wrap"><div class="cap-bar-label"><span>Capacidad</span><span style="color:${color};font-weight:700">${label}</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>`;
 }
-function nombreProd(a){const tipo=(a.producto==='Silo Aéreo'||a.producto==='Autoconsumo')?a.producto+' ':'';const cant=(a.cantidad&&a.cantidad>1)?` ×${a.cantidad}`:'';return`${tipo}${a.modelo||''}${cant}`;}
+function nombreProd(a){const tipo=(a.producto==='Silo Aéreo'||a.producto==='Autoconsumo')?a.producto+' ':'';const cant=(a.cantidad&&a.cantidad>1)?` ×${a.cantidad}`:'';return`${tipo}${esc(a.modelo)}${cant}`;}
 function productosTexto(v){
   const arr=productosDe(v);
   if(!arr.length)return'—';
-  return arr.map(a=>{const tipo=(a.producto==='Silo Aéreo'||a.producto==='Autoconsumo')?a.producto+' ':'';const cant=(a.cantidad&&a.cantidad>1)?` <span style="color:var(--gold)">×${a.cantidad}</span>`:'';return`${tipo}<span style="color:var(--text3)">${a.modelo||''}</span>${cant}`;}).join(' <span style="color:var(--gold)">+</span> ');
+  return arr.map(a=>{const tipo=(a.producto==='Silo Aéreo'||a.producto==='Autoconsumo')?a.producto+' ':'';const cant=(a.cantidad&&a.cantidad>1)?` <span style="color:var(--gold)">×${a.cantidad}</span>`:'';return`${tipo}<span style="color:var(--text3)">${esc(a.modelo)}</span>${cant}`;}).join(' <span style="color:var(--gold)">+</span> ');
 }
 function paradaTexto(x){return productosDe(x).map(a=>nombreProd(a)).join(' + ')||'—';}
 
@@ -735,7 +737,8 @@ async function cargarDatos(){
   if(ve){toast('⚠️ Error Supabase: '+ve.message);console.error(ve);}
   else{ventas=v||[];renderVentas();renderStats();renderPendientes();renderClientes();}
   const{data:vj,error:vje}=await sb.from('viajes').select('*').order('fecha');
-  if(!vje){viajesData=vj||[];renderViajes();renderProxFletes();renderStats();}
+  if(vje){toast('⚠️ Error Supabase (viajes): '+vje.message);console.error(vje);}
+  else{viajesData=vj||[];renderViajes();renderProxFletes();renderStats();}
   if(mapMapa)actMarkersMapa();
 }
 
@@ -765,7 +768,7 @@ function renderStats(){
 }
 function renderPendientes(){
   const p=ventas.filter(v=>v.estado!=='Entregado').slice(0,4);
-  document.getElementById('pendientesList').innerHTML=p.length?p.map(v=>`<div class="pend-row" onclick="verVenta('${v.id}')"><span class="pend-dot" style="background:${COL[v.estado]||'#888'}"></span><div class="pc-info"><div class="pc-cli">${v.cliente||'—'}</div><div class="pc-sub">${paradaTexto(v)} · ${v.localidad||''}</div></div>${eTag(v.estado)}</div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin pedidos pendientes</div>';
+  document.getElementById('pendientesList').innerHTML=p.length?p.map(v=>`<div class="pend-row" onclick="verVenta('${v.id}')"><span class="pend-dot" style="background:${COL[v.estado]||'#888'}"></span><div class="pc-info"><div class="pc-cli">${esc(v.cliente)||'—'}</div><div class="pc-sub">${paradaTexto(v)} · ${esc(v.localidad)}</div></div>${eTag(v.estado)}</div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin pedidos pendientes</div>';
 }
 function renderProxFletes(){
   const hoy=new Date().toISOString().split('T')[0];
@@ -773,7 +776,7 @@ function renderProxFletes(){
   document.getElementById('viajesList').innerHTML=p.length?p.map(vj=>{
     const par=parsePar(vj.paradas_snap),oc=calcOcupacion(par),pct=Math.min(oc*100,100);
     const color=oc>=1?'var(--red)':oc>=0.75?'var(--yellow)':'var(--gold)';
-    return`<div class="flete-prox" onclick="ir('flete')"><div style="display:flex;justify-content:space-between;align-items:center"><div class="vp-nombre">${vj.nombre}${vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div><div style="color:var(--gold);font-size:.72rem;font-weight:700">${fFecha(vj.fecha)}</div></div><div class="cap-bar-track" style="margin:9px 0 6px"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div><div style="font-size:.7rem;color:var(--text3)">${par.length} paradas${vj.km_real?' · '+vj.km_real+' km reales':''} · ${Math.round(oc*100)}% cargado</div></div>`;
+    return`<div class="flete-prox" onclick="ir('flete')"><div style="display:flex;justify-content:space-between;align-items:center"><div class="vp-nombre">${esc(vj.nombre)}${vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div><div style="color:var(--gold);font-size:.72rem;font-weight:700">${fFecha(vj.fecha)}</div></div><div class="cap-bar-track" style="margin:9px 0 6px"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div><div style="font-size:.7rem;color:var(--text3)">${par.length} paradas${vj.km_real?' · '+vj.km_real+' km reales':''} · ${Math.round(oc*100)}% cargado</div></div>`;
   }).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin fletes programados</div>';
 }
 function renderFpDisponibles(){
@@ -786,9 +789,9 @@ function renderFpDisponibles(){
     const color=oc>=1?'var(--red)':oc>=0.75?'var(--yellow)':'var(--green)';
     const pct=Math.min(oc*100,100);
     return`<div class="disp-card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-weight:800;font-size:.84rem;color:var(--gold)">🚛 ${vj.nombre}</div><span style="font-size:.68rem;font-weight:700;color:${color}">${libre}% libre</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-weight:800;font-size:.84rem;color:var(--gold)">🚛 ${esc(vj.nombre)}</div><span style="font-size:.68rem;font-weight:700;color:${color}">${libre}% libre</span></div>
       <div style="font-size:.7rem;color:var(--text3);margin-bottom:7px">📅 ${fFecha(vj.fecha)} · ${p.length} paradas${vj.km_real?' · '+vj.km_real+' km':''}</div>
-      ${p.map((x,i)=>`<div style="font-size:.68rem;color:var(--text2);padding:2px 0"> ${i+1}. ${x.cliente||x.nombre||'—'} · ${x.localidad||''}</div>`).join('')}
+      ${p.map((x,i)=>`<div style="font-size:.68rem;color:var(--text2);padding:2px 0"> ${i+1}. ${esc(x.cliente||x.nombre)||'—'} · ${esc(x.localidad)}</div>`).join('')}
       <div class="cap-bar-wrap" style="margin-top:8px"><div class="cap-bar-label"><span>Capacidad</span><span style="color:${color};font-weight:700">${Math.round(oc*100)}%</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>
       <button class="bg" style="width:100%;margin-top:9px;padding:7px;font-size:.73rem" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes a este viaje</button>
     </div>`;
@@ -811,16 +814,15 @@ function renderVentas(){
   else l.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
   document.getElementById('vCount').textContent=`${l.length} venta${l.length!==1?'s':''}`;
   const em='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">Sin resultados</div></div>';
-  document.getElementById('vtbody').innerHTML=l.length?l.map(v=>`<tr onclick="abrirEditar('${v.id}')" style="cursor:pointer"><td><strong>${v.cliente||'—'}</strong><br><span style="font-size:.68rem;color:var(--text3)">${v.cuit||''}</span></td><td>${productosTexto(v)}</td><td>${v.localidad||'—'}</td><td style="font-size:.74rem;color:var(--text2)">${v.costo_flete?'$'+fNum(v.costo_flete):'—'}</td><td style="color:var(--gold);font-weight:700">${v.precio?'$'+fNum(v.precio):'—'}</td><td><span onclick="menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></td><td style="font-size:.72rem">${fFecha(v.fecha_entrega)}</td><td><div class="act-btns"><button class="ab" onclick="event.stopPropagation();abrirEditar('${v.id}')">✏️</button><button class="ab del" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div></td></tr>`).join(''):`<tr><td colspan="8">${em}</td></tr>`;
-  document.getElementById('vcards').innerHTML=l.length?l.map(v=>`<div class="vcard" onclick="abrirEditar('${v.id}')"><div class="vcard-header"><div class="vcard-main"><div class="vcard-name">${v.cliente||'—'}</div><div style="margin-bottom:4px"><span onclick="menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></div><div class="vcard-loc">📍 ${v.localidad||'—'} · ${paradaTexto(v)}</div></div><div class="vcard-right"><div class="vcard-price">${v.precio?'$'+fNum(v.precio):'—'}</div>${v.costo_flete?`<div style="font-size:.66rem;color:var(--text3)">Flete $${fNum(v.costo_flete)}</div>`:''}</div></div><div class="vcard-footer"><div class="vcard-date">${v.fecha_entrega?'📅 '+fFecha(v.fecha_entrega):'Sin fecha'}</div><div class="vcard-actions"><button class="vcard-btn" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div></div></div>`).join(''):em;
+  document.getElementById('vtbody').innerHTML=l.length?l.map(v=>`<tr onclick="abrirEditar('${v.id}')" style="cursor:pointer"><td><strong>${esc(v.cliente)||'—'}</strong><br><span style="font-size:.68rem;color:var(--text3)">${esc(v.cuit)}</span></td><td>${productosTexto(v)}</td><td>${esc(v.localidad)||'—'}</td><td style="font-size:.74rem;color:var(--text2)">${v.costo_flete?'$'+fNum(v.costo_flete):'—'}</td><td style="color:var(--gold);font-weight:700">${v.precio?'$'+fNum(v.precio):'—'}</td><td><span onclick="menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></td><td style="font-size:.72rem">${fFecha(v.fecha_entrega)}</td><td><div class="act-btns"><button class="ab" onclick="event.stopPropagation();abrirEditar('${v.id}')">✏️</button><button class="ab del" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div></td></tr>`).join(''):`<tr><td colspan="8">${em}</td></tr>`;
+  document.getElementById('vcards').innerHTML=l.length?l.map(v=>`<div class="vcard" onclick="abrirEditar('${v.id}')"><div class="vcard-header"><div class="vcard-main"><div class="vcard-name">${esc(v.cliente)||'—'}</div><div style="margin-bottom:4px"><span onclick="menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></div><div class="vcard-loc">📍 ${esc(v.localidad)||'—'} · ${paradaTexto(v)}</div></div><div class="vcard-right"><div class="vcard-price">${v.precio?'$'+fNum(v.precio):'—'}</div>${v.costo_flete?`<div style="font-size:.66rem;color:var(--text3)">Flete $${fNum(v.costo_flete)}</div>`:''}</div></div><div class="vcard-footer"><div class="vcard-date">${v.fecha_entrega?'📅 '+fFecha(v.fecha_entrega):'Sin fecha'}</div><div class="vcard-actions"><button class="vcard-btn" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div></div></div>`).join(''):em;
 }
 
 // ── ESTADO RÁPIDO ────────────────────────────────────────────
 function menuEstado(ev,id){
   ev.stopPropagation();
   const m=document.getElementById('estadoMenu');
-  const ests=['Confirmado','En producción','Listo para entregar','En camino','Entregado'];
-  m.innerHTML=ests.map(e=>`<div class="em-item" onclick="setEstadoRapido('${id}','${e}')">${eTag(e)}</div>`).join('');
+  m.innerHTML=ESTADOS.map(e=>`<div class="em-item" onclick="setEstadoRapido('${id}','${e}')">${eTag(e)}</div>`).join('');
   const r=ev.currentTarget.getBoundingClientRect();
   m.style.display='block';m.style.right='auto';
   m.style.left=Math.min(r.left,window.innerWidth-230)+'px';
@@ -852,12 +854,12 @@ function renderViajes(){
     return`<div class="viaje-card${estaAbierto?' activo':''}" id="vjcard-${vj.id}" style="border-color:${estaAbierto?'var(--gold)':vj.publico?'#2a8c50':'var(--border)'}">
       <div class="viaje-header" onclick="toggleViaje('${vj.id}')" style="cursor:pointer">
         <span style="font-size:.8rem;color:${estaAbierto?'var(--gold)':'var(--text3)'};transition:transform .2s;display:inline-block;transform:rotate(${estaAbierto?'90':'0'}deg)">▶</span>
-        <div class="viaje-info"><div class="viaje-nombre">🚛 ${vj.nombre}${vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div><div class="viaje-meta"><span>${p.length} parada${p.length!==1?'s':''}</span>${vj.km_real?`<span class="viaje-km">📍 ${vj.km_real} km</span>`:''}<span>📅 ${fFecha(vj.fecha)}</span></div></div>
+        <div class="viaje-info"><div class="viaje-nombre">🚛 ${esc(vj.nombre)}${vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div><div class="viaje-meta"><span>${p.length} parada${p.length!==1?'s':''}</span>${vj.km_real?`<span class="viaje-km">📍 ${vj.km_real} km</span>`:''}<span>📅 ${fFecha(vj.fecha)}</span></div></div>
         <button class="vbtn del" onclick="event.stopPropagation();eliminarViaje('${vj.id}')">✕</button>
       </div>
       <div class="viaje-body${estaAbierto?' open':''}" id="vbody-${vj.id}">
         ${estaAbierto?'<div class="ruta-cargando" id="ruta-status-'+vj.id+'">🗺️ Calculando ruta más corta...</div>':''}
-        ${p.length?p.map((x,i)=>`<div class="vp-item"><div class="vp-num">${i+1}</div><div class="vp-info"><div class="vp-cli">${x.cliente||x.nombre||'—'}</div><div class="vp-sub">${paradaTexto(x)} · ${x.localidad||''}</div></div><button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.75rem;padding:3px" onclick="quitarDelViaje('${vj.id}',${i})">✕</button></div>`).join(''):'<div style="font-size:.72rem;color:var(--text3);padding:6px 0;text-align:center">Sin paradas — tocá "Agregar clientes"</div>'}
+        ${p.length?p.map((x,i)=>`<div class="vp-item"><div class="vp-num">${i+1}</div><div class="vp-info"><div class="vp-cli">${esc(x.cliente||x.nombre)||'—'}</div><div class="vp-sub">${paradaTexto(x)} · ${esc(x.localidad)}</div></div><button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.75rem;padding:3px" onclick="quitarDelViaje('${vj.id}',${i})">✕</button></div>`).join(''):'<div style="font-size:.72rem;color:var(--text3);padding:6px 0;text-align:center">Sin paradas — tocá "Agregar clientes"</div>'}
         ${barraCapacidad(p)}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px">
           <button class="bv" style="font-size:.68rem;padding:5px" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes</button>
@@ -978,7 +980,7 @@ function renderListaAgregar(lista,mostrarDist){
     const sel=agregarVentasSeleccionadas.has(v.id);
     let info='';
     if(mostrarDist&&v._dist!=null){info=(v._dist<=RADIO_COSTADO)?` · <strong style="color:var(--gold)">${v._dist} km al costado</strong>`:` · <span class="tag-ade">${v._ade} km adelante</span>`;}
-    return`<div class="checkrow${sel?' sel':''}" onclick="toggleSelAgregar('${v.id}')"><input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelAgregar('${v.id}')"/><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.8rem">${v.cliente||'—'}</div><div style="font-size:.67rem;color:var(--text3);margin-top:1px">${paradaTexto(v)} · ${v.localidad||''}${info}</div>${eTag(v.estado)}</div></div>`;
+    return`<div class="checkrow${sel?' sel':''}" onclick="toggleSelAgregar('${v.id}')"><input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelAgregar('${v.id}')"/><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.8rem">${esc(v.cliente)||'—'}</div><div style="font-size:.67rem;color:var(--text3);margin-top:1px">${paradaTexto(v)} · ${esc(v.localidad)}${info}</div>${eTag(v.estado)}</div></div>`;
   }).join('');
 }
 function toggleSelAgregar(id){
@@ -1040,6 +1042,9 @@ async function guardarVenta(){
     lat:modalLat,lng:modalLng
   };
   if(!data.cliente){toast('El cliente es requerido');return;}
+  if(!productos.length){toast('Agregá al menos un producto');return;}
+  if(data.telefono&&!/^[0-9 +()\-]{6,}$/.test(data.telefono)){toast('Teléfono inválido');return;}
+  if(data.fecha_entrega&&isNaN(Date.parse(data.fecha_entrega))){toast('Fecha de entrega inválida');return;}
   const{error}=editId?await sb.from('ventas').update(data).eq('id',editId):await sb.from('ventas').insert([data]);
   if(error){toast('Error: '+error.message);return;}
   toast(editId?'Venta actualizada ✓':'Venta guardada ✓');
@@ -1111,7 +1116,7 @@ function renderClientes(){
   ventas.forEach(v=>{if(!v.cliente)return;if(!map[v.cliente])map[v.cliente]={nombre:v.cliente,telefono:v.telefono,cuit:v.cuit,ventas:[]};map[v.cliente].ventas.push(v);});
   const lista=Object.values(map).sort((a,b)=>b.ventas.length-a.ventas.length);
   window._cliLista=lista;
-  document.getElementById('cliList').innerHTML=lista.length?lista.map((c,i)=>`<div class="cli-item" onclick="verCliente(${i})" id="cli-${i}"><div class="cli-name">${c.nombre}</div>${c.telefono?`<div class="cli-tel">📞 ${c.telefono}</div>`:''}<div class="cli-cnt">${c.ventas.length} venta${c.ventas.length!==1?'s':''}</div></div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:12px">Sin clientes</div>';
+  document.getElementById('cliList').innerHTML=lista.length?lista.map((c,i)=>`<div class="cli-item" onclick="verCliente(${i})" id="cli-${i}"><div class="cli-name">${esc(c.nombre)}</div>${c.telefono?`<div class="cli-tel">📞 ${esc(c.telefono)}</div>`:''}<div class="cli-cnt">${c.ventas.length} venta${c.ventas.length!==1?'s':''}</div></div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:12px">Sin clientes</div>';
   if(lista.length)verCliente(0);
 }
 function verCliente(i){
@@ -1125,12 +1130,12 @@ function verCliente(i){
   const cf=cv.reduce((s,v)=>s+(parseFloat(v.costo_flete)||0),0);
   const gan=fact-cp-cf;const rp=fact>0?((gan/fact)*100).toFixed(1):0;
   document.getElementById('cli-detail').innerHTML=`
-    <div style="font-size:1.15rem;font-weight:900;color:var(--gold)">${c.nombre}</div>
-    <div style="margin-top:5px;margin-bottom:12px">${c.telefono?`<div style="color:var(--blue);font-size:.83rem">📞 ${c.telefono}</div>`:''}${c.cuit?`<div style="color:var(--text2);font-size:.76rem;margin-top:3px">CUIT: ${c.cuit}</div>`:''}</div>
+    <div style="font-size:1.15rem;font-weight:900;color:var(--gold)">${esc(c.nombre)}</div>
+    <div style="margin-top:5px;margin-bottom:12px">${c.telefono?`<div style="color:var(--blue);font-size:.83rem">📞 ${esc(c.telefono)}</div>`:''}${c.cuit?`<div style="color:var(--text2);font-size:.76rem;margin-top:3px">CUIT: ${esc(c.cuit)}</div>`:''}</div>
     <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">${[{v:cv.length,l:'ventas'},{v:ent,l:'entregadas'},{v:'$'+fNum(fact),l:'facturado'}].map(x=>`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:9px 13px;min-width:80px"><div style="font-size:1rem;font-weight:900;color:var(--gold)">${x.v}</div><div style="font-size:.65rem;color:var(--text3);margin-top:1px">${x.l}</div></div>`).join('')}</div>
     <div class="rent-card"><div class="rent-title">📊 Rentabilidad</div><div class="rent-row"><span>Precio de venta</span><span>$${fNum(fact)}</span></div><div class="rent-row"><span>Costo producto</span><span style="color:var(--red)">- $${fNum(cp)}</span></div><div class="rent-row"><span>Costo flete</span><span style="color:var(--red)">- $${fNum(cf)}</span></div><div class="rent-row"><span>Ganancia neta</span><span style="color:var(--green)">$${fNum(gan)} (${rp}%)</span></div></div>
     <div class="inicio-stitle" style="margin-bottom:8px;margin-top:4px">Historial (solo lectura)</div>
-    ${cv.map(v=>`<div class="pend-row" onclick="verVenta('${v.id}')"><div class="pc-info"><div class="pc-cli">${paradaTexto(v)}</div><div class="pc-sub">${v.localidad||''} · ${fFecha(v.fecha_entrega)}</div></div><div style="text-align:right">${eTag(v.estado)}<div style="font-size:.78rem;font-weight:700;color:var(--gold);margin-top:4px">${v.precio?'$'+fNum(v.precio):''}</div></div></div>`).join('')}`;
+    ${cv.map(v=>`<div class="pend-row" onclick="verVenta('${v.id}')"><div class="pc-info"><div class="pc-cli">${paradaTexto(v)}</div><div class="pc-sub">${esc(v.localidad)} · ${fFecha(v.fecha_entrega)}</div></div><div style="text-align:right">${eTag(v.estado)}<div style="font-size:.78rem;font-weight:700;color:var(--gold);margin-top:4px">${v.precio?'$'+fNum(v.precio):''}</div></div></div>`).join('')}`;
 }
 
 // ── GOOGLE MAPS ───────────────────────────────────────────────
@@ -1170,7 +1175,7 @@ function actMarkersMapa(){
   ventas.forEach(v=>{
     if(!v.lat||!v.lng)return;
     const mk=new google.maps.Marker({position:{lat:parseFloat(v.lat),lng:parseFloat(v.lng)},map:mapMapa,title:v.cliente,icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:COL[v.estado]||'#c9a840',fillOpacity:1,strokeColor:'#fff',strokeWeight:2,scale:9}});
-    const iw=new google.maps.InfoWindow({content:`<div style="font-family:sans-serif;min-width:150px"><strong>${v.cliente}</strong><br>${paradaTexto(v)}<br>📍 ${v.localidad||''}<br><span style="color:${COL[v.estado]||'#333'}">${v.estado||''}</span><br>${v.precio?'<strong>$'+fNum(v.precio)+'</strong>':''}${v.fecha_entrega?'<br>📅 '+fFecha(v.fecha_entrega):''}</div>`});
+    const iw=new google.maps.InfoWindow({content:`<div style="font-family:sans-serif;min-width:150px"><strong>${esc(v.cliente)}</strong><br>${paradaTexto(v)}<br>📍 ${esc(v.localidad)}<br><span style="color:${COL[v.estado]||'#333'}">${esc(v.estado)}</span><br>${v.precio?'<strong>$'+fNum(v.precio)+'</strong>':''}${v.fecha_entrega?'<br>📅 '+fFecha(v.fecha_entrega):''}</div>`});
     mk.addListener('click',()=>iw.open(mapMapa,mk));markersArr.push(mk);
   });
 }
@@ -1180,7 +1185,9 @@ function initMapaFlete(){
   mapFlete=new google.maps.Map(el,{center:{lat:FAB_LAT,lng:FAB_LNG},zoom:6,mapTypeId:'roadmap'});
   directionsRenderer=new google.maps.DirectionsRenderer({map:mapFlete,suppressMarkers:true,polylineOptions:{strokeColor:'#4a90d9',strokeWeight:5}});
 }
-function mostrarRutaViaje(id){
+let _rutaTimer=null;
+function mostrarRutaViaje(id){clearTimeout(_rutaTimer);_rutaTimer=setTimeout(()=>_mostrarRutaViaje(id),250);}
+function _mostrarRutaViaje(id){
   if(!mapFlete||!directionsRenderer)return;
   directionsRenderer.setDirections({routes:[]});clearFleteMarkers();
   const ri=document.getElementById('ruta-info');if(ri)ri.style.display='none';
@@ -1230,7 +1237,7 @@ function renderSimParadas(){
   const el=document.getElementById('sim-body');
   if(!simParadas.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">Escribí una localidad para agregar paradas.<br>La ruta parte desde la fábrica en La Pampa.</div>';document.getElementById('sim-total').textContent='0';return;}
   el.innerHTML=`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:7px;padding:7px 10px;margin-bottom:4px;display:flex;align-items:center;gap:7px;opacity:.7"><div class="vp-num">🏭</div><div style="font-weight:700;font-size:.75rem;color:var(--text3)">Remeco – La Pampa (origen fijo)</div></div>`+
-  simParadas.map((p,i)=>`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:7px;padding:7px 10px;margin-bottom:4px;display:flex;align-items:center;gap:7px"><div class="vp-num">${i+1}</div><div style="flex:1;font-weight:700;font-size:.78rem">${p.nombre}</div><button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.82rem;padding:3px" onclick="eliminarParadaSim(${i})">✕</button></div>`).join('');
+  simParadas.map((p,i)=>`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:7px;padding:7px 10px;margin-bottom:4px;display:flex;align-items:center;gap:7px"><div class="vp-num">${i+1}</div><div style="flex:1;font-weight:700;font-size:.78rem">${esc(p.nombre)}</div><button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.82rem;padding:3px" onclick="eliminarParadaSim(${i})">✕</button></div>`).join('');
 }
 function eliminarParadaSim(i){simParadas.splice(i,1);renderSimParadas();if(simParadas.length>=1)calcularRutaSim();else{if(simDirRenderer)simDirRenderer.setDirections({routes:[]});clearSimMarkers();document.getElementById('sim-total').textContent='0';const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';}}
 function limpiarSim(){simParadas=[];renderSimParadas();if(simDirRenderer)simDirRenderer.setDirections({routes:[]});clearSimMarkers();document.getElementById('sim-total').textContent='0';const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';}
