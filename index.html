@@ -185,6 +185,7 @@ tr:hover td{background:var(--bg3)}
 .frow{display:flex;gap:8px}.frow .fg{flex:1}
 .mmhint{font-size:.68rem;color:var(--text3);margin-bottom:8px}
 .mact{display:flex;gap:8px;justify-content:flex-end;margin-top:13px}
+.modal .mact{position:sticky;bottom:-18px;margin:13px -18px -18px;padding:13px 18px;background:#15202e;border-top:1px solid var(--border);border-radius:0 0 14px 14px;z-index:5}
 .modal-sm{background:#15202e;border:1px solid var(--gold);border-radius:11px;padding:18px;width:100%;max-width:380px;max-height:90vh;overflow-y:auto}
 .modal-lg{background:#15202e;border:1px solid var(--gold);border-radius:14px;padding:18px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column}
 button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight:600;padding:8px 14px;transition:all .15s;font-family:inherit}
@@ -234,14 +235,21 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   body{padding-bottom:var(--bnav-h)}
   .vtable-wrap{display:none}.vcards-wrap{display:flex;flex-direction:column;padding-bottom:calc(var(--bnav-h) + 20px)}
   .flete-wrap,.simular-wrap{flex-direction:column-reverse}
-  #map-flete,#map-sim{min-height:45vh}
-  .flete-panel,.sim-panel{width:100%;max-height:46vh;border-left:none;border-top:1px solid var(--border);-webkit-overflow-scrolling:touch}
+  #map-sim{min-height:45vh}
+  .sim-panel{width:100%;max-height:46vh;border-left:none;border-top:1px solid var(--border);-webkit-overflow-scrolling:touch}
+  /* Flete: lista a pantalla completa; el mapa aparece solo al abrir un viaje */
+  .flete-panel{width:100%;border-left:none;-webkit-overflow-scrolling:touch}
+  #map-flete{display:none}
+  .flete-wrap.map-on #map-flete{display:block}
+  .flete-wrap.map-on .flete-panel{max-height:42vh;border-top:1px solid var(--border)}
+  .flete-wrap:not(.map-on) .flete-panel{max-height:none;flex:1}
   .cli-wrap{flex-direction:column}
   .cli-list{width:100%;max-height:36vh;border-right:none;border-bottom:1px solid var(--border);display:flex;overflow-x:auto;overflow-y:hidden}
   .cli-item{min-width:150px;border-bottom:none;border-right:1px solid #1a2a3a;flex-shrink:0}
   .ini-saludo{font-size:1.3rem}.ic-val{font-size:1.7rem}
   .frow{flex-direction:column;gap:0}
   .modal{padding:14px;max-height:92vh}
+  .modal .mact{bottom:-14px;margin:11px -14px -14px;padding:11px 14px}
 }
 @media(min-width:769px){.vcards-wrap{display:none}.vtable-wrap{display:block}}
 </style>
@@ -948,6 +956,7 @@ document.addEventListener('click',e=>{
 
 // ── VIAJES ───────────────────────────────────────────────────
 function renderViajes(){
+  const _fw=document.querySelector('.flete-wrap');if(_fw)_fw.classList.toggle('map-on',!!viajeAbierto);
   const el=document.getElementById('fpBody');
   if(!viajesData.length){el.innerHTML='<div style="text-align:center;padding:28px;color:var(--text3);font-size:.78rem">Creá un viaje y agregá los pedidos</div>';return;}
   el.innerHTML=viajesData.map(vj=>{
@@ -1292,6 +1301,7 @@ let _rutaTimer=null;
 function mostrarRutaViaje(id){clearTimeout(_rutaTimer);_rutaTimer=setTimeout(()=>_mostrarRutaViaje(id),250);}
 function _mostrarRutaViaje(id){
   if(!mapFlete||!directionsRenderer)return;
+  google.maps.event.trigger(mapFlete,'resize');
   directionsRenderer.setDirections({routes:[]});clearFleteMarkers();
   const ri=document.getElementById('ruta-info');if(ri)ri.style.display='none';
   const vj=viajesData.find(v=>v.id===id);if(!vj)return;
