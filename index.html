@@ -975,7 +975,7 @@ function renderViajes(){
       </div>
       <div class="viaje-body${estaAbierto?' open':''}" id="vbody-${vj.id}">
         ${estaAbierto?'<div class="ruta-cargando" id="ruta-status-'+vj.id+'">🗺️ Calculando ruta más corta...</div>':''}
-        ${p.length?p.map((x,i)=>`<div class="vp-item"><div class="vp-num">${i+1}</div><div class="vp-info"><div class="vp-cli">${esc(x.cliente||x.nombre)||'—'}</div><div class="vp-sub">${paradaTexto(x)} · ${esc(x.localidad)}</div></div><button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.75rem;padding:3px" onclick="quitarDelViaje('${vj.id}',${i})">✕</button></div>`).join(''):'<div style="font-size:.72rem;color:var(--text3);padding:6px 0;text-align:center">Sin paradas — tocá "Agregar clientes"</div>'}
+        ${p.length?p.map((x,i)=>`<div class="vp-item"><div class="vp-num">${i+1}</div><div class="vp-info"><div class="vp-cli">${esc(x.cliente||x.nombre)||'—'}</div><div class="vp-sub">${paradaTexto(x)} · ${esc(x.localidad)}</div></div><button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.75rem;padding:3px" onclick="quitarDelViaje('${vj.id}',${i},'${x.id||''}')">✕</button></div>`).join(''):'<div style="font-size:.72rem;color:var(--text3);padding:6px 0;text-align:center">Sin paradas — tocá "Agregar clientes"</div>'}
         ${barraCapacidad(p)}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px">
           <button class="bv" style="font-size:.68rem;padding:5px" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes</button>
@@ -1017,10 +1017,13 @@ async function togglePublico(id,val){
   renderViajes();renderProxFletes();renderFpDisponibles();
   toast(val?'✅ Flete publicado — visible para todos los vendedores':'Flete ocultado');
 }
-async function quitarDelViaje(vjId,idx){
-  const vj=viajesData.find(v=>v.id===vjId);if(!vj)return;
+async function quitarDelViaje(vjId,idx,paradaId){
+  const vj=buscarViaje(vjId);if(!vj)return;
   const paradas=parsePar(vj.paradas_snap);
-  const quitado=paradas.splice(idx,1)[0];
+  // Borrar por identidad del cliente (no por posición): así saca siempre el que apretás
+  let realIdx=idx;
+  if(paradaId){const k=paradas.findIndex(p=>String(p.id)===String(paradaId));if(k>=0)realIdx=k;}
+  const quitado=paradas.splice(realIdx,1)[0];
   const pedido_ids=parsePar(vj.pedido_ids||[]).filter(pid=>String(pid)!==String(quitado?.id));
   const{data:upd,error}=await sb.from('viajes').update({paradas_snap:paradas,pedido_ids}).eq('id',vjId).select();
   if(error){toast('Error: '+error.message);return;}
@@ -1125,6 +1128,16 @@ async function confirmarAgregar(){
   const nuevas=ventas.filter(v=>agregarVentasSeleccionadas.has(v.id)&&!yaIds.has(String(v.id)));
   if(!nuevas.length){toast('Esos clientes ya están en el viaje');cerrarAgregar();return;}
   const paradasNuevas=[...paradasActuales,...nuevas.map(v=>({cliente:v.cliente,producto:v.producto,modelo:v.modelo,productos:v.productos||null,localidad:v.localidad,lat:v.lat,lng:v.lng,id:v.id}))];
+  // Aviso de capacidad antes de guardar
+  const ocActual=calcOcupacion(paradasActuales),ocNueva=calcOcupacion(paradasNuevas);
+  if(ocNueva>1){
+    const camiones=Math.ceil(ocNueva),pct=Math.round(ocNueva*100);
+    const yaLleno=ocActual>=1;
+    const msg=yaLleno
+      ?`⚠️ El viaje ya estaba lleno y seguirá requiriendo ${camiones} camión${camiones>1?'es':''}.\n\n¿Agregar igual?`
+      :`⚠️ Con estos clientes el viaje va a necesitar ${camiones} camión${camiones>1?'es':''} (${pct}% de carga).\n\n¿Agregar igual?`;
+    if(!confirm(msg))return;
+  }
   const pedido_ids=[...new Set([...parsePar(vj.pedido_ids||[]).map(String),...nuevas.map(v=>String(v.id))])];
   const{data:upd,error}=await sb.from('viajes').update({paradas_snap:paradasNuevas,pedido_ids}).eq('id',agregarViajeId).select();
   if(error){toast('Error: '+error.message);return;}
@@ -1342,7 +1355,12 @@ function _mostrarRutaViaje(id){
       clearFleteMarkers();
       fleteMarkers.push(markerFabrica(mapFlete));
       paradasOrden.forEach((p,i)=>{if(p.lat&&p.lng)fleteMarkers.push(markerNumero(mapFlete,parseFloat(p.lat),parseFloat(p.lng),i+1,(p.cliente||'')+' · '+(p.localidad||'')));});
-      sb.from('viajes').update({km_real:km,paradas_snap:paradasOrden}).eq('id',id).then(()=>{const vj2=buscarViaje(id);if(vj2){vj2.km_real=km;vj2.paradas_snap=paradasOrden;}const kmSpan=document.querySelector(`#vjcard-${id} .viaje-km`);if(kmSpan)kmSpan.textContent=`📍 ${km} km`;});
+      // Sincronizar la lista visible con el orden optimizado (si no, la X borra la parada equivocada)
+      if(vj){vj.km_real=km;vj.paradas_snap=paradasOrden;}
+      renderViajes();renderProxFletes();
+      const st2=document.getElementById('ruta-status-'+id);
+      if(st2){st2.textContent=`✓ ${km} km de ida · ${tiempoStr}`;st2.style.background='#0d2e18';st2.style.color='var(--green)';}
+      sb.from('viajes').update({km_real:km,paradas_snap:paradasOrden}).eq('id',id).then(()=>{const kmSpan=document.querySelector(`#vjcard-${id} .viaje-km`);if(kmSpan)kmSpan.textContent=`📍 ${km} km`;});
     } else {if(ri){ri.textContent='No se pudo calcular la ruta ('+status+')';ri.style.display='block';}if(st){st.textContent='⚠️ Error: '+status;st.style.background='#2a1010';st.style.color='var(--red)';}}
   });
 }
