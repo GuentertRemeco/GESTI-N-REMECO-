@@ -737,23 +737,30 @@ function barraCapacidad(paradas){
   return`<div class="cap-bar-wrap"><div class="cap-bar-label"><span>Capacidad</span><span style="color:${color};font-weight:700">${label}</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>`;
 }
 function nombreProd(a){const tipo=(a.producto==='Silo Aéreo'||a.producto==='Autoconsumo')?a.producto+' ':'';const cant=(a.cantidad&&a.cantidad>1)?` ×${a.cantidad}`:'';return`${tipo}${esc(a.modelo)}${cant}`;}
-// ── COBRO DE FLETE (método índice: espacio × km) ─────────────
+// ── COBRO DE FLETE (método por tramos: taxi compartido) ──────
 function setPrecioKm(v){const n=parseFloat(v);if(!isNaN(n)&&n>0){PRECIO_KM=n;localStorage.setItem('remeco_precio_km',n);renderViajes();renderProxFletes();}}
 function calcularFlete(vj){
+  // paradas_snap viene en orden de ruta (cercana → lejana = orden de bajada)
+  // tramos_km[i] = km del tramo que termina en la parada localizada i (legs de Google)
   const paradas=parsePar(vj.paradas_snap);
-  const kmReal=Math.round(parseFloat(vj.km_real)||0);
-  const total=Math.round(kmReal*PRECIO_KM);
-  const items=paradas.map(p=>{
-    const espacio=ocupacionItem(p);
-    const km=(p.lat&&p.lng)?distKm(FAB_LAT,FAB_LNG,parseFloat(p.lat),parseFloat(p.lng))*1.35:0;
-    return{parada:p,espacio,km,indice:espacio*km,pct:0,cobro:0};
-  });
-  const sumaInd=items.reduce((s,x)=>s+x.indice,0);
-  items.forEach(x=>{x.pct=sumaInd>0?x.indice/sumaInd:0;x.cobro=Math.round(x.pct*total);});
+  const tramos=Array.isArray(vj.tramos_km)?vj.tramos_km:[];
+  const items=paradas.map(p=>({parada:p,espacio:ocupacionItem(p),located:!!(p.lat&&p.lng),pct:0,cobro:0}));
+  const loc=items.filter(it=>it.located); // localizadas, en orden de ruta
+  const n=Math.min(loc.length,tramos.length);
+  let kmTotal=0;
+  for(let i=0;i<n;i++){
+    const costo=tramos[i]*PRECIO_KM;kmTotal+=tramos[i];
+    // activos = los que todavía no bajaron (parada i o posterior)
+    let espAct=0;for(let j=i;j<loc.length;j++)espAct+=loc[j].espacio;
+    if(espAct>0)for(let j=i;j<loc.length;j++)loc[j].cobro+=(loc[j].espacio/espAct)*costo;
+  }
+  const total=Math.round(kmTotal*PRECIO_KM);
+  items.forEach(x=>x.cobro=Math.round(x.cobro));
   // Ajuste de redondeo: el sobrante (±) va al que más paga, para cerrar EXACTO al total
   const dif=total-items.reduce((s,x)=>s+x.cobro,0);
-  if(dif!==0&&items.length){let mi=0;items.forEach((x,i)=>{if(x.cobro>items[mi].cobro)mi=i;});items[mi].cobro+=dif;}
-  return{total,items,kmReal,ocupacion:calcOcupacion(paradas)};
+  if(dif!==0&&loc.length){let mi=0;items.forEach((x,i)=>{if(x.cobro>items[mi].cobro)mi=i;});items[mi].cobro+=dif;}
+  items.forEach(x=>x.pct=total>0?x.cobro/total:0);
+  return{total,items,kmReal:Math.round(kmTotal),ocupacion:calcOcupacion(paradas),listo:n>0};
 }
 function productosTexto(v){
   const arr=productosDe(v);
@@ -995,11 +1002,11 @@ function renderViajes(){
       </div>
       <div class="viaje-body${estaAbierto?' open':''}" id="vbody-${vj.id}">
         ${estaAbierto?'<div class="ruta-cargando" id="ruta-status-'+vj.id+'">🗺️ Calculando ruta más corta...</div>':''}
-        ${p.length?p.map((x,i)=>{const c=flete.items[i]||{cobro:0,pct:0,km:0};const cobroHtml=flete.kmReal?`<div style="text-align:right;white-space:nowrap;margin-right:4px"><div style="color:var(--gold);font-weight:800;font-size:.74rem">$${fNum(c.cobro)}</div><div style="color:var(--text3);font-size:.6rem">${Math.round(c.pct*100)}%${c.km?'':' · s/ubic'}</div></div>`:'';return`<div class="vp-item"><div class="vp-num">${i+1}</div><div class="vp-info"><div class="vp-cli">${esc(x.cliente||x.nombre)||'—'}</div><div class="vp-sub">${paradaTexto(x)} · ${esc(x.localidad)}</div></div>${cobroHtml}<button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.75rem;padding:3px" onclick="quitarDelViaje('${vj.id}',${i},'${x.id||''}')">✕</button></div>`;}).join(''):'<div style="font-size:.72rem;color:var(--text3);padding:6px 0;text-align:center">Sin paradas — tocá "Agregar clientes"</div>'}
+        ${p.length?p.map((x,i)=>{const c=flete.items[i]||{cobro:0,pct:0,located:false};const cobroHtml=flete.listo?`<div style="text-align:right;white-space:nowrap;margin-right:4px"><div style="color:var(--gold);font-weight:800;font-size:.74rem">$${fNum(c.cobro)}</div><div style="color:var(--text3);font-size:.6rem">${Math.round(c.pct*100)}%${c.located?'':' · s/ubic'}</div></div>`:'';return`<div class="vp-item"><div class="vp-num">${i+1}</div><div class="vp-info"><div class="vp-cli">${esc(x.cliente||x.nombre)||'—'}</div><div class="vp-sub">${paradaTexto(x)} · ${esc(x.localidad)}</div></div>${cobroHtml}<button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.75rem;padding:3px" onclick="quitarDelViaje('${vj.id}',${i},'${x.id||''}')">✕</button></div>`;}).join(''):'<div style="font-size:.72rem;color:var(--text3);padding:6px 0;text-align:center">Sin paradas — tocá "Agregar clientes"</div>'}
         ${barraCapacidad(p)}
         ${p.length?`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:.72rem">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="color:var(--text3)">Flete total</span><span style="color:var(--gold);font-weight:900;font-size:.9rem">${flete.kmReal?'$'+fNum(flete.total):'—'}</span></div>
-          ${flete.kmReal?`<div style="color:var(--text3);font-size:.63rem;margin-bottom:6px">${flete.kmReal} km × $<input type="number" value="${PRECIO_KM}" onchange="setPrecioKm(this.value)" onclick="event.stopPropagation()" style="width:64px;background:var(--bg);border:1px solid #1e3a55;color:var(--text);border-radius:5px;padding:2px 5px;font-size:.68rem;font-family:inherit"/>/km · reparto por espacio×km</div>`:'<div style="color:var(--text3);font-size:.63rem;margin-bottom:4px">Abrí el viaje para calcular la ruta y ver el flete</div>'}
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="color:var(--text3)">Flete total</span><span style="color:var(--gold);font-weight:900;font-size:.9rem">${flete.listo?'$'+fNum(flete.total):'—'}</span></div>
+          ${flete.listo?`<div style="color:var(--text3);font-size:.63rem;margin-bottom:6px">${flete.kmReal} km × $<input type="number" value="${PRECIO_KM}" onchange="setPrecioKm(this.value)" onclick="event.stopPropagation()" style="width:64px;background:var(--bg);border:1px solid #1e3a55;color:var(--text);border-radius:5px;padding:2px 5px;font-size:.68rem;font-family:inherit"/>/km · reparto por tramos</div>`:'<div style="color:var(--text3);font-size:.63rem;margin-bottom:4px">Abrí el viaje para calcular la ruta y ver el flete</div>'}
           ${flete.ocupacion>1?`<div style="color:var(--red);font-weight:700;font-size:.66rem">⚠️ No entra en un camión (${Math.round(flete.ocupacion*100)}%) — hace falta otro flete</div>`:`<div style="color:var(--text3);font-size:.63rem">Camión ocupado: ${Math.round(flete.ocupacion*100)}%</div>`}
         </div>`:''}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px">
@@ -1061,9 +1068,9 @@ function exportarViaje(id){
   const p=parsePar(vj.paradas_snap),oc=calcOcupacion(p);
   const flete=calcularFlete(vj);
   let t=`*🚛 ${vj.nombre}*\n📅 ${fFecha(vj.fecha)}\n🏭 Salida: Remeco, La Pampa\n\n`;
-  p.forEach((x,i)=>{const c=flete.items[i];const cobro=flete.kmReal&&c?` — *$${fNum(c.cobro)}* (${Math.round(c.pct*100)}%)`:'';t+=`${i+1}. *${x.cliente||x.nombre||'—'}*\n   ${paradaTexto(x)} · ${x.localidad||''}${cobro}\n\n`;});
+  p.forEach((x,i)=>{const c=flete.items[i];const cobro=flete.listo&&c?` — *$${fNum(c.cobro)}* (${Math.round(c.pct*100)}%)`:'';t+=`${i+1}. *${x.cliente||x.nombre||'—'}*\n   ${paradaTexto(x)} · ${x.localidad||''}${cobro}\n\n`;});
   if(vj.km_real)t+=`📍 Total ida: ${vj.km_real} km\n`;
-  if(flete.kmReal)t+=`💰 Flete total: $${fNum(flete.total)} (${flete.kmReal} km × $${fNum(PRECIO_KM)}/km)\n`;
+  if(flete.listo)t+=`💰 Flete total: $${fNum(flete.total)} (${flete.kmReal} km × $${fNum(PRECIO_KM)}/km)\n`;
   t+=`📦 Capacidad: ${Math.round(oc*100)}% (${Math.ceil(oc)} camión${Math.ceil(oc)>1?'es':''})`;
   if(oc>1)t+=`\n⚠️ No entra en un camión — hace falta otro flete`;
   navigator.clipboard.writeText(t).then(()=>toast('Copiado para WhatsApp ✓')).catch(()=>alert(t));
@@ -1384,7 +1391,8 @@ function _mostrarRutaViaje(id){
       fleteMarkers.push(markerFabrica(mapFlete));
       paradasOrden.forEach((p,i)=>{if(p.lat&&p.lng)fleteMarkers.push(markerNumero(mapFlete,parseFloat(p.lat),parseFloat(p.lng),i+1,(p.cliente||'')+' · '+(p.localidad||'')));});
       // Sincronizar la lista visible con el orden optimizado (si no, la X borra la parada equivocada)
-      if(vj){vj.km_real=km;vj.paradas_snap=paradasOrden;}
+      // Guardar km de cada tramo (legs) para el cobro por tramos
+      if(vj){vj.km_real=km;vj.paradas_snap=paradasOrden;vj.tramos_km=res.routes[0].legs.map(l=>l.distance.value/1000);}
       renderViajes();renderProxFletes();
       const st2=document.getElementById('ruta-status-'+id);
       if(st2){st2.textContent=`✓ ${km} km de ida · ${tiempoStr}`;st2.style.background='#0d2e18';st2.style.color='var(--green)';}
