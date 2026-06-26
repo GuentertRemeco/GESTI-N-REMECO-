@@ -520,7 +520,7 @@ const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 const RADIO_COSTADO=100,RADIO_ADELANTE=300;
 
 const AEREO_MODELOS=['6TN','10TN','16TN','22TN','28TN','30TN','40TN','50TN','60TN','62TN','72TN','80TN','100TN','120TN','140TN','150TN','175TN','200TN'];
-const AUTO_MODELOS=['2 TN 12 bocas','2 TN 18 bocas','4 TN','7 TN','7 TN con alero al medio','12 TN','12 TN alero grande','12 TN con alero al medio','18 TN alero al medio'];
+const AUTO_MODELOS=['2 TN 12 bocas','2 TN 18 bocas','4 TN','7 TN','7 TN con alero al medio','12 TN','12 TN alero grande','12 TN con alero al medio','12 TN cambio de base','18 TN alero al medio','18 TN cambio de base'];
 const CAP_AEREO={'6':8,'10':8,'16':6,'22':6,'28':6,'30':3,'40':3,'50':3,'60':3,'62':3,'72':3,'80':2,'100':2,'120':2,'140':2,'150':1,'175':1,'200':1};
 const CAP_AUTO={'2':20,'4':20,'7':8,'12':5,'18':5};
 
@@ -708,7 +708,7 @@ function markerNumero(map,lat,lng,n,title){return new google.maps.Marker({positi
 function esAutoconsumo(producto,modelo){
   const t=((producto||'')+' '+(modelo||'')).toLowerCase();
   if(/silo|a[eé]reo|cono/.test(t))return false;
-  if(/auto|alero|boca|cambio de base/.test(t))return true;
+  if(/auto|alero|boca|cambio/.test(t))return true;
   return false;
 }
 function getMaxPorCamion(producto,modelo){
@@ -779,7 +779,7 @@ function renderProdItems(){
     let extras='';
     if(it.prod==='Silo Aéreo'&&it.modelo){
       extras=`<div class="prod-extras">${[['35','Cono 35°'],['45','45°'],['55','55°']].map(([a,t])=>`<button type="button" class="opt-btn${(it.cono||'35')===a?' on':''}" onclick="prodSetCono(${idx},'${a}')">${t}</button>`).join('')}</div>`;
-    } else if(it.prod==='Autoconsumo'&&(it.modelo.startsWith('12 TN')||it.modelo.startsWith('18 TN'))){
+    } else if(it.prod==='Autoconsumo'&&(it.modelo.startsWith('12 TN')||it.modelo.startsWith('18 TN'))&&!it.modelo.includes('cambio de base')){
       extras=`<div class="prod-extras"><button type="button" class="opt-btn${it.fibra?' on':''}" onclick="prodToggleFibra(${idx})">${it.fibra?'✓ ':''}Incluye base de fibra</button></div>`;
     }
     const body=`<div class="prod-body">
