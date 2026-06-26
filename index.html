@@ -524,7 +524,7 @@ const AUTO_MODELOS=['2 TN 12 bocas','2 TN 18 bocas','4 TN','7 TN','7 TN con aler
 const CAP_AEREO={'6':8,'10':8,'16':6,'22':6,'28':6,'30':3,'40':3,'50':3,'60':3,'62':3,'72':3,'80':2,'100':2,'120':2,'140':2,'150':1,'175':1,'200':1};
 const CAP_AUTO={'2':20,'4':20,'7':8,'12':5,'18':5};
 
-let ventas=[],viajesData=[],editId=null,modalLat=null,modalLng=null,modalReadOnly=false;
+let ventas=[],viajesData=[],fletesPublicos=[],editId=null,modalLat=null,modalLng=null,modalReadOnly=false;
 let filterEstado='',filterProd='';
 let mapMapa=null,mapFlete=null,mapModal=null,simMap=null,locAutocomplete=null;
 let markersArr=[],modalMarker=null,directionsRenderer=null,simDirRenderer=null;
@@ -850,8 +850,12 @@ async function cargarDatos(){
   const{data:vj,error:vje}=await sb.from('viajes').select('*').eq('user_id',authedUser).order('fecha');
   if(vje){toast('⚠️ Error Supabase (viajes): '+vje.message);console.error(vje);}
   else{viajesData=vj||[];renderViajes();renderProxFletes();renderStats();}
+  // Fletes publicados por cualquier vendedor (visibles para todos en "Disponibles")
+  const{data:vp}=await sb.from('viajes').select('*').eq('publico',true).order('fecha');
+  fletesPublicos=vp||[];renderFpDisponibles();
   if(mapMapa)actMarkersMapa();
 }
+function buscarViaje(id){return viajesData.find(v=>v.id===id)||fletesPublicos.find(v=>v.id===id);}
 
 // ── INICIO ───────────────────────────────────────────────────
 function renderStats(){
@@ -891,7 +895,7 @@ function renderProxFletes(){
   }).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin fletes programados</div>';
 }
 function renderFpDisponibles(){
-  const pub=viajesData.filter(v=>v.publico);
+  const pub=fletesPublicos;
   const el=document.getElementById('fpDisponibles');if(!el)return;
   if(!pub.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--text3);font-size:.8rem">No hay fletes publicados.<br>Abrí un viaje y tocá "Publicar".</div>';return;}
   el.innerHTML=pub.map(vj=>{
@@ -1008,7 +1012,9 @@ async function togglePublico(id,val){
   if(error){toast('Error: '+error.message);return;}
   if(!upd||!upd.length){alert('⚠️ No se guardó (permisos RLS de "viajes"). Corré el SQL de permisos en Supabase.');return;}
   const vj=viajesData.find(v=>v.id===id);if(vj)vj.publico=val;
-  renderViajes();renderProxFletes();
+  if(val){if(vj&&!fletesPublicos.some(v=>v.id===id))fletesPublicos.push(vj);}
+  else fletesPublicos=fletesPublicos.filter(v=>v.id!==id);
+  renderViajes();renderProxFletes();renderFpDisponibles();
   toast(val?'✅ Flete publicado — visible para todos los vendedores':'Flete ocultado');
 }
 async function quitarDelViaje(vjId,idx){
@@ -1076,7 +1082,7 @@ function optimizarViaje(id){
 // ── AGREGAR CLIENTES ─────────────────────────────────────────
 function abrirAgregar(vjId){
   agregarViajeId=vjId;agregarVentasSeleccionadas=new Set();
-  const vj=viajesData.find(v=>v.id===vjId);
+  const vj=buscarViaje(vjId);
   document.getElementById('agregar-viaje-nombre').textContent=vj?`Viaje: ${vj.nombre}`:'';
   document.getElementById('agregar-buscar').value='';
   document.getElementById('agregar-hint').textContent='Seleccioná las ventas para agregar al viaje';
@@ -1104,7 +1110,7 @@ function toggleSelAgregar(id){
   renderListaAgregar(lista,mostrarDist);
 }
 function mostrarTodosAgregar(){
-  const vj=viajesData.find(v=>v.id===agregarViajeId);
+  const vj=buscarViaje(agregarViajeId);
   document.getElementById('agregar-hint').textContent='Todos los clientes pendientes';
   document.getElementById('agregar-buscar').value='';
   const enViaje=setClientesEnViaje(vj);
@@ -1113,7 +1119,7 @@ function mostrarTodosAgregar(){
 }
 async function confirmarAgregar(){
   if(!agregarVentasSeleccionadas.size){toast('Seleccioná al menos una venta');return;}
-  const vj=viajesData.find(v=>v.id===agregarViajeId);if(!vj)return;
+  const vj=buscarViaje(agregarViajeId);if(!vj)return;
   const paradasActuales=parsePar(vj.paradas_snap);
   const yaIds=new Set(paradasActuales.map(x=>String(x.id)).filter(Boolean));
   const nuevas=ventas.filter(v=>agregarVentasSeleccionadas.has(v.id)&&!yaIds.has(String(v.id)));
@@ -1125,6 +1131,8 @@ async function confirmarAgregar(){
   if(!upd||!upd.length){alert('⚠️ No se guardó en la base de datos.\n\nEs un problema de PERMISOS (RLS) de la tabla "viajes".\nCorré el SQL de permisos en Supabase y volvé a probar.');return;}
   const{data:vjAll}=await sb.from('viajes').select('*').eq('user_id',authedUser).order('fecha');
   if(vjAll)viajesData=vjAll;
+  const{data:vpAll}=await sb.from('viajes').select('*').eq('publico',true).order('fecha');
+  if(vpAll){fletesPublicos=vpAll;renderFpDisponibles();}
   cerrarAgregar();viajeAbierto=agregarViajeId;setFletePlaceholder(false);
   renderViajes();renderProxFletes();renderStats();
   setTimeout(()=>mostrarRutaViaje(agregarViajeId),200);
@@ -1305,7 +1313,7 @@ function _mostrarRutaViaje(id){
   google.maps.event.trigger(mapFlete,'resize');
   directionsRenderer.setDirections({routes:[]});clearFleteMarkers();
   const ri=document.getElementById('ruta-info');if(ri)ri.style.display='none';
-  const vj=viajesData.find(v=>v.id===id);if(!vj)return;
+  const vj=buscarViaje(id);if(!vj)return;
   const paradas=parsePar(vj.paradas_snap);
   const st=document.getElementById('ruta-status-'+id);
   if(!paradas.length){if(st){st.textContent='Sin paradas — agregá clientes';st.style.background='#2a1010';st.style.color='var(--red)';}return;}
@@ -1334,7 +1342,7 @@ function _mostrarRutaViaje(id){
       clearFleteMarkers();
       fleteMarkers.push(markerFabrica(mapFlete));
       paradasOrden.forEach((p,i)=>{if(p.lat&&p.lng)fleteMarkers.push(markerNumero(mapFlete,parseFloat(p.lat),parseFloat(p.lng),i+1,(p.cliente||'')+' · '+(p.localidad||'')));});
-      sb.from('viajes').update({km_real:km,paradas_snap:paradasOrden}).eq('id',id).then(()=>{const vj2=viajesData.find(v=>v.id===id);if(vj2){vj2.km_real=km;vj2.paradas_snap=paradasOrden;}const kmSpan=document.querySelector(`#vjcard-${id} .viaje-km`);if(kmSpan)kmSpan.textContent=`📍 ${km} km`;});
+      sb.from('viajes').update({km_real:km,paradas_snap:paradasOrden}).eq('id',id).then(()=>{const vj2=buscarViaje(id);if(vj2){vj2.km_real=km;vj2.paradas_snap=paradasOrden;}const kmSpan=document.querySelector(`#vjcard-${id} .viaje-km`);if(kmSpan)kmSpan.textContent=`📍 ${km} km`;});
     } else {if(ri){ri.textContent='No se pudo calcular la ruta ('+status+')';ri.style.display='block';}if(st){st.textContent='⚠️ Error: '+status;st.style.background='#2a1010';st.style.color='var(--red)';}}
   });
 }
