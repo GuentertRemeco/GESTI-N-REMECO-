@@ -1055,7 +1055,7 @@ function optimizarViaje(id){
   const destination={lat:parseFloat(destPar.lat),lng:parseFloat(destPar.lng)};
   const waypoints=rest.map(p=>({location:{lat:parseFloat(p.lat),lng:parseFloat(p.lng)},stopover:true}));
   toast('🎯 Buscando clientes cerca de la ruta...');
-  new google.maps.DirectionsService().route({origin:FABRICA,destination,waypoints,optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{
+  new google.maps.DirectionsService().route({origin:{lat:FAB_LAT,lng:FAB_LNG},destination,waypoints,optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{
     if(status!=='OK'){toast('No se pudo calcular la ruta: '+status);return;}
     const path=res.routes[0].overview_path.map(p=>({lat:p.lat(),lng:p.lng()}));
     const enViaje=setClientesEnViaje(vj);
@@ -1316,7 +1316,7 @@ function _mostrarRutaViaje(id){
   const destItem=conLoc[idxDest],restItems=conLoc.filter((_,i)=>i!==idxDest);
   const destination=destItem.loc,waypoints=restItems.map(x=>({location:x.loc,stopover:true}));
   if(st){st.textContent='🗺️ Calculando ruta más corta...';st.style.background='#1a2c40';st.style.color='var(--gold)';}
-  new google.maps.DirectionsService().route({origin:FABRICA,destination,waypoints,optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{
+  new google.maps.DirectionsService().route({origin:{lat:FAB_LAT,lng:FAB_LNG},destination,waypoints,optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{
     if(status==='OK'){
       directionsRenderer.setDirections(res);directionsRenderer.setRouteIndex(0);
       const km=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
@@ -1361,7 +1361,7 @@ function calcularRutaSim(){
   simParadas.forEach((p,i)=>{const d=distKm(FAB_LAT,FAB_LNG,p.lat,p.lng);if(d>maxD){maxD=d;idxDest=i;}});
   const destPar=simParadas[idxDest],rest=simParadas.filter((_,i)=>i!==idxDest);
   const destination={lat:destPar.lat,lng:destPar.lng},waypoints=rest.map(p=>({location:{lat:p.lat,lng:p.lng},stopover:true}));
-  new google.maps.DirectionsService().route({origin:FABRICA,destination,waypoints,optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{
+  new google.maps.DirectionsService().route({origin:{lat:FAB_LAT,lng:FAB_LNG},destination,waypoints,optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{
     if(status==='OK'){
       simDirRenderer.setDirections(res);simDirRenderer.setRouteIndex(0);
       const km=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
