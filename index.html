@@ -980,7 +980,23 @@ function renderVentas(){
   document.getElementById('vCount').textContent=`${l.length} venta${l.length!==1?'s':''}`;
   const em='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">Sin resultados</div></div>';
   document.getElementById('vtbody').innerHTML=l.length?l.map(v=>`<tr onclick="abrirEditar('${v.id}')" style="cursor:pointer"><td><strong>${esc(v.cliente)||'—'}</strong><br><span style="font-size:.68rem;color:var(--text3)">${esc(v.cuit)}</span></td><td>${productosTexto(v)}</td><td>${esc(v.localidad)||'—'}</td><td style="font-size:.74rem;color:var(--text2)">${v.costo_flete?'$'+fNum(v.costo_flete):'—'}</td><td style="color:var(--gold);font-weight:700">${v.precio?'$'+fNum(v.precio):'—'}</td><td><span onclick="menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></td><td style="font-size:.72rem">${fFecha(v.fecha_entrega)}</td><td><div class="act-btns"><button class="ab" onclick="event.stopPropagation();abrirEditar('${v.id}')">✏️</button><button class="ab del" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div></td></tr>`).join(''):`<tr><td colspan="8">${em}</td></tr>`;
-  document.getElementById('vcards').innerHTML=l.length?l.map(v=>`<div class="vcard" onclick="abrirEditar('${v.id}')"><div class="vcard-header"><div class="vcard-main"><div class="vcard-name">${esc(v.cliente)||'—'}</div><div style="margin-bottom:4px"><span onclick="menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></div><div class="vcard-loc">📍 ${esc(v.localidad)||'—'} · ${paradaTexto(v)}</div></div><div class="vcard-right"><div class="vcard-price">${v.precio?'$'+fNum(v.precio):'—'}</div>${v.costo_flete?`<div style="font-size:.66rem;color:var(--text3)">Flete $${fNum(v.costo_flete)}</div>`:''}</div></div><div class="vcard-footer"><div class="vcard-date">${v.fecha_entrega?'📅 '+fFecha(v.fecha_entrega):'Sin fecha'}</div><div class="vcard-actions"><button class="vcard-btn" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div></div></div>`).join(''):em;
+  document.getElementById('vcards').innerHTML=l.length?l.map(v=>`<div class="vcard" onclick="abrirEditar('${v.id}')">
+    <div class="vcard-header">
+      <div class="vcard-main">
+        <div class="vcard-name">${esc(v.cliente)||'—'}${v.cuit?`<span style="font-size:.62rem;color:var(--text3);font-weight:600;margin-left:6px">${esc(v.cuit)}</span>`:''}</div>
+        <div style="font-size:.76rem;color:var(--text2);margin:4px 0">${productosTexto(v)}</div>
+        <div class="vcard-loc">📍 ${esc(v.localidad)||'—'}</div>
+      </div>
+      <div class="vcard-right">
+        <div class="vcard-price">${v.precio?'$'+fNum(v.precio):'—'}</div>
+        <div style="margin-top:5px"><span onclick="event.stopPropagation();menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></div>
+      </div>
+    </div>
+    <div class="vcard-footer">
+      <div class="vcard-date">${v.fecha_entrega?'📅 '+fFecha(v.fecha_entrega):'Sin fecha'}${v.costo_flete?` · 🚚 Flete $${fNum(v.costo_flete)}`:''}</div>
+      <div class="vcard-actions"><button class="vcard-btn" onclick="event.stopPropagation();abrirEditar('${v.id}')">✏️ Editar</button><button class="vcard-btn" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div>
+    </div>
+  </div>`).join(''):em;
 }
 
 // ── ESTADO RÁPIDO ────────────────────────────────────────────
