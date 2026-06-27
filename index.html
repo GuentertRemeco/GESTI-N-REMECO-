@@ -1434,20 +1434,15 @@ function initMapaSim(){
   ac.addListener('place_changed',()=>{const pl=ac.getPlace();if(!pl.geometry)return;simParadas.push({nombre:pl.name||inp.value,lat:pl.geometry.location.lat(),lng:pl.geometry.location.lng(),prod:'Autoconsumo',modelo:'12 TN',cantidad:1});inp.value='';renderSimParadas();if(simParadas.length>=1)calcularRutaSim();});
 }
 function calcularFleteSim(){
-  const items=simParadas.map(p=>({espacio:ocupacionItem({productos:[{producto:p.prod,modelo:p.modelo,cantidad:p.cantidad||1}]}),cobro:0,pct:0}));
-  const n=Math.min(items.length,simTramos.length);
-  let kmTotal=0;
-  for(let i=0;i<n;i++){
-    const costo=simTramos[i]*PRECIO_KM;kmTotal+=simTramos[i];
-    let esp=0;for(let j=i;j<items.length;j++)esp+=items[j].espacio;
-    if(esp>0)for(let j=i;j<items.length;j++)items[j].cobro+=(items[j].espacio/esp)*costo;
-  }
-  const total=Math.round(kmTotal*PRECIO_KM);
-  items.forEach(x=>x.cobro=Math.round(x.cobro));
-  const dif=total-items.reduce((s,x)=>s+x.cobro,0);
-  if(dif!==0&&items.length){let mi=0;items.forEach((x,i)=>{if(x.cobro>items[mi].cobro)mi=i;});items[mi].cobro+=dif;}
-  items.forEach(x=>x.pct=total>0?x.cobro/total:0);
-  return{items,total,kmTotal:Math.round(kmTotal),ocupacion:items.reduce((s,x)=>s+x.espacio,0),listo:n>0&&n===items.length};
+  // Precio de cada silo SUELTO = su espacio × km (fábrica→su destino) × $/km
+  // Así cada producto tiene su precio independiente, para combinar después.
+  const items=simParadas.map((p,i)=>{
+    const espacio=ocupacionItem({productos:[{producto:p.prod,modelo:p.modelo,cantidad:p.cantidad||1}]});
+    let kmDest=0;for(let k=0;k<=i&&k<simTramos.length;k++)kmDest+=simTramos[k];
+    return{espacio,kmDest:Math.round(kmDest),precio:Math.round(espacio*kmDest*PRECIO_KM)};
+  });
+  const kmTotal=simTramos.reduce((s,x)=>s+x,0);
+  return{items,total:Math.round(kmTotal*PRECIO_KM),kmTotal:Math.round(kmTotal),ocupacion:items.reduce((s,x)=>s+x.espacio,0),listo:simTramos.length===simParadas.length&&simTramos.length>0};
 }
 function simSetTipo(i,v){simParadas[i].prod=v;simParadas[i].modelo=(v==='Autoconsumo'?'12 TN':'16TN');renderSimParadas();}
 function simSetModelo(i,v){simParadas[i].modelo=v;renderSimParadas();}
@@ -1461,7 +1456,7 @@ function renderSimParadas(){
   simParadas.map((p,i)=>{
     const c=flete.items[i];
     const modelos=modelosDe(p.prod);const opts=(p.modelo&&!modelos.includes(p.modelo))?[p.modelo,...modelos]:modelos;
-    const cobroHtml=flete.listo&&c?`<div style="text-align:right;white-space:nowrap"><div style="color:var(--gold);font-weight:800;font-size:.74rem">${fPesos(c.cobro)}</div><div style="color:var(--text3);font-size:.6rem">${Math.round(c.pct*100)}%</div></div>`:'';
+    const cobroHtml=flete.listo&&c?`<div style="text-align:right;white-space:nowrap"><div style="color:var(--gold);font-weight:800;font-size:.74rem">${fPesos(c.precio)}</div><div style="color:var(--text3);font-size:.6rem">ocupa ${Math.round(c.espacio*100)}% · ${c.kmDest} km</div></div>`:'';
     return`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:7px;padding:7px 10px;margin-bottom:4px;display:flex;flex-direction:column;gap:6px">
       <div style="display:flex;align-items:center;gap:7px"><div class="vp-num">${i+1}</div><div style="flex:1;font-weight:700;font-size:.78rem;min-width:0">${esc(p.nombre)}</div>${cobroHtml}<button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.82rem;padding:3px" onclick="eliminarParadaSim(${i})">✕</button></div>
       <div style="display:flex;gap:5px;align-items:center">
@@ -1473,7 +1468,7 @@ function renderSimParadas(){
   }).join('')+
   (flete.listo?`<div style="margin-top:6px">${flete.ocupacion>1?`<div style="color:var(--red);font-weight:700;font-size:.68rem;text-align:center">⚠️ No entra en un camión (${Math.round(flete.ocupacion*100)}%) — hace falta otro flete</div>`:`<div style="color:var(--text3);font-size:.66rem;text-align:center">Camión ocupado: ${Math.round(flete.ocupacion*100)}%</div>`}</div>`:'');
 }
-function renderSimFlete(){const el=document.getElementById('sim-flete');if(!el)return;el.textContent=simKm>0?`Flete: ${fPesos(Math.round(simKm*PRECIO_KM))}  ·  ${simKm} km × ${fPesos(PRECIO_KM)}/km`:'';}
+function renderSimFlete(){const el=document.getElementById('sim-flete');if(!el)return;el.innerHTML=simKm>0?`Camión completo: ${fPesos(Math.round(simKm*PRECIO_KM))}  ·  ${simKm} km × ${fPesos(PRECIO_KM)}/km<br><span style="font-size:.78rem;color:var(--text3);font-weight:600">(arriba el precio de cada silo suelto, para combinar)</span>`:'';}
 function eliminarParadaSim(i){simParadas.splice(i,1);simTramos=[];renderSimParadas();if(simParadas.length>=1)calcularRutaSim();else{if(simDirRenderer)simDirRenderer.setDirections({routes:[]});clearSimMarkers();document.getElementById('sim-total').textContent='0';simKm=0;renderSimFlete();const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';}}
 function limpiarSim(){simParadas=[];simTramos=[];renderSimParadas();if(simDirRenderer)simDirRenderer.setDirections({routes:[]});clearSimMarkers();document.getElementById('sim-total').textContent='0';simKm=0;renderSimFlete();const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';}
 function calcularRutaSim(){
