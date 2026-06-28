@@ -100,7 +100,7 @@ tr:hover td{background:var(--bg3)}
 .empty-icon{font-size:2.5rem;margin-bottom:10px;opacity:.5}
 .empty-msg{font-size:.84rem}
 .vcards-wrap{flex:1;overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch;padding:8px 8px 20px}
-.vcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:7px;overflow:hidden}
+.vcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:7px;overflow:hidden;flex-shrink:0}
 .vcard-header{padding:10px 12px;display:flex;align-items:flex-start;gap:8px}
 .vcard-main{flex:1;min-width:0}
 .vcard-name{font-weight:800;font-size:.88rem;margin-bottom:2px}
@@ -505,6 +505,11 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <button class="bg" onclick="guardarPerfil()">Guardar</button>
     </div>
   </div>
+</div>
+
+<!-- MODAL DETALLE DE VENTA (solo lectura) -->
+<div class="overlay" id="overlayDetalle">
+  <div class="modal" id="detalleBody"></div>
 </div>
 
 <!-- PANTALLA CONFIGURACIÓN (pantalla completa) -->
@@ -979,22 +984,25 @@ function renderVentas(){
   else l.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
   document.getElementById('vCount').textContent=`${l.length} venta${l.length!==1?'s':''}`;
   const em='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">Sin resultados</div></div>';
-  document.getElementById('vtbody').innerHTML=l.length?l.map(v=>`<tr onclick="abrirEditar('${v.id}')" style="cursor:pointer"><td><strong>${esc(v.cliente)||'—'}</strong><br><span style="font-size:.68rem;color:var(--text3)">${esc(v.cuit)}</span></td><td>${productosTexto(v)}</td><td>${esc(v.localidad)||'—'}</td><td style="font-size:.74rem;color:var(--text2)">${v.costo_flete?'$'+fNum(v.costo_flete):'—'}</td><td style="color:var(--gold);font-weight:700">${v.precio?'$'+fNum(v.precio):'—'}</td><td><span onclick="menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></td><td style="font-size:.72rem">${fFecha(v.fecha_entrega)}</td><td><div class="act-btns"><button class="ab" onclick="event.stopPropagation();abrirEditar('${v.id}')">✏️</button><button class="ab del" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div></td></tr>`).join(''):`<tr><td colspan="8">${em}</td></tr>`;
-  document.getElementById('vcards').innerHTML=l.length?l.map(v=>`<div class="vcard" onclick="abrirEditar('${v.id}')">
+  document.getElementById('vtbody').innerHTML=l.length?l.map(v=>`<tr onclick="verVenta('${v.id}')" style="cursor:pointer"><td><strong>${esc(v.cliente)||'—'}</strong><br><span style="font-size:.68rem;color:var(--text3)">${esc(v.cuit)}</span></td><td>${productosTexto(v)}</td><td>${esc(v.localidad)||'—'}</td><td style="font-size:.74rem;color:var(--text2)">${v.costo_flete?'$'+fNum(v.costo_flete):'—'}</td><td style="color:var(--gold);font-weight:700">${v.precio?'$'+fNum(v.precio):'—'}</td><td><span onclick="menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></td><td style="font-size:.72rem">${fFecha(v.fecha_entrega)}</td><td><div class="act-btns"><button class="ab" onclick="event.stopPropagation();abrirEditar('${v.id}')">✏️</button><button class="ab del" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div></td></tr>`).join(''):`<tr><td colspan="8">${em}</td></tr>`;
+  document.getElementById('vcards').innerHTML=l.length?l.map(v=>`<div class="vcard" onclick="verVenta('${v.id}')">
     <div class="vcard-header">
       <div class="vcard-main">
-        <div class="vcard-name">${esc(v.cliente)||'—'}${v.cuit?`<span style="font-size:.62rem;color:var(--text3);font-weight:600;margin-left:6px">${esc(v.cuit)}</span>`:''}</div>
+        <div class="vcard-name">${esc(v.cliente)||'—'}</div>
         <div style="font-size:.76rem;color:var(--text2);margin:4px 0">${productosTexto(v)}</div>
         <div class="vcard-loc">📍 ${esc(v.localidad)||'—'}</div>
       </div>
       <div class="vcard-right">
         <div class="vcard-price">${v.precio?'$'+fNum(v.precio):'—'}</div>
         <div style="margin-top:5px"><span onclick="event.stopPropagation();menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></div>
+        <div class="vcard-actions" style="margin-top:8px">
+          <button class="vcard-btn" onclick="event.stopPropagation();abrirEditar('${v.id}')" title="Editar">✏️</button>
+          <button class="vcard-btn" onclick="event.stopPropagation();eliminarVenta('${v.id}')" title="Eliminar">🗑</button>
+        </div>
       </div>
     </div>
     <div class="vcard-footer">
       <div class="vcard-date">${v.fecha_entrega?'📅 '+fFecha(v.fecha_entrega):'Sin fecha'}${v.costo_flete?` · 🚚 Flete $${fNum(v.costo_flete)}`:''}</div>
-      <div class="vcard-actions"><button class="vcard-btn" onclick="event.stopPropagation();abrirEditar('${v.id}')">✏️ Editar</button><button class="vcard-btn" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div>
     </div>
   </div>`).join(''):em;
 }
@@ -1295,7 +1303,37 @@ function abrirNueva(){
   document.getElementById('overlay').classList.add('on');
   setTimeout(()=>{if(mapModal)google.maps.event.trigger(mapModal,'resize');},200);
 }
-function verVenta(id){abrirEditar(id,true);}
+function verVenta(id){
+  const v=ventas.find(x=>x.id===id);if(!v)return;
+  const prods=productosDe(v);
+  const precio=parseFloat(v.precio)||0,cp=parseFloat(v.costo_producto)||0,cf=parseFloat(v.costo_flete)||0,gan=precio-cp-cf;
+  const margen=precio>0?Math.round(gan/precio*100):0;
+  document.getElementById('detalleBody').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:3px">
+      <div style="font-size:1.2rem;font-weight:900;color:var(--gold)">${esc(v.cliente)||'—'}</div>
+      <span>${eTag(v.estado)}</span>
+    </div>
+    <div style="font-size:.72rem;color:var(--text3);margin-bottom:15px">${[v.cuit?'CUIT: '+esc(v.cuit):'',v.telefono?'📞 '+esc(v.telefono):''].filter(Boolean).join(' · ')||'Sin datos fiscales'}</div>
+    <div class="inicio-stitle" style="margin-bottom:5px">📍 De dónde es</div>
+    <div style="font-size:.88rem;margin-bottom:15px">${esc(v.localidad)||'—'}</div>
+    <div class="inicio-stitle" style="margin-bottom:6px">📦 Qué compró</div>
+    <div style="margin-bottom:15px">${prods.length?prods.map(a=>`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:9px 11px;margin-bottom:5px;font-size:.84rem;font-weight:600">${esc(nombreProd(a))}</div>`).join(''):'<div style="color:var(--text3)">—</div>'}</div>
+    <div class="rent-card">
+      <div class="rent-title">💵 Números</div>
+      <div class="rent-row"><span>Se lo vendí</span><span style="color:var(--gold);font-weight:800">${fPesos(precio)}</span></div>
+      <div class="rent-row"><span>Me costó (producto)</span><span style="color:var(--red)">- ${fPesos(cp)}</span></div>
+      <div class="rent-row"><span>Flete</span><span style="color:var(--red)">- ${fPesos(cf)}</span></div>
+      <div class="rent-row"><span>Ganancia</span><span style="color:var(--green)">${fPesos(gan)} (${margen}%)</span></div>
+    </div>
+    <div style="font-size:.8rem;color:var(--text3);margin-top:12px">📅 Entrega: ${fFecha(v.fecha_entrega)}</div>
+    ${v.notas?`<div style="font-size:.8rem;color:var(--text2);margin-top:8px">📝 ${esc(v.notas)}</div>`:''}
+    <div class="mact">
+      <button class="bd" onclick="cerrarDetalle()">Cerrar</button>
+      <button class="bg" onclick="cerrarDetalle();abrirEditar('${v.id}')">✏️ Editar</button>
+    </div>`;
+  document.getElementById('overlayDetalle').classList.add('on');
+}
+function cerrarDetalle(){document.getElementById('overlayDetalle').classList.remove('on');}
 function abrirEditar(id,ro){
   ro=!!ro;
   const v=ventas.find(x=>x.id===id);if(!v)return;
@@ -1529,8 +1567,8 @@ document.querySelectorAll('.chip').forEach(chip=>{
     renderVentas();
   });
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();}});
-document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();}}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();}});
+document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();}}));
 
 const ah=new Date();
 document.getElementById('inicioFecha').textContent=ah.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
