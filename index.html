@@ -229,6 +229,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .pac-container{z-index:9999!important}
 @keyframes spin{to{transform:rotate(360deg)}}
 .sp{width:22px;height:22px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;margin:20px auto}
+#ptr.ready{background:var(--gold);color:#111820}
+#ptr.spin{animation:spin .7s linear infinite}
 .simular-wrap{flex:1;display:flex;overflow:hidden}
 @media(max-width:768px){
   .topnav{display:none}.bnav{display:flex!important}
@@ -533,6 +535,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 <div id="estadoMenu"></div>
 <div id="perfilMenu"></div>
 <div id="toast"></div>
+<div id="ptr" style="position:fixed;top:8px;left:50%;transform:translateX(-50%) translateY(-60px);opacity:0;z-index:8000;background:#15202e;border:1px solid var(--gold);border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--gold);transition:transform .15s,opacity .15s;pointer-events:none">↻</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
@@ -713,6 +716,15 @@ function switchFpTab(tab){
   if(tab==='disponibles')renderFpDisponibles();
 }
 function setFletePlaceholder(show){const el=document.getElementById('flete-placeholder');if(el)el.style.display=show?'flex':'none';}
+function verRutaPublicado(id){
+  viajeAbierto=id;
+  const fw=document.querySelector('.flete-wrap');if(fw)fw.classList.add('map-on');
+  setFletePlaceholder(false);
+  if(typeof google==='undefined'){toast('El mapa todavía no cargó');return;}
+  initMapaFlete();
+  if(window.innerWidth<=768){const m=document.getElementById('map-flete');if(m)m.scrollIntoView({behavior:'smooth',block:'start'});}
+  setTimeout(()=>mostrarRutaViaje(id),300);
+}
 
 // ── UTILS ────────────────────────────────────────────────────
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',2800);}
@@ -959,11 +971,16 @@ function renderFpDisponibles(){
     const color=oc>=1?'var(--red)':oc>=0.75?'var(--yellow)':'var(--green)';
     const pct=Math.min(oc*100,100);
     return`<div class="disp-card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-weight:800;font-size:.84rem;color:var(--gold)">🚛 ${esc(vj.nombre)}</div><span style="font-size:.68rem;font-weight:700;color:${color}">${libre}% libre</span></div>
-      <div style="font-size:.7rem;color:var(--text3);margin-bottom:7px">📅 ${fFecha(vj.fecha)} · ${p.length} paradas${vj.km_real?' · '+vj.km_real+' km':''}</div>
-      ${p.map((x,i)=>`<div style="font-size:.68rem;color:var(--text2);padding:2px 0"> ${i+1}. ${esc(x.cliente||x.nombre)||'—'} · ${esc(x.localidad)}</div>`).join('')}
-      <div class="cap-bar-wrap" style="margin-top:8px"><div class="cap-bar-label"><span>Capacidad</span><span style="color:${color};font-weight:700">${Math.round(oc*100)}%</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>
-      <button class="bg" style="width:100%;margin-top:9px;padding:7px;font-size:.73rem" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes a este viaje</button>
+      <div onclick="verRutaPublicado('${vj.id}')" style="cursor:pointer">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-weight:800;font-size:.84rem;color:var(--gold)">🚛 ${esc(vj.nombre)}</div><span style="font-size:.68rem;font-weight:700;color:${color}">${libre}% libre</span></div>
+        <div style="font-size:.7rem;color:var(--text3);margin-bottom:7px">📅 ${fFecha(vj.fecha)} · ${p.length} paradas${vj.km_real?' · '+vj.km_real+' km':''} · <span style="color:var(--gold)">🗺️ ver recorrido</span></div>
+        ${p.map((x,i)=>`<div style="font-size:.68rem;color:var(--text2);padding:2px 0"> ${i+1}. ${esc(x.cliente||x.nombre)||'—'} · ${esc(x.localidad)}</div>`).join('')}
+        <div class="cap-bar-wrap" style="margin-top:8px"><div class="cap-bar-label"><span>Capacidad</span><span style="color:${color};font-weight:700">${Math.round(oc*100)}%</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px">
+        <button class="bp" style="padding:7px;font-size:.72rem" onclick="optimizarViaje('${vj.id}')">🎯 ¿Me conviene?</button>
+        <button class="bg" style="padding:7px;font-size:.72rem" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -1137,7 +1154,7 @@ function noEstaEnViaje(v,enViaje){return !enViaje.ids.has(String(v.id))&&!enViaj
 
 // ── OPTIMIZAR ────────────────────────────────────────────────
 function optimizarViaje(id){
-  const vj=viajesData.find(v=>v.id===id);if(!vj)return;
+  const vj=buscarViaje(id);if(!vj)return;
   if(typeof google==='undefined'){toast('El mapa todavía no cargó');return;}
   const paradas=parsePar(vj.paradas_snap).filter(x=>x.lat&&x.lng);
   if(!paradas.length){toast('Agregá al menos una parada con ubicación marcada');return;}
@@ -1474,7 +1491,8 @@ function _mostrarRutaViaje(id){
       renderViajes();renderProxFletes();
       const st2=document.getElementById('ruta-status-'+id);
       if(st2){st2.textContent=`✓ ${km} km de ida · ${tiempoStr}`;st2.style.background='#0d2e18';st2.style.color='var(--green)';}
-      sb.from('viajes').update({km_real:km,paradas_snap:paradasOrden}).eq('id',id).then(()=>{const kmSpan=document.querySelector(`#vjcard-${id} .viaje-km`);if(kmSpan)kmSpan.textContent=`📍 ${km} km`;});
+      // Guardar solo si el viaje es propio (no tocar viajes publicados por otra cuenta)
+      if(viajesData.some(v=>v.id===id))sb.from('viajes').update({km_real:km,paradas_snap:paradasOrden}).eq('id',id).then(()=>{const kmSpan=document.querySelector(`#vjcard-${id} .viaje-km`);if(kmSpan)kmSpan.textContent=`📍 ${km} km`;});
     } else {if(ri){ri.textContent='No se pudo calcular la ruta ('+status+')';ri.style.display='block';}if(st){st.textContent='⚠️ Error: '+status;st.style.background='#2a1010';st.style.color='var(--red)';}}
   });
 }
@@ -1566,6 +1584,36 @@ document.querySelectorAll('.chip').forEach(chip=>{
     else if(chip.dataset.prod){const on=chip.classList.toggle('on');filterProd=on?chip.dataset.prod:'';}
     renderVentas();
   });
+});
+// ── PULL TO REFRESH (deslizar hacia abajo para actualizar) ───
+let ptStartY=0,ptPulling=false,ptDist=0,ptBusy=false;const PT_THRESH=70;
+function ptScrollerOf(el){while(el&&el!==document.body){const s=getComputedStyle(el).overflowY;if((s==='auto'||s==='scroll')&&el.scrollHeight>el.clientHeight+2)return el;el=el.parentElement;}return null;}
+function ptReset(anim){const ind=document.getElementById('ptr');if(ind){ind.classList.remove('ready','spin');ind.style.transform='translateX(-50%) translateY(-60px)';ind.style.opacity='0';}}
+document.addEventListener('touchstart',e=>{
+  ptPulling=false;
+  if(ptBusy||e.touches.length!==1)return;
+  if(document.querySelector('.overlay.on')||document.getElementById('configScreen').style.display==='flex')return;
+  if(e.target.closest&&e.target.closest('#map-mapa,#map-flete,#map-sim,#mmap-div,.gm-style,select,input,textarea'))return;
+  const sc=ptScrollerOf(e.target);
+  if((sc?sc.scrollTop:0)<=0){ptStartY=e.touches[0].clientY;ptPulling=true;ptDist=0;}
+},{passive:true});
+document.addEventListener('touchmove',e=>{
+  if(!ptPulling)return;
+  ptDist=e.touches[0].clientY-ptStartY;
+  if(ptDist>0){
+    const ind=document.getElementById('ptr');
+    if(ind){const d=Math.min(ptDist*0.5,80);ind.style.transform=`translateX(-50%) translateY(${d}px)`;ind.style.opacity=String(Math.min(ptDist/PT_THRESH,1));ind.classList.toggle('ready',ptDist>=PT_THRESH);}
+    if(ptDist>8&&e.cancelable)e.preventDefault();
+  }
+},{passive:false});
+document.addEventListener('touchend',()=>{
+  if(!ptPulling)return;ptPulling=false;
+  if(ptDist>=PT_THRESH&&authedUser&&!ptBusy){
+    ptBusy=true;const ind=document.getElementById('ptr');
+    if(ind){ind.classList.remove('ready');ind.classList.add('spin');ind.style.transform='translateX(-50%) translateY(24px)';ind.style.opacity='1';}
+    Promise.resolve(cargarDatos()).catch(()=>{}).finally(()=>{setTimeout(()=>{ptReset();ptBusy=false;toast('Actualizado ✓');},400);});
+  }else ptReset();
+  ptDist=0;
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();}});
 document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();}}));
