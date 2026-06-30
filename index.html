@@ -1151,6 +1151,16 @@ function setClientesEnViaje(vj){
   return{ids,nombres};
 }
 function noEstaEnViaje(v,enViaje){return !enViaje.ids.has(String(v.id))&&!enViaje.nombres.has((v.cliente||'').trim().toLowerCase());}
+// Ventas que YA están en algún viaje (propio o publicado): no se ofrecen para agregar
+function ventasAsignadas(){
+  const ids=new Set(),nombres=new Set();
+  [...viajesData,...fletesPublicos].forEach(vj=>{
+    parsePar(vj.paradas_snap).forEach(x=>{if(x.id!=null)ids.add(String(x.id));const n=(x.cliente||x.nombre||'').trim().toLowerCase();if(n)nombres.add(n);});
+    parsePar(vj.pedido_ids||[]).forEach(pid=>ids.add(String(pid)));
+  });
+  return{ids,nombres};
+}
+function ventaLibre(v,asig){return !asig.ids.has(String(v.id))&&!asig.nombres.has((v.cliente||'').trim().toLowerCase());}
 
 // ── OPTIMIZAR ────────────────────────────────────────────────
 function optimizarViaje(id){
@@ -1167,8 +1177,8 @@ function optimizarViaje(id){
   new google.maps.DirectionsService().route({origin:{lat:FAB_LAT,lng:FAB_LNG},destination,waypoints,optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{
     if(status!=='OK'){toast('No se pudo calcular la ruta: '+status);return;}
     const path=res.routes[0].overview_path.map(p=>({lat:p.lat(),lng:p.lng()}));
-    const enViaje=setClientesEnViaje(vj);
-    const cand=ventas.filter(v=>v.estado!=='Entregado'&&v.lat&&v.lng&&noEstaEnViaje(v,enViaje)).map(v=>{
+    const enViaje=setClientesEnViaje(vj),asig=ventasAsignadas();
+    const cand=ventas.filter(v=>v.estado!=='Entregado'&&v.lat&&v.lng&&noEstaEnViaje(v,enViaje)&&ventaLibre(v,asig)).map(v=>{
       const la=parseFloat(v.lat),ln=parseFloat(v.lng);
       const lateral=distAlPath(la,ln,path),adelante=distKm(destination.lat,destination.lng,la,ln);
       return {...v,_dist:Math.round(lateral),_ade:Math.round(adelante)};
@@ -1189,8 +1199,8 @@ function abrirAgregar(vjId){
   document.getElementById('agregar-viaje-nombre').textContent=vj?`Viaje: ${vj.nombre}`:'';
   document.getElementById('agregar-buscar').value='';
   document.getElementById('agregar-hint').textContent='Seleccioná las ventas para agregar al viaje';
-  const enViaje=setClientesEnViaje(vj);
-  agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&noEstaEnViaje(v,enViaje));
+  const enViaje=setClientesEnViaje(vj),asig=ventasAsignadas();
+  agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&noEstaEnViaje(v,enViaje)&&ventaLibre(v,asig));
   renderListaAgregar(agregarVentasDisponibles,false);
   document.getElementById('overlayAgregar').classList.add('on');
 }
@@ -1216,8 +1226,8 @@ function mostrarTodosAgregar(){
   const vj=buscarViaje(agregarViajeId);
   document.getElementById('agregar-hint').textContent='Todos los clientes pendientes';
   document.getElementById('agregar-buscar').value='';
-  const enViaje=setClientesEnViaje(vj);
-  agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&noEstaEnViaje(v,enViaje));
+  const enViaje=setClientesEnViaje(vj),asig=ventasAsignadas();
+  agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&noEstaEnViaje(v,enViaje)&&ventaLibre(v,asig));
   renderListaAgregar(agregarVentasDisponibles,false);
 }
 async function confirmarAgregar(){
