@@ -974,7 +974,7 @@ function renderFpDisponibles(){
       <div onclick="verRutaPublicado('${vj.id}')" style="cursor:pointer">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-weight:800;font-size:.84rem;color:var(--gold)">🚛 ${esc(vj.nombre)}</div><span style="font-size:.68rem;font-weight:700;color:${color}">${libre}% libre</span></div>
         <div style="font-size:.7rem;color:var(--text3);margin-bottom:7px">📅 ${fFecha(vj.fecha)} · ${p.length} paradas${vj.km_real?' · '+vj.km_real+' km':''} · <span style="color:var(--gold)">🗺️ ver recorrido</span></div>
-        ${p.map((x,i)=>`<div style="font-size:.68rem;color:var(--text2);padding:2px 0"> ${i+1}. ${esc(x.cliente||x.nombre)||'—'} · ${esc(x.localidad)}</div>`).join('')}
+        ${p.map((x,i)=>{const mio=ventas.some(v=>String(v.id)===String(x.id));return`<div style="font-size:.68rem;color:var(--text2);padding:2px 0;display:flex;align-items:center;gap:6px"><span style="flex:1">${i+1}. ${esc(x.cliente||x.nombre)||'—'} · ${esc(x.localidad)}</span>${mio?`<button onclick="event.stopPropagation();quitarDelViaje('${vj.id}',${i},'${x.id||''}')" title="Quitar mi cliente" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.8rem;padding:2px 5px;flex-shrink:0">✕</button>`:''}</div>`;}).join('')}
         <div class="cap-bar-wrap" style="margin-top:8px"><div class="cap-bar-label"><span>Capacidad</span><span style="color:${color};font-weight:700">${Math.round(oc*100)}%</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px">
@@ -1126,7 +1126,7 @@ async function quitarDelViaje(vjId,idx,paradaId){
   if(error){toast('Error: '+error.message);return;}
   if(!upd||!upd.length){alert('⚠️ No se guardó (permisos RLS de "viajes").');return;}
   vj.paradas_snap=paradas;vj.pedido_ids=pedido_ids;
-  renderViajes();setTimeout(()=>mostrarRutaViaje(vjId),100);toast('Cliente quitado del viaje');
+  renderViajes();renderFpDisponibles();renderProxFletes();setTimeout(()=>mostrarRutaViaje(vjId),100);toast('Cliente quitado del viaje');
 }
 function exportarViaje(id){
   const vj=viajesData.find(v=>v.id===id);if(!vj)return;
