@@ -384,6 +384,9 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div id="panel-disponibles" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0">
         <div class="fp-header"><span class="fp-title" style="color:var(--green)">Fletes publicados</span></div>
         <div class="fp-body" id="fpDisponibles"><div class="sp"></div></div>
+        <div style="padding:8px 12px;border-top:1px solid var(--border);background:var(--bg4)">
+          <button class="bg" style="width:100%;padding:9px" onclick="abrirSugerencias()">🎯 ¿Qué flete me conviene?</button>
+        </div>
       </div>
     </div>
   </div>
@@ -512,6 +515,18 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 <!-- MODAL DETALLE DE VENTA (solo lectura) -->
 <div class="overlay" id="overlayDetalle">
   <div class="modal" id="detalleBody"></div>
+</div>
+
+<!-- MODAL SUGERENCIAS DE FLETE -->
+<div class="overlay" id="overlaySugerencias">
+  <div class="modal-lg">
+    <h2 style="font-size:.9rem;color:var(--gold);margin-bottom:4px">🎯 ¿Qué flete me conviene?</h2>
+    <div style="font-size:.72rem;color:var(--text3);margin-bottom:10px">Tus clientes pendientes que caen cerca de un flete publicado</div>
+    <div style="flex:1;overflow-y:auto;max-height:380px" id="sugerencias-lista"></div>
+    <div class="mact" style="margin-top:10px">
+      <button class="bd" onclick="cerrarSugerencias()">Cerrar</button>
+    </div>
+  </div>
 </div>
 
 <!-- PANTALLA CONFIGURACIÓN (pantalla completa) -->
@@ -1263,6 +1278,54 @@ async function confirmarAgregar(){
 }
 function cerrarAgregar(){document.getElementById('overlayAgregar').classList.remove('on');}
 
+// ── SUGERENCIAS: qué flete publicado me conviene para mis clientes ──
+function sugerenciasFletes(){
+  const asig=ventasAsignadas();
+  const mios=ventas.filter(v=>v.estado!=='Entregado'&&v.lat&&v.lng&&ventaLibre(v,asig));
+  const trips=fletesPublicos.map(vj=>{
+    const paradas=parsePar(vj.paradas_snap).filter(x=>x.lat&&x.lng);
+    const path=[{lat:FAB_LAT,lng:FAB_LNG},...paradas.map(x=>({lat:parseFloat(x.lat),lng:parseFloat(x.lng)}))];
+    let dest=path[path.length-1],maxD=-1;
+    path.forEach(p=>{const d=distKm(FAB_LAT,FAB_LNG,p.lat,p.lng);if(d>maxD){maxD=d;dest=p;}});
+    return{vj,path,dest};
+  }).filter(t=>t.path.length>1);
+  const sug=[];
+  mios.forEach(v=>{
+    const la=parseFloat(v.lat),ln=parseFloat(v.lng);
+    let best=null;
+    trips.forEach(t=>{
+      const lateral=distAlPath(la,ln,t.path),ade=distKm(t.dest.lat,t.dest.lng,la,ln);
+      if(lateral<=RADIO_COSTADO||ade<=RADIO_ADELANTE){const score=Math.min(lateral,ade);if(!best||score<best.score)best={vj:t.vj,lateral:Math.round(lateral),ade:Math.round(ade),score};}
+    });
+    if(best)sug.push({venta:v,...best});
+  });
+  sug.sort((a,b)=>a.score-b.score);
+  return sug;
+}
+function abrirSugerencias(){
+  const sug=sugerenciasFletes();
+  const el=document.getElementById('sugerencias-lista');
+  if(!sug.length){el.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-size:.8rem">No hay clientes tuyos cerca de un flete publicado.<br>(Tienen que tener ubicación marcada y no estar ya en un viaje.)</div>';}
+  else{
+    el.innerHTML=sug.map(s=>{
+      const cerca=s.lateral<=RADIO_COSTADO?`a <strong style="color:var(--gold)">${s.lateral} km</strong> de la ruta`:`<span class="tag-ade">${s.ade} km adelante</span>`;
+      return`<div class="disp-card" style="margin-bottom:8px">
+        <div style="font-weight:800;font-size:.84rem">${esc(s.venta.cliente)||'—'} <span style="color:var(--text3);font-weight:600;font-size:.72rem">· ${esc(s.venta.localidad)}</span></div>
+        <div style="font-size:.7rem;color:var(--text2);margin:3px 0 7px">${paradaTexto(s.venta)}</div>
+        <div style="font-size:.74rem;color:var(--green);margin-bottom:8px">🚛 Conviene sumarlo a <strong>${esc(s.vj.nombre)}</strong> — ${cerca}</div>
+        <button class="bg" style="width:100%;padding:7px;font-size:.73rem" onclick="agregarSugerido('${s.venta.id}','${s.vj.id}')">+ Sumar a ${esc(s.vj.nombre)}</button>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('overlaySugerencias').classList.add('on');
+}
+function cerrarSugerencias(){document.getElementById('overlaySugerencias').classList.remove('on');}
+async function agregarSugerido(ventaId,vjId){
+  agregarViajeId=vjId;agregarVentasSeleccionadas=new Set([ventaId]);
+  await confirmarAgregar();
+  if(document.getElementById('overlaySugerencias').classList.contains('on'))abrirSugerencias();
+}
+
 // ── CRUD VENTAS ──────────────────────────────────────────────
 async function guardarVenta(){
   if(modalReadOnly){cerrarModal();return;}
@@ -1626,8 +1689,8 @@ document.addEventListener('touchend',()=>{
   }else ptReset();
   ptDist=0;
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();}});
-document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();}}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();}});
+document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();}}));
 
 const ah=new Date();
 document.getElementById('inicioFecha').textContent=ah.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
