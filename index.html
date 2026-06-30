@@ -1176,6 +1176,8 @@ function ventasAsignadas(){
   return{ids,nombres};
 }
 function ventaLibre(v,asig){return !asig.ids.has(String(v.id))&&!asig.nombres.has((v.cliente||'').trim().toLowerCase());}
+// Clientes que se pueden sumar a un viaje (no entregados ni ya en camino)
+function paraAgregar(v){return v.estado!=='Entregado'&&v.estado!=='En camino';}
 
 // ── OPTIMIZAR ────────────────────────────────────────────────
 function optimizarViaje(id){
@@ -1193,7 +1195,7 @@ function optimizarViaje(id){
     if(status!=='OK'){toast('No se pudo calcular la ruta: '+status);return;}
     const path=res.routes[0].overview_path.map(p=>({lat:p.lat(),lng:p.lng()}));
     const enViaje=setClientesEnViaje(vj),asig=ventasAsignadas();
-    const cand=ventas.filter(v=>v.estado!=='Entregado'&&v.lat&&v.lng&&noEstaEnViaje(v,enViaje)&&ventaLibre(v,asig)).map(v=>{
+    const cand=ventas.filter(v=>paraAgregar(v)&&v.lat&&v.lng&&noEstaEnViaje(v,enViaje)&&ventaLibre(v,asig)).map(v=>{
       const la=parseFloat(v.lat),ln=parseFloat(v.lng);
       const lateral=distAlPath(la,ln,path),adelante=distKm(destination.lat,destination.lng,la,ln);
       return {...v,_dist:Math.round(lateral),_ade:Math.round(adelante)};
@@ -1215,7 +1217,7 @@ function abrirAgregar(vjId){
   document.getElementById('agregar-buscar').value='';
   document.getElementById('agregar-hint').textContent='Seleccioná las ventas para agregar al viaje';
   const enViaje=setClientesEnViaje(vj),asig=ventasAsignadas();
-  agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&noEstaEnViaje(v,enViaje)&&ventaLibre(v,asig));
+  agregarVentasDisponibles=ventas.filter(v=>paraAgregar(v)&&noEstaEnViaje(v,enViaje)&&ventaLibre(v,asig));
   renderListaAgregar(agregarVentasDisponibles,false);
   document.getElementById('overlayAgregar').classList.add('on');
 }
@@ -1242,7 +1244,7 @@ function mostrarTodosAgregar(){
   document.getElementById('agregar-hint').textContent='Todos los clientes pendientes';
   document.getElementById('agregar-buscar').value='';
   const enViaje=setClientesEnViaje(vj),asig=ventasAsignadas();
-  agregarVentasDisponibles=ventas.filter(v=>v.estado!=='Entregado'&&noEstaEnViaje(v,enViaje)&&ventaLibre(v,asig));
+  agregarVentasDisponibles=ventas.filter(v=>paraAgregar(v)&&noEstaEnViaje(v,enViaje)&&ventaLibre(v,asig));
   renderListaAgregar(agregarVentasDisponibles,false);
 }
 async function confirmarAgregar(){
@@ -1281,7 +1283,7 @@ function cerrarAgregar(){document.getElementById('overlayAgregar').classList.rem
 // ── SUGERENCIAS: qué flete publicado me conviene para mis clientes ──
 function sugerenciasFletes(){
   const asig=ventasAsignadas();
-  const mios=ventas.filter(v=>v.estado!=='Entregado'&&v.lat&&v.lng&&ventaLibre(v,asig));
+  const mios=ventas.filter(v=>paraAgregar(v)&&v.lat&&v.lng&&ventaLibre(v,asig));
   const trips=fletesPublicos.map(vj=>{
     const paradas=parsePar(vj.paradas_snap).filter(x=>x.lat&&x.lng);
     const path=[{lat:FAB_LAT,lng:FAB_LNG},...paradas.map(x=>({lat:parseFloat(x.lat),lng:parseFloat(x.lng)}))];
