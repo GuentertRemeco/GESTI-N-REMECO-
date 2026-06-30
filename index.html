@@ -534,6 +534,22 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 
 <div id="estadoMenu"></div>
 <div id="perfilMenu"></div>
+<!-- ASISTENTE IA -->
+<button id="iaFab" onclick="abrirIA()" title="Asistente" style="position:fixed;bottom:calc(var(--bnav-h) + 78px);right:16px;z-index:850;background:var(--gold);color:#111820;border-radius:50%;width:52px;height:52px;font-size:1.5rem;box-shadow:0 4px 16px rgba(201,168,64,.4);display:flex;align-items:center;justify-content:center">🤖</button>
+<div class="overlay" id="overlayIA">
+  <div class="modal" style="max-width:520px;display:flex;flex-direction:column;height:80vh;max-height:80vh;padding:0;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--border);flex-shrink:0">
+      <div style="font-weight:900;color:var(--gold)">🤖 Asistente Remeco</div>
+      <button class="bd" onclick="cerrarIA()" style="padding:5px 11px">✕</button>
+    </div>
+    <div id="iaMsgs" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px;display:flex;flex-direction:column;gap:9px"></div>
+    <div style="display:flex;gap:7px;padding:11px;border-top:1px solid var(--border);flex-shrink:0">
+      <input id="iaInput" placeholder="Preguntá algo..." onkeydown="if(event.key==='Enter')enviarIA()" style="flex:1;background:var(--bg3);border:1px solid #1e3a55;color:var(--text);border-radius:8px;padding:9px 11px;font-size:.85rem;font-family:inherit"/>
+      <button class="bg" id="iaSend" onclick="enviarIA()" style="padding:9px 14px">➤</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 <div id="ptr" style="position:fixed;top:8px;left:50%;transform:translateX(-50%) translateY(-60px);opacity:0;z-index:8000;background:#15202e;border:1px solid var(--gold);border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--gold);transition:transform .15s,opacity .15s;pointer-events:none">↻</div>
 
@@ -1361,6 +1377,48 @@ function verVenta(id){
   document.getElementById('overlayDetalle').classList.add('on');
 }
 function cerrarDetalle(){document.getElementById('overlayDetalle').classList.remove('on');}
+
+// ── ASISTENTE IA ─────────────────────────────────────────────
+let iaMsgs=[];
+function abrirIA(){
+  if(!iaMsgs.length)iaMsgs.push({role:'assistant',content:'¡Hola! Soy tu asistente de Remeco. Puedo responder sobre tus ventas y viajes, ayudarte a cotizar un flete o lo que necesites. ¿En qué te ayudo?'});
+  document.getElementById('overlayIA').classList.add('on');
+  iaRender();
+  setTimeout(()=>document.getElementById('iaInput').focus(),120);
+}
+function cerrarIA(){document.getElementById('overlayIA').classList.remove('on');}
+function iaRender(){
+  const el=document.getElementById('iaMsgs');if(!el)return;
+  el.innerHTML=iaMsgs.map(m=>{const mine=m.role==='user';return`<div style="align-self:${mine?'flex-end':'flex-start'};max-width:86%;background:${mine?'var(--gold)':'var(--bg3)'};color:${mine?'#111820':'var(--text)'};border:1px solid ${mine?'var(--gold)':'#1e3a55'};border-radius:12px;padding:8px 11px;font-size:.84rem;white-space:pre-wrap;line-height:1.4">${esc(m.content)}</div>`;}).join('');
+  el.scrollTop=el.scrollHeight;
+}
+function buildContextoIA(){
+  return{
+    precio_km:PRECIO_KM,
+    hoy:new Date().toISOString().slice(0,10),
+    ventas:ventas.map(v=>({cliente:v.cliente,localidad:v.localidad,productos:productosDe(v).map(a=>nombreProd(a)),precio:v.precio,costo_producto:v.costo_producto,costo_flete:v.costo_flete,estado:v.estado,entrega:v.fecha_entrega})),
+    viajes:viajesData.map(vj=>({nombre:vj.nombre,fecha:vj.fecha,paradas:parsePar(vj.paradas_snap).map(x=>x.cliente||x.nombre),km:vj.km_real,publico:!!vj.publico})),
+    unidades_por_camion:{autoconsumo:CAP_AUTO,aereo:CAP_AEREO}
+  };
+}
+async function enviarIA(){
+  const inp=document.getElementById('iaInput');const txt=(inp.value||'').trim();if(!txt)return;
+  inp.value='';
+  iaMsgs.push({role:'user',content:txt});
+  iaMsgs.push({role:'assistant',content:'…'});iaRender();
+  const btn=document.getElementById('iaSend');btn.disabled=true;
+  try{
+    const enviar=iaMsgs.filter(m=>m.content!=='…');
+    const{data,error}=await sb.functions.invoke('asistente',{body:{messages:enviar,contexto:buildContextoIA()}});
+    iaMsgs.pop();
+    if(error)throw error;
+    if(data&&data.error)throw new Error(data.error);
+    iaMsgs.push({role:'assistant',content:(data&&data.reply)||'(sin respuesta)'});
+  }catch(e){
+    iaMsgs.pop();
+    iaMsgs.push({role:'assistant',content:'⚠️ No pude responder: '+((e&&e.message)||e)+'\n\n(Revisá que la función "asistente" esté deployada en Supabase y que cargaste OPENAI_API_KEY.)'});
+  }finally{btn.disabled=false;iaRender();}
+}
 function abrirEditar(id,ro){
   ro=!!ro;
   const v=ventas.find(x=>x.id===id);if(!v)return;
@@ -1625,8 +1683,8 @@ document.addEventListener('touchend',()=>{
   }else ptReset();
   ptDist=0;
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();}});
-document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();}}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarIA();}});
+document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarIA();}}));
 
 const ah=new Date();
 document.getElementById('inicioFecha').textContent=ah.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
