@@ -1409,7 +1409,7 @@ async function enviarIA(){
   const btn=document.getElementById('iaSend');btn.disabled=true;
   try{
     const enviar=iaMsgs.filter(m=>m.content!=='…');
-    const{data,error}=await sb.functions.invoke('asistente',{body:{messages:enviar,contexto:buildContextoIA()}});
+    const{data,error}=await sb.functions.invoke('clever-processor',{body:{messages:enviar,contexto:buildContextoIA()}});
     iaMsgs.pop();
     if(error)throw error;
     if(data&&data.error)throw new Error(data.error);
