@@ -543,6 +543,23 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
         <p class="mmhint" style="margin-bottom:0">Se usa para calcular el flete de todos los viajes y del simulador.</p>
       </div>
       <button class="bg" onclick="guardarConfig()" style="width:100%;padding:12px;font-size:.88rem">Guardar configuración</button>
+
+      <div id="cfg-ranking-card" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap">
+          <div class="inicio-stitle" style="margin:0">🏆 Ranking de vendedores</div>
+          <select id="cfg-rank-periodo" onchange="cargarRanking()" style="background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:5px 9px;font-size:.76rem;font-family:inherit">
+            <option value="mes">Este mes</option>
+            <option value="anio">Este año</option>
+            <option value="todo">Todo el tiempo</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:10px" id="cfg-rank-metricas">
+          <button class="opt-btn on" data-m="fact" onclick="setRankMetrica('fact')">Facturación</button>
+          <button class="opt-btn" data-m="cant" onclick="setRankMetrica('cant')">Ventas</button>
+          <button class="opt-btn" data-m="gan" onclick="setRankMetrica('gan')">Ganancia</button>
+        </div>
+        <div id="cfg-rank-lista"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -635,7 +652,9 @@ async function cerrarSesion(){
 }
 
 // ── AUTENTICACIÓN (Supabase Auth) ────────────────────────────
-let authMode='login',authedUser=null;
+let authMode='login',authedUser=null,authedEmail=null;
+const MAIN_EMAIL='guentergerherd@gmail.com';
+let rankMetrica='fact';
 function mostrarGate(){document.getElementById('authGate').classList.add('on');}
 function ocultarGate(){document.getElementById('authGate').classList.remove('on');}
 function authMsg(t,ok){const e=document.getElementById('authErr');e.textContent=t||'';e.classList.toggle('authok',!!ok);}
@@ -687,6 +706,7 @@ async function onSesionActiva(session){
   ocultarGate();
   document.getElementById('authBtn').disabled=false;
   const p=getPerfil(),u=session.user,meta=u.user_metadata||{};
+  authedEmail=(u.email||'').toLowerCase();
   if(meta.nombre&&!p.nombre)savePerfil({...p,nombre:meta.nombre,email:u.email});
   else if(!p.email)savePerfil({...p,email:u.email});
   aplicarPerfil();
@@ -792,7 +812,37 @@ function barraCapacidad(paradas){
 function nombreProd(a){const tipo=(a.producto==='Silo Aéreo'||a.producto==='Autoconsumo')?a.producto+' ':'';const cant=(a.cantidad&&a.cantidad>1)?` ×${a.cantidad}`:'';return`${tipo}${esc(a.modelo)}${cant}`;}
 // ── COBRO DE FLETE (método por tramos: taxi compartido) ──────
 function setPrecioKm(v){const n=parseFloat(v);if(!isNaN(n)&&n>0){PRECIO_KM=n;localStorage.setItem('remeco_precio_km',n);renderViajes();renderProxFletes();}}
-function abrirConfig(){const pm=document.getElementById('perfilMenu');if(pm)pm.style.display='none';document.getElementById('cfg-precio-km').value=PRECIO_KM;document.getElementById('configScreen').style.display='flex';}
+function abrirConfig(){
+  const pm=document.getElementById('perfilMenu');if(pm)pm.style.display='none';
+  document.getElementById('cfg-precio-km').value=PRECIO_KM;
+  const rc=document.getElementById('cfg-ranking-card');
+  const esPrincipal=authedEmail===MAIN_EMAIL;
+  if(rc){rc.style.display=esPrincipal?'block':'none';if(esPrincipal)cargarRanking();}
+  document.getElementById('configScreen').style.display='flex';
+}
+function setRankMetrica(m){rankMetrica=m;document.querySelectorAll('#cfg-rank-metricas .opt-btn').forEach(b=>b.classList.toggle('on',b.dataset.m===m));cargarRanking();}
+async function cargarRanking(){
+  const el=document.getElementById('cfg-rank-lista');if(!el)return;
+  el.innerHTML='<div class="sp"></div>';
+  const per=document.getElementById('cfg-rank-periodo').value;
+  const{data:vs,error}=await sb.from('ventas').select('user_id,precio,costo_producto,costo_flete,created_at');
+  if(error){el.innerHTML='<div style="color:var(--red);font-size:.78rem">No se pudo leer: '+esc(error.message)+'</div>';return;}
+  let nombreDe={};
+  try{const{data:vend}=await sb.from('vendedores').select('user_id,nombre');(vend||[]).forEach(x=>{nombreDe[x.user_id]=x.nombre;});}catch(_){}
+  const now=new Date();
+  const enPeriodo=d=>{const f=new Date(d);if(per==='mes')return f.getMonth()===now.getMonth()&&f.getFullYear()===now.getFullYear();if(per==='anio')return f.getFullYear()===now.getFullYear();return true;};
+  const agg={};
+  (vs||[]).forEach(v=>{if(!enPeriodo(v.created_at))return;const k=v.user_id||'sin';if(!agg[k])agg[k]={fact:0,cant:0,gan:0};const pr=parseFloat(v.precio)||0;agg[k].fact+=pr;agg[k].cant++;agg[k].gan+=pr-(parseFloat(v.costo_producto)||0)-(parseFloat(v.costo_flete)||0);});
+  const filas=Object.entries(agg).map(([uid,a])=>({uid,nombre:nombreDe[uid]||(uid===authedUser?(getPerfil().nombre||'Vos'):'Vendedor '+String(uid).slice(0,6)),...a})).sort((a,b)=>b[rankMetrica]-a[rankMetrica]);
+  if(!filas.length){el.innerHTML='<div style="color:var(--text3);font-size:.8rem;text-align:center;padding:16px">Sin ventas en este período</div>';return;}
+  const fmt=v=>rankMetrica==='cant'?String(v):('$'+fNum(v));
+  const medalla=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="color:var(--text3);font-weight:700">${i+1}</span>`;
+  el.innerHTML=filas.map((f,i)=>`<div style="display:flex;align-items:center;gap:11px;padding:10px 11px;border:1px solid ${i===0?'var(--gold)':'var(--border)'};border-radius:10px;margin-bottom:6px;background:${i===0?'#1a2c40':'var(--bg3)'}">
+    <div style="width:26px;text-align:center;font-size:1.1rem">${medalla(i)}</div>
+    <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:.86rem">${esc(f.nombre)}</div><div style="font-size:.66rem;color:var(--text3)">${f.cant} venta${f.cant!==1?'s':''}</div></div>
+    <div style="text-align:right;font-weight:900;color:var(--gold);font-size:.95rem">${fmt(f[rankMetrica])}</div>
+  </div>`).join('')+'<div style="font-size:.63rem;color:var(--text3);margin-top:6px">Los nombres se cargan en la tabla "vendedores" de Supabase.</div>';
+}
 function cerrarConfig(){document.getElementById('configScreen').style.display='none';}
 function guardarConfig(){const n=parseFloat(document.getElementById('cfg-precio-km').value);if(isNaN(n)||n<=0){toast('Poné un precio por km válido');return;}PRECIO_KM=n;localStorage.setItem('remeco_precio_km',n);renderViajes();renderProxFletes();renderSimFlete();if(simParadas.length)renderSimParadas();cerrarConfig();toast('Configuración guardada ✓');}
 function calcularFlete(vj){
