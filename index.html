@@ -565,7 +565,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px">
         <div class="inicio-stitle" style="margin-bottom:12px">🚛 Flete</div>
         <div class="fg"><label>Precio del flete por km ($)</label><input id="cfg-precio-km" type="number" min="1" placeholder="3500"/></div>
-        <p class="mmhint" style="margin-bottom:0">Se usa para calcular el flete de todos los viajes y del simulador.</p>
+        <div class="fg"><label>Carga mínima facturable (%)</label><input id="cfg-piso" type="number" min="1" max="100" placeholder="60"/></div>
+        <p class="mmhint" style="margin-bottom:0">El precio por km se usa en todos los viajes y el simulador. La carga mínima define cuánto se cobra un flete que va poco lleno: aunque un silo ocupe poco, el camión se factura como mínimo a ese % (ej: 60%).</p>
       </div>
       <button class="bg" onclick="guardarConfig()" style="width:100%;padding:12px;font-size:.88rem">Guardar configuración</button>
 
@@ -609,6 +610,8 @@ const AUTO_MODELOS=['2 TN 12 bocas','2 TN 18 bocas','4 TN','7 TN','7 TN con aler
 const CAP_AEREO={'6':8,'10':8,'16':6,'22':6,'28':6,'30':3,'40':3,'50':3,'60':3,'62':3,'72':3,'80':2,'100':2,'120':2,'140':2,'150':1,'175':1,'200':1};
 const CAP_AUTO={'2':20,'4':20,'7':8,'12':5,'18':5};
 let PRECIO_KM=parseFloat(localStorage.getItem('remeco_precio_km'))||3500;
+// Piso de carga facturable: el camión se cobra como mínimo a este % lleno (para cargas parciales)
+let PISO_CARGA=(parseFloat(localStorage.getItem('remeco_piso'))||60)/100;
 
 let ventas=[],viajesData=[],fletesPublicos=[],editId=null,modalLat=null,modalLng=null,modalReadOnly=false;
 let filterEstado='',filterProd='';
@@ -840,6 +843,7 @@ function setPrecioKm(v){const n=parseFloat(v);if(!isNaN(n)&&n>0){PRECIO_KM=n;loc
 function abrirConfig(){
   const pm=document.getElementById('perfilMenu');if(pm)pm.style.display='none';
   document.getElementById('cfg-precio-km').value=PRECIO_KM;
+  document.getElementById('cfg-piso').value=Math.round(PISO_CARGA*100);
   const rc=document.getElementById('cfg-ranking-card');
   const esPrincipal=authedEmail===MAIN_EMAIL;
   if(rc){rc.style.display=esPrincipal?'block':'none';if(esPrincipal)cargarRanking();}
@@ -869,7 +873,15 @@ async function cargarRanking(){
   </div>`).join('')+'<div style="font-size:.63rem;color:var(--text3);margin-top:6px">Los nombres se cargan en la tabla "vendedores" de Supabase.</div>';
 }
 function cerrarConfig(){document.getElementById('configScreen').style.display='none';}
-function guardarConfig(){const n=parseFloat(document.getElementById('cfg-precio-km').value);if(isNaN(n)||n<=0){toast('Poné un precio por km válido');return;}PRECIO_KM=n;localStorage.setItem('remeco_precio_km',n);renderViajes();renderProxFletes();renderSimFlete();if(simParadas.length)renderSimParadas();cerrarConfig();toast('Configuración guardada ✓');}
+function guardarConfig(){
+  const n=parseFloat(document.getElementById('cfg-precio-km').value);
+  if(isNaN(n)||n<=0){toast('Poné un precio por km válido');return;}
+  let pz=parseFloat(document.getElementById('cfg-piso').value);
+  if(isNaN(pz)||pz<1||pz>100){toast('La carga mínima tiene que ser entre 1 y 100');return;}
+  PRECIO_KM=n;localStorage.setItem('remeco_precio_km',n);
+  PISO_CARGA=pz/100;localStorage.setItem('remeco_piso',pz);
+  renderViajes();renderProxFletes();renderSimFlete();if(simParadas.length)renderSimParadas();cerrarConfig();toast('Configuración guardada ✓');
+}
 function calcularFlete(vj){
   // paradas_snap viene en orden de ruta (cercana → lejana = orden de bajada)
   // tramos_km[i] = km del tramo que termina en la parada localizada i (legs de Google)
@@ -878,18 +890,10 @@ function calcularFlete(vj){
   const items=paradas.map(p=>({parada:p,espacio:ocupacionItem(p),located:!!(p.lat&&p.lng),pct:0,cobro:0}));
   const loc=items.filter(it=>it.located); // localizadas, en orden de ruta
   const n=Math.min(loc.length,tramos.length);
-  let kmTotal=0;
-  for(let i=0;i<n;i++){
-    const costo=tramos[i]*PRECIO_KM;kmTotal+=tramos[i];
-    // activos = los que todavía no bajaron (parada i o posterior)
-    let espAct=0;for(let j=i;j<loc.length;j++)espAct+=loc[j].espacio;
-    if(espAct>0)for(let j=i;j<loc.length;j++)loc[j].cobro+=(loc[j].espacio/espAct)*costo;
-  }
-  const total=Math.round(kmTotal*PRECIO_KM);
-  items.forEach(x=>x.cobro=Math.round(x.cobro));
-  // Ajuste de redondeo: el sobrante (±) va al que más paga, para cerrar EXACTO al total
-  const dif=total-items.reduce((s,x)=>s+x.cobro,0);
-  if(dif!==0&&loc.length){let mi=0;items.forEach((x,i)=>{if(x.cobro>items[mi].cobro)mi=i;});items[mi].cobro+=dif;}
+  let kmTotal=0;for(let i=0;i<n;i++)kmTotal+=tramos[i];
+  const cobros=repartirPorTramos(loc.map(x=>x.espacio),tramos,PRECIO_KM,PISO_CARGA);
+  loc.forEach((x,idx)=>x.cobro=Math.round(cobros[idx]||0));
+  const total=loc.reduce((s,x)=>s+x.cobro,0);
   items.forEach(x=>x.pct=total>0?x.cobro/total:0);
   return{total,items,kmReal:Math.round(kmTotal),ocupacion:calcOcupacion(paradas),listo:n>0};
 }
@@ -1679,9 +1683,17 @@ function routeDir(origin,destination,waypoints){
     new google.maps.DirectionsService().route({origin,destination,waypoints:waypoints||[],optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{status==='OK'?resolve(res):reject(status);});
   });
 }
-function repartirPorTramos(espacios,tramos,precio){
+function repartirPorTramos(espacios,tramos,precio,piso){
+  // En cada tramo, los silos activos pagan su espacio dividido la "carga facturada"
+  // = max(carga real del tramo, piso). Si el camión va poco lleno, se cobra al piso.
+  piso=piso||0;
   const cobros=espacios.map(()=>0),n=Math.min(espacios.length,tramos.length);
-  for(let i=0;i<n;i++){const costo=tramos[i]*precio;let esp=0;for(let j=i;j<espacios.length;j++)esp+=espacios[j];if(esp>0)for(let j=i;j<espacios.length;j++)cobros[j]+=(espacios[j]/esp)*costo;}
+  for(let i=0;i<n;i++){
+    const costo=tramos[i]*precio;
+    let esp=0;for(let j=i;j<espacios.length;j++)esp+=espacios[j];
+    const facturada=Math.max(esp,piso);
+    if(facturada>0)for(let j=i;j<espacios.length;j++)cobros[j]+=(espacios[j]/facturada)*costo;
+  }
   return cobros;
 }
 async function buscarOpciones(){
@@ -1693,7 +1705,7 @@ async function buscarOpciones(){
   const cont=document.getElementById('fnd-resultados');cont.innerHTML='<div class="sp"></div><div style="text-align:center;color:var(--text3);font-size:.72rem">Calculando rutas...</div>';
   const precio=PRECIO_KM,opciones=[];
   // Opción: viaje propio (solo)
-  try{const res=await routeDir({lat:FAB_LAT,lng:FAB_LNG},dest,[]);const km=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);opciones.push({clase:'solo',nombre:'Viaje propio (solo para vos)',costo:Math.round(km*precio),km,extra:null,res,paradas:[{lat:dest.lat,lng:dest.lng,isNew:true,label:fndDest.nombre||'Destino'}]});}catch(e){}
+  try{const res=await routeDir({lat:FAB_LAT,lng:FAB_LNG},dest,[]);const km=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);const cSolo=repartirPorTramos([espNuevo],[km],precio,PISO_CARGA)[0]||0;opciones.push({clase:'solo',nombre:'Viaje propio (solo para vos)',costo:Math.round(cSolo),km,extra:null,res,paradas:[{lat:dest.lat,lng:dest.lng,isNew:true,label:fndDest.nombre||'Destino'}]});}catch(e){}
   // Candidatos: viajes (propios + publicados) cuya ruta pasa cerca del destino
   const trips=[...new Map([...viajesData,...fletesPublicos].map(v=>[v.id,v])).values()];
   const cand=trips.map(vj=>{
@@ -1714,7 +1726,7 @@ async function buscarOpciones(){
       const legs=res.routes[0].legs,km=Math.round(legs.reduce((s,l)=>s+l.distance.value,0)/1000);
       const order=res.routes[0].waypoint_order||[];
       let ordered=order.length?order.map(i=>rest[i]):[...rest];ordered.push(destStop);
-      const cobros=repartirPorTramos(ordered.map(s=>s.esp),legs.map(l=>l.distance.value/1000),precio);
+      const cobros=repartirPorTramos(ordered.map(s=>s.esp),legs.map(l=>l.distance.value/1000),precio,PISO_CARGA);
       const idxNew=ordered.findIndex(s=>s.isNew);
       const kmOrig=parseFloat(c.vj.km_real)||null;
       opciones.push({clase:'combinar',nombre:c.vj.nombre,fecha:c.vj.fecha,costo:Math.round(cobros[idxNew]||0),km,extra:kmOrig!=null?km-kmOrig:null,esp:espNuevo,res,paradas:ordered.map(s=>({lat:s.coords.lat,lng:s.coords.lng,isNew:s.isNew,label:s.label}))});
@@ -1755,15 +1767,15 @@ function verOpcion(i){
   const info=document.getElementById('sim-ruta-info');if(info){info.textContent=`${o.clase==='solo'?'🏠 Solo':'🚚 '+o.nombre}: ${fPesos(o.costo)} · ${o.km} km · ★ tu silo`;info.style.display='block';}
 }
 function calcularFleteSim(){
-  // Precio de cada silo SUELTO = su espacio × km (fábrica→su destino) × $/km
-  // Así cada producto tiene su precio independiente, para combinar después.
+  // Reparto por tramos con piso de carga (mismo criterio que los viajes reales).
+  const espacios=simParadas.map(p=>ocupacionItem({productos:[{producto:p.prod,modelo:p.modelo,cantidad:p.cantidad||1}]}));
+  const cobros=repartirPorTramos(espacios,simTramos,PRECIO_KM,PISO_CARGA);
   const items=simParadas.map((p,i)=>{
-    const espacio=ocupacionItem({productos:[{producto:p.prod,modelo:p.modelo,cantidad:p.cantidad||1}]});
     let kmDest=0;for(let k=0;k<=i&&k<simTramos.length;k++)kmDest+=simTramos[k];
-    return{espacio,kmDest:Math.round(kmDest),precio:Math.round(espacio*kmDest*PRECIO_KM)};
+    return{espacio:espacios[i],kmDest:Math.round(kmDest),precio:Math.round(cobros[i]||0)};
   });
   const kmTotal=simTramos.reduce((s,x)=>s+x,0);
-  return{items,total:Math.round(kmTotal*PRECIO_KM),kmTotal:Math.round(kmTotal),ocupacion:items.reduce((s,x)=>s+x.espacio,0),listo:simTramos.length===simParadas.length&&simTramos.length>0};
+  return{items,total:items.reduce((s,x)=>s+x.precio,0),kmTotal:Math.round(kmTotal),ocupacion:espacios.reduce((s,x)=>s+x,0),listo:simTramos.length===simParadas.length&&simTramos.length>0};
 }
 function simSetTipo(i,v){simParadas[i].prod=v;simParadas[i].modelo=(v==='Autoconsumo'?'12 TN':'16TN');renderSimParadas();}
 function simSetModelo(i,v){simParadas[i].modelo=v;renderSimParadas();}
