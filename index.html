@@ -1717,7 +1717,7 @@ async function buscarOpciones(){
       const cobros=repartirPorTramos(ordered.map(s=>s.esp),legs.map(l=>l.distance.value/1000),precio);
       const idxNew=ordered.findIndex(s=>s.isNew);
       const kmOrig=parseFloat(c.vj.km_real)||null;
-      opciones.push({clase:'combinar',nombre:c.vj.nombre,costo:Math.round(cobros[idxNew]||0),km,extra:kmOrig!=null?km-kmOrig:null,esp:espNuevo,res});
+      opciones.push({clase:'combinar',nombre:c.vj.nombre,fecha:c.vj.fecha,costo:Math.round(cobros[idxNew]||0),km,extra:kmOrig!=null?km-kmOrig:null,esp:espNuevo,res});
     }catch(e){}
   }
   opciones.sort((a,b)=>a.costo-b.costo);
@@ -1731,7 +1731,7 @@ function renderOpciones(ops,info){
   ops.map((o,i)=>`<div onclick="verOpcion(${i})" style="cursor:pointer;background:${o.clase==='solo'?'var(--bg3)':'#0d2e18'};border:1px solid ${i===0?'var(--gold)':(o.clase==='solo'?'var(--border)':'#2a8c50')};border-radius:9px;padding:10px 11px;margin-bottom:7px">
     <div style="display:flex;align-items:center;gap:8px">
       <div style="font-size:1.05rem;width:22px;text-align:center">${medalla(i)}</div>
-      <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:.82rem">${o.clase==='solo'?'🏠':'🚚'} ${esc(o.nombre)}</div><div style="font-size:.64rem;color:var(--text3);margin-top:1px">${o.clase==='solo'?o.km+' km solo para vos':(o.extra!=null?'+'+o.extra+' km al viaje':o.km+' km')}</div></div>
+      <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:.82rem">${o.clase==='solo'?'🏠':'🚚'} ${esc(o.nombre)}</div><div style="font-size:.64rem;color:var(--text3);margin-top:1px">${o.clase==='solo'?o.km+' km solo para vos':(o.extra!=null?'+'+o.extra+' km al viaje':o.km+' km')}${o.clase==='combinar'&&o.fecha?` · <span style="color:var(--yellow);font-weight:700">📅 ${fFecha(o.fecha)}</span>`:''}</div></div>
       <div style="text-align:right;font-weight:900;color:var(--gold);font-size:.92rem">${fPesos(o.costo)}</div>
     </div>
   </div>`).join('')+`<div style="font-size:.62rem;color:var(--text3);margin-top:4px">Tocá una opción para ver la ruta en el mapa. El precio es lo que pagaría este silo en cada viaje.</div>`;
