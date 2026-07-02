@@ -1737,16 +1737,21 @@ function renderOpciones(ops,info){
   </div>`).join('')+`<div style="font-size:.62rem;color:var(--text3);margin-top:4px">Tocá una opción para ver la ruta en el mapa. El precio es lo que pagaría este silo en cada viaje.</div>`;
 }
 function verOpcion(i){
-  const o=(window._fndOpciones||[])[i];if(!o||!simDirRenderer)return;
-  simDirRenderer.setDirections(o.res);simDirRenderer.setRouteIndex(0);
-  clearSimMarkers();
-  simMarkers.push(markerFabrica(simMap));
-  let n=0;
-  (o.paradas||[]).forEach(p=>{
-    if(p.isNew){
-      simMarkers.push(new google.maps.Marker({position:{lat:p.lat,lng:p.lng},map:simMap,zIndex:9998,label:{text:'★',color:'#111820',fontWeight:'900',fontSize:'13px'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:15,fillColor:'#ff6060',fillOpacity:1,strokeColor:'#fff',strokeWeight:2},title:'Tu silo · '+(p.label||'')}));
-    }else{n++;simMarkers.push(markerNumero(simMap,p.lat,p.lng,n,p.label||''));}
-  });
+  const o=(window._fndOpciones||[])[i];if(!o||!simDirRenderer||!simMap)return;
+  try{
+    simDirRenderer.setDirections(o.res);simDirRenderer.setRouteIndex(0);
+    clearSimMarkers();
+    simMarkers.push(markerFabrica(simMap));
+    const bounds=new google.maps.LatLngBounds();bounds.extend({lat:FAB_LAT,lng:FAB_LNG});
+    let n=0;
+    (o.paradas||[]).forEach(p=>{
+      const pos={lat:p.lat,lng:p.lng};bounds.extend(pos);
+      if(p.isNew){
+        simMarkers.push(new google.maps.Marker({position:pos,map:simMap,zIndex:9998,label:{text:'★',color:'#111820',fontWeight:'900',fontSize:'13px'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:15,fillColor:'#ff6060',fillOpacity:1,strokeColor:'#fff',strokeWeight:2},title:'Tu silo · '+(p.label||'')}));
+      }else{n++;simMarkers.push(markerNumero(simMap,p.lat,p.lng,n,p.label||''));}
+    });
+    if((o.paradas||[]).length)simMap.fitBounds(bounds,60);
+  }catch(e){console.error('verOpcion',e);}
   const info=document.getElementById('sim-ruta-info');if(info){info.textContent=`${o.clase==='solo'?'🏠 Solo':'🚚 '+o.nombre}: ${fPesos(o.costo)} · ${o.km} km · ★ tu silo`;info.style.display='block';}
 }
 function calcularFleteSim(){
