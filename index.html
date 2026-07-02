@@ -1693,7 +1693,7 @@ async function buscarOpciones(){
   const cont=document.getElementById('fnd-resultados');cont.innerHTML='<div class="sp"></div><div style="text-align:center;color:var(--text3);font-size:.72rem">Calculando rutas...</div>';
   const precio=PRECIO_KM,opciones=[];
   // Opción: viaje propio (solo)
-  try{const res=await routeDir({lat:FAB_LAT,lng:FAB_LNG},dest,[]);const km=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);opciones.push({clase:'solo',nombre:'Viaje propio (solo para vos)',costo:Math.round(km*precio),km,extra:null,res});}catch(e){}
+  try{const res=await routeDir({lat:FAB_LAT,lng:FAB_LNG},dest,[]);const km=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);opciones.push({clase:'solo',nombre:'Viaje propio (solo para vos)',costo:Math.round(km*precio),km,extra:null,res,paradas:[{lat:dest.lat,lng:dest.lng,isNew:true,label:fndDest.nombre||'Destino'}]});}catch(e){}
   // Candidatos: viajes (propios + publicados) cuya ruta pasa cerca del destino
   const trips=[...new Map([...viajesData,...fletesPublicos].map(v=>[v.id,v])).values()];
   const cand=trips.map(vj=>{
@@ -1707,7 +1707,7 @@ async function buscarOpciones(){
   }).filter(Boolean);
   for(const c of cand){
     try{
-      const stops=[...c.paradas.map(x=>({coords:{lat:parseFloat(x.lat),lng:parseFloat(x.lng)},esp:ocupacionItem(x),isNew:false})),{coords:dest,esp:espNuevo,isNew:true}];
+      const stops=[...c.paradas.map(x=>({coords:{lat:parseFloat(x.lat),lng:parseFloat(x.lng)},esp:ocupacionItem(x),isNew:false,label:x.cliente||x.nombre||x.localidad||''})),{coords:dest,esp:espNuevo,isNew:true,label:fndDest.nombre||'Nuevo'}];
       let di=0,mx=-1;stops.forEach((s,i)=>{const d=distKm(FAB_LAT,FAB_LNG,s.coords.lat,s.coords.lng);if(d>mx){mx=d;di=i;}});
       const destStop=stops[di],rest=stops.filter((_,i)=>i!==di);
       const res=await routeDir({lat:FAB_LAT,lng:FAB_LNG},destStop.coords,rest.map(s=>({location:s.coords,stopover:true})));
@@ -1717,7 +1717,7 @@ async function buscarOpciones(){
       const cobros=repartirPorTramos(ordered.map(s=>s.esp),legs.map(l=>l.distance.value/1000),precio);
       const idxNew=ordered.findIndex(s=>s.isNew);
       const kmOrig=parseFloat(c.vj.km_real)||null;
-      opciones.push({clase:'combinar',nombre:c.vj.nombre,fecha:c.vj.fecha,costo:Math.round(cobros[idxNew]||0),km,extra:kmOrig!=null?km-kmOrig:null,esp:espNuevo,res});
+      opciones.push({clase:'combinar',nombre:c.vj.nombre,fecha:c.vj.fecha,costo:Math.round(cobros[idxNew]||0),km,extra:kmOrig!=null?km-kmOrig:null,esp:espNuevo,res,paradas:ordered.map(s=>({lat:s.coords.lat,lng:s.coords.lng,isNew:s.isNew,label:s.label}))});
     }catch(e){}
   }
   opciones.sort((a,b)=>a.costo-b.costo);
@@ -1738,9 +1738,16 @@ function renderOpciones(ops,info){
 }
 function verOpcion(i){
   const o=(window._fndOpciones||[])[i];if(!o||!simDirRenderer)return;
-  simDirRenderer.setDirections(o.res);simDirRenderer.setRouteIndex(0);clearSimMarkers();
+  simDirRenderer.setDirections(o.res);simDirRenderer.setRouteIndex(0);
+  clearSimMarkers();
   simMarkers.push(markerFabrica(simMap));
-  const info=document.getElementById('sim-ruta-info');if(info){info.textContent=`${o.clase==='solo'?'🏠 Solo':'🚚 '+o.nombre}: ${fPesos(o.costo)} · ${o.km} km`;info.style.display='block';}
+  let n=0;
+  (o.paradas||[]).forEach(p=>{
+    if(p.isNew){
+      simMarkers.push(new google.maps.Marker({position:{lat:p.lat,lng:p.lng},map:simMap,zIndex:9998,label:{text:'★',color:'#111820',fontWeight:'900',fontSize:'13px'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:15,fillColor:'#ff6060',fillOpacity:1,strokeColor:'#fff',strokeWeight:2},title:'Tu silo · '+(p.label||'')}));
+    }else{n++;simMarkers.push(markerNumero(simMap,p.lat,p.lng,n,p.label||''));}
+  });
+  const info=document.getElementById('sim-ruta-info');if(info){info.textContent=`${o.clase==='solo'?'🏠 Solo':'🚚 '+o.nombre}: ${fPesos(o.costo)} · ${o.km} km · ★ tu silo`;info.style.display='block';}
 }
 function calcularFleteSim(){
   // Precio de cada silo SUELTO = su espacio × km (fábrica→su destino) × $/km
