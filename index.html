@@ -399,23 +399,48 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div id="sim-ruta-info" style="display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(10,16,24,.9);border:1px solid var(--gold);border-radius:20px;padding:6px 16px;font-size:.75rem;font-weight:700;color:var(--gold);z-index:10;pointer-events:none;white-space:nowrap"></div>
     </div>
     <div class="sim-panel">
-      <div class="sim-header">
-        <div class="sim-title">🧮 Simulador de flete</div>
-        <input style="width:100%;background:var(--bg3);border:1px solid #1e3a55;color:var(--text);border-radius:7px;padding:8px 11px;font-size:.82rem;font-family:inherit" id="sim-input" placeholder="Escribí una localidad..."/>
+      <div class="fp-tabs">
+        <button class="fp-tab on" id="simtab-finder" onclick="switchSimTab('finder')">🔎 ¿Dónde conviene?</button>
+        <button class="fp-tab" id="simtab-combinar" onclick="switchSimTab('combinar')">🧮 Combinar</button>
       </div>
-      <div style="flex:1;overflow-y:auto;padding:7px" id="sim-body">
-        <div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">Escribí una localidad para agregar paradas.<br>La ruta parte desde la fábrica en La Pampa.</div>
-      </div>
-      <div class="sim-footer">
-        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px">
-          <div style="font-size:1.4rem;font-weight:900;color:var(--gold);line-height:1" id="sim-total">0</div>
-          <div style="font-size:.65rem;color:var(--text3)">km de ida</div>
+
+      <!-- PANEL: ¿DÓNDE CONVIENE? -->
+      <div id="simpanel-finder" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0">
+        <div style="padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0">
+          <div style="font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:8px">Silo a cotizar</div>
+          <div style="display:flex;gap:5px;margin-bottom:6px">
+            <select id="fnd-tipo" onchange="fndTipoChange()" style="background:var(--bg);border:1px solid #1e3a55;color:var(--text);border-radius:6px;padding:6px 7px;font-size:.76rem;font-family:inherit;flex:0 0 42%"><option>Silo Aéreo</option><option selected>Autoconsumo</option></select>
+            <select id="fnd-modelo" style="background:var(--bg);border:1px solid #1e3a55;color:var(--text);border-radius:6px;padding:6px 7px;font-size:.76rem;font-family:inherit;flex:1;min-width:0"></select>
+            <input id="fnd-cant" type="number" min="1" value="1" title="Cantidad" style="background:var(--bg);border:1px solid #1e3a55;color:var(--text);border-radius:6px;padding:6px 7px;font-size:.76rem;font-family:inherit;width:46px"/>
+          </div>
+          <input id="fnd-loc" placeholder="Localidad destino..." autocomplete="off" style="width:100%;background:var(--bg3);border:1px solid #1e3a55;color:var(--text);border-radius:7px;padding:8px 11px;font-size:.82rem;font-family:inherit"/>
+          <button class="bv" style="width:100%;padding:8px;margin-top:7px" onclick="buscarOpciones()">🔎 Buscar la mejor opción</button>
         </div>
-        <div style="font-size:.63rem;color:var(--text3);margin-bottom:6px">🏭 Remeco → paradas (ruta optimizada)</div>
-        <div id="sim-flete" style="font-size:1rem;font-weight:800;color:var(--gold);margin-bottom:8px"></div>
-        <div style="display:flex;gap:7px">
-          <button class="bv" style="flex:1;padding:8px" onclick="calcularRutaSim()">🗺️ Optimizar ruta</button>
-          <button class="bd" style="padding:8px" onclick="limpiarSim()">Limpiar</button>
+        <div style="flex:1;overflow-y:auto;padding:8px" id="fnd-resultados">
+          <div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">Elegí el silo y el destino, y te digo en qué viaje conviene sumarlo (y cuánto sale en cada uno).</div>
+        </div>
+      </div>
+
+      <!-- PANEL: COMBINAR (armado manual) -->
+      <div id="simpanel-combinar" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0">
+        <div class="sim-header">
+          <div class="sim-title">🧮 Combinar paradas</div>
+          <input style="width:100%;background:var(--bg3);border:1px solid #1e3a55;color:var(--text);border-radius:7px;padding:8px 11px;font-size:.82rem;font-family:inherit" id="sim-input" placeholder="Escribí una localidad..."/>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:7px" id="sim-body">
+          <div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">Escribí una localidad para agregar paradas.<br>La ruta parte desde la fábrica en La Pampa.</div>
+        </div>
+        <div class="sim-footer">
+          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px">
+            <div style="font-size:1.4rem;font-weight:900;color:var(--gold);line-height:1" id="sim-total">0</div>
+            <div style="font-size:.65rem;color:var(--text3)">km de ida</div>
+          </div>
+          <div style="font-size:.63rem;color:var(--text3);margin-bottom:6px">🏭 Remeco → paradas (ruta optimizada)</div>
+          <div id="sim-flete" style="font-size:1rem;font-weight:800;color:var(--gold);margin-bottom:8px"></div>
+          <div style="display:flex;gap:7px">
+            <button class="bv" style="flex:1;padding:8px" onclick="calcularRutaSim()">🗺️ Optimizar ruta</button>
+            <button class="bd" style="padding:8px" onclick="limpiarSim()">Limpiar</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1630,6 +1655,92 @@ function initMapaSim(){
   const inp=document.getElementById('sim-input');
   const ac=new google.maps.places.Autocomplete(inp,{componentRestrictions:{country:'ar'},types:['(cities)']});
   ac.addListener('place_changed',()=>{const pl=ac.getPlace();if(!pl.geometry)return;simParadas.push({nombre:pl.name||inp.value,lat:pl.geometry.location.lat(),lng:pl.geometry.location.lng(),prod:'Autoconsumo',modelo:'12 TN',cantidad:1});inp.value='';renderSimParadas();if(simParadas.length>=1)calcularRutaSim();});
+  // Autocomplete del buscador "¿Dónde conviene?"
+  fndTipoChange();
+  const fInp=document.getElementById('fnd-loc');
+  if(fInp){const fac=new google.maps.places.Autocomplete(fInp,{componentRestrictions:{country:'ar'}});fac.addListener('place_changed',()=>{const pl=fac.getPlace();if(pl.geometry)fndDest={lat:pl.geometry.location.lat(),lng:pl.geometry.location.lng(),nombre:pl.name||fInp.value};});}
+}
+// ── SIMULAR: buscador "¿Dónde conviene?" ─────────────────────
+let fndDest=null;
+function switchSimTab(t){
+  document.getElementById('simtab-finder').classList.toggle('on',t==='finder');
+  document.getElementById('simtab-combinar').classList.toggle('on',t==='combinar');
+  document.getElementById('simpanel-finder').style.display=t==='finder'?'flex':'none';
+  document.getElementById('simpanel-combinar').style.display=t==='combinar'?'flex':'none';
+  if(simMap)setTimeout(()=>google.maps.event.trigger(simMap,'resize'),100);
+}
+function fndTipoChange(){
+  const tipo=document.getElementById('fnd-tipo').value;
+  const ms=modelosDe(tipo);
+  document.getElementById('fnd-modelo').innerHTML=ms.map(m=>`<option ${(tipo==='Autoconsumo'&&m==='12 TN')?'selected':''}>${m}</option>`).join('');
+}
+function routeDir(origin,destination,waypoints){
+  return new Promise((resolve,reject)=>{
+    new google.maps.DirectionsService().route({origin,destination,waypoints:waypoints||[],optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{status==='OK'?resolve(res):reject(status);});
+  });
+}
+function repartirPorTramos(espacios,tramos,precio){
+  const cobros=espacios.map(()=>0),n=Math.min(espacios.length,tramos.length);
+  for(let i=0;i<n;i++){const costo=tramos[i]*precio;let esp=0;for(let j=i;j<espacios.length;j++)esp+=espacios[j];if(esp>0)for(let j=i;j<espacios.length;j++)cobros[j]+=(espacios[j]/esp)*costo;}
+  return cobros;
+}
+async function buscarOpciones(){
+  if(typeof google==='undefined'){toast('El mapa todavía no cargó');return;}
+  if(!fndDest||!fndDest.lat){toast('Elegí la localidad destino de la lista');return;}
+  const tipo=document.getElementById('fnd-tipo').value,modelo=document.getElementById('fnd-modelo').value,cant=Math.max(1,parseInt(document.getElementById('fnd-cant').value)||1);
+  const espNuevo=ocupacionItem({productos:[{producto:tipo,modelo,cantidad:cant}]});
+  const dest={lat:fndDest.lat,lng:fndDest.lng};
+  const cont=document.getElementById('fnd-resultados');cont.innerHTML='<div class="sp"></div><div style="text-align:center;color:var(--text3);font-size:.72rem">Calculando rutas...</div>';
+  const precio=PRECIO_KM,opciones=[];
+  // Opción: viaje propio (solo)
+  try{const res=await routeDir({lat:FAB_LAT,lng:FAB_LNG},dest,[]);const km=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);opciones.push({clase:'solo',nombre:'Viaje propio (solo para vos)',costo:Math.round(km*precio),km,extra:null,res});}catch(e){}
+  // Candidatos: viajes (propios + publicados) cuya ruta pasa cerca del destino
+  const trips=[...new Map([...viajesData,...fletesPublicos].map(v=>[v.id,v])).values()];
+  const cand=trips.map(vj=>{
+    const paradas=parsePar(vj.paradas_snap).filter(x=>x.lat&&x.lng);
+    if(!paradas.length)return null;
+    const path=[{lat:FAB_LAT,lng:FAB_LNG},...paradas.map(x=>({lat:parseFloat(x.lat),lng:parseFloat(x.lng)}))];
+    const lateral=distAlPath(dest.lat,dest.lng,path);
+    let far=path[0],mx=-1;path.forEach(p=>{const d=distKm(FAB_LAT,FAB_LNG,p.lat,p.lng);if(d>mx){mx=d;far=p;}});
+    const ade=distKm(far.lat,far.lng,dest.lat,dest.lng);
+    return(lateral<=RADIO_COSTADO||ade<=RADIO_ADELANTE)?{vj,paradas}:null;
+  }).filter(Boolean);
+  for(const c of cand){
+    try{
+      const stops=[...c.paradas.map(x=>({coords:{lat:parseFloat(x.lat),lng:parseFloat(x.lng)},esp:ocupacionItem(x),isNew:false})),{coords:dest,esp:espNuevo,isNew:true}];
+      let di=0,mx=-1;stops.forEach((s,i)=>{const d=distKm(FAB_LAT,FAB_LNG,s.coords.lat,s.coords.lng);if(d>mx){mx=d;di=i;}});
+      const destStop=stops[di],rest=stops.filter((_,i)=>i!==di);
+      const res=await routeDir({lat:FAB_LAT,lng:FAB_LNG},destStop.coords,rest.map(s=>({location:s.coords,stopover:true})));
+      const legs=res.routes[0].legs,km=Math.round(legs.reduce((s,l)=>s+l.distance.value,0)/1000);
+      const order=res.routes[0].waypoint_order||[];
+      let ordered=order.length?order.map(i=>rest[i]):[...rest];ordered.push(destStop);
+      const cobros=repartirPorTramos(ordered.map(s=>s.esp),legs.map(l=>l.distance.value/1000),precio);
+      const idxNew=ordered.findIndex(s=>s.isNew);
+      const kmOrig=parseFloat(c.vj.km_real)||null;
+      opciones.push({clase:'combinar',nombre:c.vj.nombre,costo:Math.round(cobros[idxNew]||0),km,extra:kmOrig!=null?km-kmOrig:null,esp:espNuevo,res});
+    }catch(e){}
+  }
+  opciones.sort((a,b)=>a.costo-b.costo);
+  window._fndOpciones=opciones;renderOpciones(opciones,{tipo,modelo,cant,nombre:fndDest.nombre});
+}
+function renderOpciones(ops,info){
+  const cont=document.getElementById('fnd-resultados');
+  if(!ops.length){cont.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">No pude calcular opciones. Probá otra localidad.</div>';return;}
+  const medalla=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
+  cont.innerHTML=`<div style="font-size:.72rem;color:var(--text3);margin-bottom:8px">${esc(info.tipo)} ${esc(info.modelo)}${info.cant>1?' ×'+info.cant:''} → <strong style="color:var(--text)">${esc(info.nombre)}</strong></div>`+
+  ops.map((o,i)=>`<div onclick="verOpcion(${i})" style="cursor:pointer;background:${o.clase==='solo'?'var(--bg3)':'#0d2e18'};border:1px solid ${i===0?'var(--gold)':(o.clase==='solo'?'var(--border)':'#2a8c50')};border-radius:9px;padding:10px 11px;margin-bottom:7px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="font-size:1.05rem;width:22px;text-align:center">${medalla(i)}</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:.82rem">${o.clase==='solo'?'🏠':'🚚'} ${esc(o.nombre)}</div><div style="font-size:.64rem;color:var(--text3);margin-top:1px">${o.clase==='solo'?o.km+' km solo para vos':(o.extra!=null?'+'+o.extra+' km al viaje':o.km+' km')}</div></div>
+      <div style="text-align:right;font-weight:900;color:var(--gold);font-size:.92rem">${fPesos(o.costo)}</div>
+    </div>
+  </div>`).join('')+`<div style="font-size:.62rem;color:var(--text3);margin-top:4px">Tocá una opción para ver la ruta en el mapa. El precio es lo que pagaría este silo en cada viaje.</div>`;
+}
+function verOpcion(i){
+  const o=(window._fndOpciones||[])[i];if(!o||!simDirRenderer)return;
+  simDirRenderer.setDirections(o.res);simDirRenderer.setRouteIndex(0);clearSimMarkers();
+  simMarkers.push(markerFabrica(simMap));
+  const info=document.getElementById('sim-ruta-info');if(info){info.textContent=`${o.clase==='solo'?'🏠 Solo':'🚚 '+o.nombre}: ${fPesos(o.costo)} · ${o.km} km`;info.style.display='block';}
 }
 function calcularFleteSim(){
   // Precio de cada silo SUELTO = su espacio × km (fábrica→su destino) × $/km
