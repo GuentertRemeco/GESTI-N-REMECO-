@@ -568,6 +568,16 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
         <div class="fg"><label>Carga mínima facturable (%)</label><input id="cfg-piso" type="number" min="1" max="100" placeholder="60"/></div>
         <p class="mmhint" style="margin-bottom:0">El precio por km se usa en todos los viajes y el simulador. La carga mínima define cuánto se cobra un flete que va poco lleno: aunque un silo ocupe poco, el camión se factura como mínimo a ese % (ej: 60%).</p>
       </div>
+
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px">
+        <div class="inicio-stitle" style="margin-bottom:12px">🔎 Buscador de combinaciones</div>
+        <div class="frow">
+          <div class="fg"><label>Km al costado</label><input id="cfg-costado" type="number" min="1" placeholder="100"/></div>
+          <div class="fg"><label>Km más adelante</label><input id="cfg-adelante" type="number" min="1" placeholder="300"/></div>
+        </div>
+        <div class="fg"><label>Desvío máximo al viaje (km)</label><input id="cfg-desvio" type="number" min="1" placeholder="150"/></div>
+        <p class="mmhint" style="margin-bottom:0">Definen cuándo un cliente "entra" en un flete: a cuántos km al costado de la ruta o más adelante. Y el desvío máximo: si sumar el silo le mete más km que eso a un viaje, no se ofrece como opción.</p>
+      </div>
       <button class="bg" onclick="guardarConfig()" style="width:100%;padding:12px;font-size:.88rem">Guardar configuración</button>
 
       <div id="cfg-ranking-card" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:16px">
@@ -603,7 +613,9 @@ const sb=supabase.createClient(SURL,SKEY);
 
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
-const RADIO_COSTADO=100,RADIO_ADELANTE=300;
+let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
+let RADIO_ADELANTE=parseFloat(localStorage.getItem('remeco_adelante'))||300;
+let DESVIO_MAX=parseFloat(localStorage.getItem('remeco_desvio'))||150; // km máx de desvío que puede meterle a un viaje
 
 const AEREO_MODELOS=['6TN','10TN','16TN','22TN','28TN','30TN','40TN','50TN','60TN','62TN','72TN','80TN','100TN','120TN','140TN','150TN','175TN','200TN'];
 const AUTO_MODELOS=['2 TN 12 bocas','2 TN 18 bocas','4 TN','7 TN','7 TN con alero al medio','12 TN','12 TN alero grande','12 TN con alero al medio','12 TN cambio de base','18 TN alero al medio','18 TN cambio de base'];
@@ -844,6 +856,9 @@ function abrirConfig(){
   const pm=document.getElementById('perfilMenu');if(pm)pm.style.display='none';
   document.getElementById('cfg-precio-km').value=PRECIO_KM;
   document.getElementById('cfg-piso').value=Math.round(PISO_CARGA*100);
+  document.getElementById('cfg-costado').value=RADIO_COSTADO;
+  document.getElementById('cfg-adelante').value=RADIO_ADELANTE;
+  document.getElementById('cfg-desvio').value=DESVIO_MAX;
   const rc=document.getElementById('cfg-ranking-card');
   const esPrincipal=authedEmail===MAIN_EMAIL;
   if(rc){rc.style.display=esPrincipal?'block':'none';if(esPrincipal)cargarRanking();}
@@ -880,6 +895,10 @@ function guardarConfig(){
   if(isNaN(pz)||pz<1||pz>100){toast('La carga mínima tiene que ser entre 1 y 100');return;}
   PRECIO_KM=n;localStorage.setItem('remeco_precio_km',n);
   PISO_CARGA=pz/100;localStorage.setItem('remeco_piso',pz);
+  const co=parseFloat(document.getElementById('cfg-costado').value),ad=parseFloat(document.getElementById('cfg-adelante').value),de=parseFloat(document.getElementById('cfg-desvio').value);
+  if(co>0){RADIO_COSTADO=co;localStorage.setItem('remeco_costado',co);}
+  if(ad>0){RADIO_ADELANTE=ad;localStorage.setItem('remeco_adelante',ad);}
+  if(de>0){DESVIO_MAX=de;localStorage.setItem('remeco_desvio',de);}
   renderViajes();renderProxFletes();renderSimFlete();if(simParadas.length)renderSimParadas();cerrarConfig();toast('Configuración guardada ✓');
 }
 function calcularFlete(vj){
@@ -1729,7 +1748,10 @@ async function buscarOpciones(){
       const cobros=repartirPorTramos(ordered.map(s=>s.esp),legs.map(l=>l.distance.value/1000),precio,PISO_CARGA);
       const idxNew=ordered.findIndex(s=>s.isNew);
       const kmOrig=parseFloat(c.vj.km_real)||null;
-      opciones.push({clase:'combinar',nombre:c.vj.nombre,fecha:c.vj.fecha,costo:Math.round(cobros[idxNew]||0),km,extra:kmOrig!=null?km-kmOrig:null,esp:espNuevo,res,paradas:ordered.map(s=>({lat:s.coords.lat,lng:s.coords.lng,isNew:s.isNew,label:s.label}))});
+      const extra=kmOrig!=null?km-kmOrig:null;
+      // Filtro de desvío: si le mete demasiados km al viaje, no lo mostramos como opción
+      if(extra!=null&&extra>DESVIO_MAX)continue;
+      opciones.push({clase:'combinar',nombre:c.vj.nombre,fecha:c.vj.fecha,costo:Math.round(cobros[idxNew]||0),km,extra,esp:espNuevo,res,paradas:ordered.map(s=>({lat:s.coords.lat,lng:s.coords.lng,isNew:s.isNew,label:s.label}))});
     }catch(e){}
   }
   opciones.sort((a,b)=>a.costo-b.costo);
