@@ -1706,7 +1706,7 @@ function repartirPorTramos(espacios,tramos,precio,piso){
 async function armarOpcionRuta(existingStops,userSilos){
   const stops=[
     ...existingStops.map(x=>({coords:{lat:parseFloat(x.lat),lng:parseFloat(x.lng)},esp:ocupacionItem(x),isNew:false,label:x.cliente||x.nombre||x.localidad||''})),
-    ...userSilos.map(s=>({coords:{lat:s.lat,lng:s.lng},esp:ocupacionItem({productos:[{producto:s.prod,modelo:s.modelo,cantidad:s.cantidad||1}]}),isNew:true,label:s.nombre}))
+    ...userSilos.map(s=>({coords:{lat:s.lat,lng:s.lng},esp:ocupacionItem({productos:[{producto:s.prod,modelo:s.modelo,cantidad:s.cantidad||1}]}),isNew:true,label:`${s.nombre} · ${s.modelo}${(s.cantidad||1)>1?' ×'+s.cantidad:''}`}))
   ];
   if(!stops.length)return null;
   let di=0,mx=-1;stops.forEach((s,i)=>{const d=distKm(FAB_LAT,FAB_LNG,s.coords.lat,s.coords.lng);if(d>mx){mx=d;di=i;}});
@@ -1764,7 +1764,7 @@ function renderOpciones(ops){
   </div>`:'';
   cont.innerHTML=camion+'<div class="inicio-stitle" style="margin:10px 2px 8px">Opciones (más barata primero)</div>'+ops.map((o,i)=>{
     const sub=(o.clase==='propio'?`${o.km} km`:(o.extra!=null?`+${o.extra} km al viaje`:`${o.km} km`))+(o.clase==='combinar'&&o.fecha?` · <span style="color:var(--yellow);font-weight:700">📅 ${fFecha(o.fecha)}</span>`:'');
-    const desg=multi?`<div style="margin-top:7px;border-top:1px solid #1e3a55;padding-top:6px">${o.desglose.filter(d=>d.isNew).map(d=>`<div style="display:flex;justify-content:space-between;font-size:.66rem;color:var(--text3);padding:1px 0"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.label)}</span><span style="color:var(--gold);flex-shrink:0">${fPesos(d.cobro)}</span></div>`).join('')}</div>`:'';
+    const desg=multi?`<div style="margin-top:7px;border-top:1px solid #1e3a55;padding-top:6px">${o.desglose.filter(d=>d.isNew).map(d=>`<div style="display:flex;justify-content:space-between;gap:8px;font-size:.68rem;color:var(--text2);padding:2px 0"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.label)}</span><span style="color:var(--gold);font-weight:700;flex-shrink:0">${fPesos(d.cobro)}</span></div>`).join('')}<div style="display:flex;justify-content:space-between;gap:8px;font-size:.7rem;font-weight:800;padding:4px 0 0;margin-top:3px;border-top:1px dashed #1e3a55"><span>Total tus silos</span><span style="color:var(--gold)">${fPesos(o.costo)}</span></div></div>`:'';
     return`<div onclick="verOpcion(${i})" style="cursor:pointer;background:${o.clase==='propio'?'var(--bg3)':'#0d2e18'};border:1px solid ${i===0?'var(--gold)':(o.clase==='propio'?'var(--border)':'#2a8c50')};border-radius:9px;padding:10px 11px;margin-bottom:7px">
       <div style="display:flex;align-items:center;gap:8px">
         <div style="font-size:1.05rem;width:22px;text-align:center">${medalla(i)}</div>
