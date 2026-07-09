@@ -1757,6 +1757,8 @@ function renderOpciones(ops){
   if(!ops.length){cont.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);font-size:.78rem">No encontré viajes convenientes cerca. Probá con otro destino o revisá el desvío máximo en ⚙️ Configuración.</div>';return;}
   const medalla=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
   const multi=(ops[0].desglose||[]).filter(d=>d.isNew).length>1;
+  const hayComb=ops.some(o=>o.clase==='combinar');
+  const notaComb=!hayComb?`<div style="background:var(--bg3);border:1px dashed var(--border);border-radius:8px;padding:9px 11px;margin-bottom:7px;font-size:.68rem;color:var(--text3);line-height:1.35">🚚 No hay viajes publicados cerca para <b>combinar</b>. Cuando exista un viaje que pase cerca, va a aparecer acá como opción más barata.</div>`:'';
   cont.innerHTML='<div class="inicio-stitle" style="margin:10px 2px 8px">Opciones (más barata primero)</div>'+ops.map((o,i)=>{
     const sub=(o.clase==='propio'?`${o.km} km`:(o.extra!=null?`+${o.extra} km al viaje`:`${o.km} km`))+(o.clase==='combinar'&&o.fecha?` · <span style="color:var(--yellow);font-weight:700">📅 ${fFecha(o.fecha)}</span>`:'');
     const desg=multi?`<div style="margin-top:7px;border-top:1px solid #1e3a55;padding-top:6px">${o.desglose.filter(d=>d.isNew).map(d=>`<div style="display:flex;justify-content:space-between;gap:8px;font-size:.68rem;color:var(--text2);padding:2px 0"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.label)}</span><span style="color:var(--gold);font-weight:700;flex-shrink:0">${fPesos(d.cobro)}</span></div>`).join('')}<div style="display:flex;justify-content:space-between;gap:8px;font-size:.7rem;font-weight:800;padding:4px 0 0;margin-top:3px;border-top:1px dashed #1e3a55"><span>Total tus silos</span><span style="color:var(--gold)">${fPesos(o.costo)}</span></div></div>`:'';
@@ -1767,7 +1769,7 @@ function renderOpciones(ops){
         <div style="text-align:right;font-weight:900;color:var(--gold);font-size:.92rem">${fPesos(o.costo)}</div>
       </div>${desg}
     </div>`;
-  }).join('')+`<div style="font-size:.62rem;color:var(--text3);margin-top:2px;padding:0 2px">Tocá una opción para ver la ruta. El precio es lo que pagan TUS silos en cada viaje.</div>`;
+  }).join('')+notaComb+`<div style="font-size:.62rem;color:var(--text3);margin-top:2px;padding:0 2px">Tocá una opción para ver la ruta. El precio es lo que pagan TUS silos en cada viaje.</div>`;
 }
 function verOpcion(i){
   const o=(window._fndOpciones||[])[i];if(!o||!simDirRenderer||!simMap)return;
