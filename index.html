@@ -248,8 +248,19 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   .cli-item{min-width:150px;border-bottom:none;border-right:1px solid #1a2a3a;flex-shrink:0}
   .ini-saludo{font-size:1.3rem}.ic-val{font-size:1.7rem}
   .frow{flex-direction:column;gap:0}
-  .modal{padding:14px;max-height:92vh}
-  .modal .mact{bottom:-14px;margin:11px -14px -14px;padding:11px 14px}
+  /* Inputs a 16px: evita que el iPhone haga zoom solo al tocar un campo */
+  input,select,textarea{font-size:16px!important}
+  /* Botones y toques más cómodos (área mínima ~40px) */
+  button{min-height:40px}
+  .ab,.vcard-btn,.vbtn{min-height:34px;min-width:34px}
+  .chip{padding:7px 13px;font-size:.72rem}
+  .fp-tab{padding:12px 5px}
+  /* Modales casi a pantalla completa */
+  .overlay{padding:0;align-items:flex-end}
+  .modal,.modal-lg,.modal-sm{max-width:100%;width:100%;border-radius:16px 16px 0 0;max-height:94dvh;border-left:none;border-right:none;border-bottom:none}
+  .modal{padding:14px;padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+  .modal-sm,.modal-lg{padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+  .modal .mact{bottom:calc(-14px - env(safe-area-inset-bottom));margin:11px -14px calc(-14px - env(safe-area-inset-bottom));padding:11px 14px calc(11px + env(safe-area-inset-bottom));border-radius:0}
 }
 @media(min-width:769px){.vcards-wrap{display:none}.vtable-wrap{display:block}}
 </style>
@@ -1746,7 +1757,12 @@ function renderOpciones(ops){
   if(!ops.length){cont.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);font-size:.78rem">No encontré viajes convenientes cerca. Probá con otro destino o revisá el desvío máximo en ⚙️ Configuración.</div>';return;}
   const medalla=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
   const multi=(ops[0].desglose||[]).filter(d=>d.isNew).length>1;
-  cont.innerHTML='<div class="inicio-stitle" style="margin:10px 2px 8px">Opciones (más barata primero)</div>'+ops.map((o,i)=>{
+  const propio=ops.find(o=>o.clase==='propio');
+  const camion=propio?`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:8px 11px;margin:8px 2px 4px">
+    <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--text3);font-size:.72rem">🚚 Camión completo (lo que te cuesta el viaje)</span><span style="color:var(--gold);font-weight:900;font-size:.9rem">${fPesos(propio.km*PRECIO_KM)}</span></div>
+    <div style="color:var(--text3);font-size:.62rem;margin-top:2px">${propio.km} km × ${fPesos(PRECIO_KM)}/km · es el costo del flete, lleves poco o mucho</div>
+  </div>`:'';
+  cont.innerHTML=camion+'<div class="inicio-stitle" style="margin:10px 2px 8px">Opciones (más barata primero)</div>'+ops.map((o,i)=>{
     const sub=(o.clase==='propio'?`${o.km} km`:(o.extra!=null?`+${o.extra} km al viaje`:`${o.km} km`))+(o.clase==='combinar'&&o.fecha?` · <span style="color:var(--yellow);font-weight:700">📅 ${fFecha(o.fecha)}</span>`:'');
     const desg=multi?`<div style="margin-top:7px;border-top:1px solid #1e3a55;padding-top:6px">${o.desglose.filter(d=>d.isNew).map(d=>`<div style="display:flex;justify-content:space-between;font-size:.66rem;color:var(--text3);padding:1px 0"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.label)}</span><span style="color:var(--gold);flex-shrink:0">${fPesos(d.cobro)}</span></div>`).join('')}</div>`:'';
     return`<div onclick="verOpcion(${i})" style="cursor:pointer;background:${o.clase==='propio'?'var(--bg3)':'#0d2e18'};border:1px solid ${i===0?'var(--gold)':(o.clase==='propio'?'var(--border)':'#2a8c50')};border-radius:9px;padding:10px 11px;margin-bottom:7px">
