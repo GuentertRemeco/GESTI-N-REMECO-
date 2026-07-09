@@ -290,7 +290,6 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <button class="ntab" onclick="ir('clientes')">👤 Clientes</button>
   <div class="nav-right">
     <div class="bell" title="Configuración" onclick="abrirConfig()" style="cursor:pointer">⚙️</div>
-    <div class="bell" title="Notificaciones">🔔</div>
     <div class="user-chip" onclick="abrirPerfilMenu(event)"><span class="uc-ini" id="ucIniTop">U</span><span class="uc-name" id="ucNameTop">Usuario</span></div>
     <button class="bg" onclick="abrirNueva()" style="padding:6px 13px;font-size:.75rem">+ Nueva venta</button>
   </div>
@@ -309,7 +308,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div class="inicio-wrap">
     <div class="ini-top">
       <div><div class="ini-fecha" id="inicioFecha"></div><div class="ini-saludo" id="inicioBienvenida">Remeco</div></div>
-      <div class="ini-user"><div class="ini-bell" title="Configuración" onclick="abrirConfig()" style="cursor:pointer">⚙️</div><div class="ini-bell" title="Notificaciones">🔔</div><div class="ini-uc" id="ini-uc" onclick="abrirPerfilMenu(event)">U</div></div>
+      <div class="ini-user"><div class="ini-bell" title="Configuración" onclick="abrirConfig()" style="cursor:pointer">⚙️</div><div class="ini-uc" id="ini-uc" onclick="abrirPerfilMenu(event)">U</div></div>
     </div>
     <div class="ini-cards-big">
       <div class="ic-big"><div class="ic-label">Facturado · <span id="ic-mes"></span></div><div class="ic-val" id="ic-fact">$0</div><div class="ic-sub" id="ic-fact-sub"></div></div>
@@ -581,13 +580,6 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
           <p class="mmhint" style="margin-bottom:0">Definen cuándo un cliente "entra" en un flete: a cuántos km al costado de la ruta o más adelante. Y el desvío máximo: si sumar el silo le mete más km que eso a un viaje, no se ofrece como opción.</p>
         </div>
       </div>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px">
-        <div onclick="toggleCfg('hist')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
-          <div class="inicio-stitle" style="margin:0">📜 Historial de viajes</div>
-          <span id="cfg-arr-hist" style="color:var(--gold);font-size:.8rem">▶</span>
-        </div>
-        <div id="cfg-body-hist" style="display:none;margin-top:14px"><div id="cfg-hist-lista"></div></div>
-      </div>
       <button class="bg" onclick="guardarConfig()" style="width:100%;padding:12px;font-size:.88rem;margin-top:2px">Guardar configuración</button>
 
       <div id="cfg-ranking-card" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:12px">
@@ -610,6 +602,14 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
           </div>
           <div id="cfg-rank-lista"></div>
         </div>
+      </div>
+
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:12px">
+        <div onclick="toggleCfg('hist')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+          <div class="inicio-stitle" style="margin:0">📜 Historial de viajes</div>
+          <span id="cfg-arr-hist" style="color:var(--gold);font-size:.8rem">▶</span>
+        </div>
+        <div id="cfg-body-hist" style="display:none;margin-top:14px"><div id="cfg-hist-lista"></div></div>
       </div>
     </div>
   </div>
@@ -1213,7 +1213,7 @@ function renderViajes(){
   const el=document.getElementById('fpBody');
   if(!viajesData.length){el.innerHTML='<div style="text-align:center;padding:28px;color:var(--text3);font-size:.78rem">Creá un viaje y agregá los pedidos</div>';return;}
   const activos=viajesData.filter(v=>estadoViaje(v)!=='historial');
-  const histHtml=viajesData.some(v=>estadoViaje(v)==='historial')?`<div style="text-align:center;margin-top:10px;font-size:.66rem;color:var(--text3)">📜 Los viajes entregados están en ⚙️ Configuración → Historial de viajes</div>`:'';
+  const histHtml='';
   if(!activos.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">No hay viajes programados</div>'+histHtml;return;}
   el.innerHTML=activos.map(vj=>{
     const entregado=estadoViaje(vj)==='entregado';
