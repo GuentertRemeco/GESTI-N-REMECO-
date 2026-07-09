@@ -1729,7 +1729,7 @@ async function buscarOpciones(){
   cont.innerHTML='<div class="sp"></div><div style="text-align:center;color:var(--text3);font-size:.72rem">Calculando rutas...</div>';
   const opciones=[];
   // Viaje propio (tus silos juntos)
-  try{const o=await armarOpcionRuta([],silos);if(o)opciones.push({clase:'propio',nombre:'Viaje propio (tus silos)',costo:o.userCost,km:o.km,extra:null,res:o.res,paradas:o.paradas,desglose:o.desglose});}catch(e){}
+  try{const o=await armarOpcionRuta([],silos);if(o){opciones.push({clase:'propio',nombre:'Viaje propio (compartido)',costo:o.userCost,km:o.km,extra:null,res:o.res,paradas:o.paradas,desglose:o.desglose});opciones.push({clase:'completo',nombre:'Flete completo (lo pagás vos solo)',costo:o.km*PRECIO_KM,km:o.km,extra:null,res:o.res,paradas:o.paradas,desglose:[]});}}catch(e){}
   // Viajes existentes (propios + publicados) cuya ruta pasa cerca de algún silo
   const trips=[...new Map([...viajesData,...fletesPublicos].map(v=>[v.id,v])).values()];
   const cand=trips.map(vj=>{
@@ -1757,19 +1757,17 @@ function renderOpciones(ops){
   if(!ops.length){cont.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);font-size:.78rem">No encontré viajes convenientes cerca. Probá con otro destino o revisá el desvío máximo en ⚙️ Configuración.</div>';return;}
   const medalla=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
   const multi=(ops[0].desglose||[]).filter(d=>d.isNew).length>1;
-  const hayComb=ops.some(o=>o.clase==='combinar');
-  const notaComb=!hayComb?`<div style="background:var(--bg3);border:1px dashed var(--border);border-radius:8px;padding:9px 11px;margin-bottom:7px;font-size:.68rem;color:var(--text3);line-height:1.35">🚚 No hay viajes publicados cerca para <b>combinar</b>. Cuando exista un viaje que pase cerca, va a aparecer acá como opción más barata.</div>`:'';
   cont.innerHTML='<div class="inicio-stitle" style="margin:10px 2px 8px">Opciones (más barata primero)</div>'+ops.map((o,i)=>{
-    const sub=(o.clase==='propio'?`${o.km} km`:(o.extra!=null?`+${o.extra} km al viaje`:`${o.km} km`))+(o.clase==='combinar'&&o.fecha?` · <span style="color:var(--yellow);font-weight:700">📅 ${fFecha(o.fecha)}</span>`:'');
-    const desg=multi?`<div style="margin-top:7px;border-top:1px solid #1e3a55;padding-top:6px">${o.desglose.filter(d=>d.isNew).map(d=>`<div style="display:flex;justify-content:space-between;gap:8px;font-size:.68rem;color:var(--text2);padding:2px 0"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.label)}</span><span style="color:var(--gold);font-weight:700;flex-shrink:0">${fPesos(d.cobro)}</span></div>`).join('')}<div style="display:flex;justify-content:space-between;gap:8px;font-size:.7rem;font-weight:800;padding:4px 0 0;margin-top:3px;border-top:1px dashed #1e3a55"><span>Total tus silos</span><span style="color:var(--gold)">${fPesos(o.costo)}</span></div></div>`:'';
+    const sub=(o.clase==='completo'?`${o.km} km · pagás todo el camión`:o.clase==='propio'?`${o.km} km · compartido`:(o.extra!=null?`+${o.extra} km al viaje`:`${o.km} km`))+(o.clase==='combinar'&&o.fecha?` · <span style="color:var(--yellow);font-weight:700">📅 ${fFecha(o.fecha)}</span>`:'');
+    const desg=(multi&&o.clase!=='completo')?`<div style="margin-top:7px;border-top:1px solid #1e3a55;padding-top:6px">${o.desglose.filter(d=>d.isNew).map(d=>`<div style="display:flex;justify-content:space-between;gap:8px;font-size:.68rem;color:var(--text2);padding:2px 0"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.label)}</span><span style="color:var(--gold);font-weight:700;flex-shrink:0">${fPesos(d.cobro)}</span></div>`).join('')}<div style="display:flex;justify-content:space-between;gap:8px;font-size:.7rem;font-weight:800;padding:4px 0 0;margin-top:3px;border-top:1px dashed #1e3a55"><span>Total tus silos</span><span style="color:var(--gold)">${fPesos(o.costo)}</span></div></div>`:'';
     return`<div onclick="verOpcion(${i})" style="cursor:pointer;background:${o.clase==='propio'?'var(--bg3)':'#0d2e18'};border:1px solid ${i===0?'var(--gold)':(o.clase==='propio'?'var(--border)':'#2a8c50')};border-radius:9px;padding:10px 11px;margin-bottom:7px">
       <div style="display:flex;align-items:center;gap:8px">
         <div style="font-size:1.05rem;width:22px;text-align:center">${medalla(i)}</div>
-        <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:.82rem">${o.clase==='propio'?'🏠':'🚚'} ${esc(o.nombre)}</div><div style="font-size:.64rem;color:var(--text3);margin-top:1px">${sub}</div></div>
+        <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:.82rem">${o.clase==='propio'?'🏠':o.clase==='completo'?'🚛':'🚚'} ${esc(o.nombre)}</div><div style="font-size:.64rem;color:var(--text3);margin-top:1px">${sub}</div></div>
         <div style="text-align:right;font-weight:900;color:var(--gold);font-size:.92rem">${fPesos(o.costo)}</div>
       </div>${desg}
     </div>`;
-  }).join('')+notaComb+`<div style="font-size:.62rem;color:var(--text3);margin-top:2px;padding:0 2px">Tocá una opción para ver la ruta. El precio es lo que pagan TUS silos en cada viaje.</div>`;
+  }).join('')+`<div style="font-size:.62rem;color:var(--text3);margin-top:2px;padding:0 2px">Tocá una opción para ver la ruta.</div>`;
 }
 function verOpcion(i){
   const o=(window._fndOpciones||[])[i];if(!o||!simDirRenderer||!simMap)return;
