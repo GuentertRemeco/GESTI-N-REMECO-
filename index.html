@@ -1077,7 +1077,8 @@ function renderProxFletes(){
   }).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin fletes programados</div>';
 }
 function renderFpDisponibles(){
-  const pub=fletesPublicos;
+  const hoyStr=new Date().toISOString().split('T')[0];
+  const pub=fletesPublicos.filter(v=>!v.fecha||v.fecha>=hoyStr);
   const el=document.getElementById('fpDisponibles');if(!el)return;
   if(!pub.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--text3);font-size:.8rem">No hay fletes publicados.<br>Abrí un viaje y tocá "Publicar".</div>';return;}
   el.innerHTML=pub.map(vj=>{
@@ -1165,11 +1166,39 @@ document.addEventListener('click',e=>{
 });
 
 // ── VIAJES ───────────────────────────────────────────────────
+function estadoViaje(vj){
+  if(!vj.fecha)return'activo';
+  const hoy=new Date();hoy.setHours(0,0,0,0);
+  const f=new Date(vj.fecha+'T00:00:00');
+  const dias=Math.floor((hoy-f)/86400000);
+  return dias>=2?'historial':dias>=0?'entregado':'activo';
+}
+let histAbierto=false;
+function toggleHistorial(){histAbierto=!histAbierto;renderViajes();}
 function renderViajes(){
   const _fw=document.querySelector('.flete-wrap');if(_fw)_fw.classList.toggle('map-on',!!viajeAbierto);
   const el=document.getElementById('fpBody');
   if(!viajesData.length){el.innerHTML='<div style="text-align:center;padding:28px;color:var(--text3);font-size:.78rem">Creá un viaje y agregá los pedidos</div>';return;}
-  el.innerHTML=viajesData.map(vj=>{
+  const activos=viajesData.filter(v=>estadoViaje(v)!=='historial');
+  const hist=viajesData.filter(v=>estadoViaje(v)==='historial').sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  const histHtml=hist.length?`<div style="margin-top:12px">
+    <div onclick="toggleHistorial()" style="cursor:pointer;display:flex;align-items:center;gap:7px;padding:9px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:9px">
+      <span style="font-size:.75rem;transition:transform .2s;display:inline-block;transform:rotate(${histAbierto?'90':'0'}deg);color:var(--text3)">▶</span>
+      <span style="font-weight:800;font-size:.78rem">📜 Historial de viajes</span>
+      <span style="margin-left:auto;font-size:.68rem;color:var(--text3)">${hist.length}</span>
+    </div>
+    ${histAbierto?hist.map(vj=>{const p=parsePar(vj.paradas_snap);return`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin-top:6px;opacity:.85">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.78rem">🚛 ${esc(vj.nombre)} <span style="font-size:.6rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:1px 7px;margin-left:4px">✅ ENTREGADO</span></div>
+        <div style="font-size:.65rem;color:var(--text3);margin-top:2px">${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · 📍 '+vj.km_real+' km':''} · 📅 ${fFecha(vj.fecha)}</div>
+        <div style="font-size:.63rem;color:var(--text3);margin-top:1px">${p.map(x=>esc(x.cliente||x.nombre||'')).filter(Boolean).join(' · ')}</div></div>
+        <button class="vbtn del" onclick="eliminarViaje('${vj.id}')">✕</button>
+      </div>
+    </div>`;}).join(''):''}
+  </div>`:'';
+  if(!activos.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">No hay viajes programados</div>'+histHtml;return;}
+  el.innerHTML=activos.map(vj=>{
+    const entregado=estadoViaje(vj)==='entregado';
     const p=parsePar(vj.paradas_snap);
     const flete=calcularFlete(vj);
     const estaAbierto=viajeAbierto===vj.id;
@@ -1177,7 +1206,7 @@ function renderViajes(){
     return`<div class="viaje-card${estaAbierto?' activo':''}" id="vjcard-${vj.id}" style="border-color:${estaAbierto?'var(--gold)':vj.publico?'#2a8c50':'var(--border)'}">
       <div class="viaje-header" onclick="toggleViaje('${vj.id}')" style="cursor:pointer">
         <span style="font-size:.8rem;color:${estaAbierto?'var(--gold)':'var(--text3)'};transition:transform .2s;display:inline-block;transform:rotate(${estaAbierto?'90':'0'}deg)">▶</span>
-        <div class="viaje-info"><div class="viaje-nombre">🚛 ${esc(vj.nombre)}${vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div><div class="viaje-meta"><span>${p.length} parada${p.length!==1?'s':''}</span>${vj.km_real?`<span class="viaje-km">📍 ${vj.km_real} km</span>`:''}<span>📅 ${fFecha(vj.fecha)}</span></div></div>
+        <div class="viaje-info"><div class="viaje-nombre">🚛 ${esc(vj.nombre)}${entregado?'<span style="font-size:.58rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:1px 7px;margin-left:4px;vertical-align:middle">✅ ENTREGADO</span>':vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div><div class="viaje-meta"><span>${p.length} parada${p.length!==1?'s':''}</span>${vj.km_real?`<span class="viaje-km">📍 ${vj.km_real} km</span>`:''}<span>📅 ${fFecha(vj.fecha)}</span></div></div>
         <button class="vbtn del" onclick="event.stopPropagation();eliminarViaje('${vj.id}')">✕</button>
       </div>
       <div class="viaje-body${estaAbierto?' open':''}" id="vbody-${vj.id}">
@@ -1196,7 +1225,7 @@ function renderViajes(){
         </div>
       </div>
     </div>`;
-  }).join('');
+  }).join('')+histHtml;
 }
 function toggleViaje(id){
   const yaAbierto=viajeAbierto===id;
@@ -1745,7 +1774,8 @@ async function buscarOpciones(){
     if(dSuelto.length){const o0=opciones[0];opciones.push({clase:'suelto',nombre:silos.length>1?'Cada producto suelto (viajes separados)':'Producto suelto (viaje individual)',costo:totS,km:o0?o0.km:0,extra:null,res:o0?o0.res:null,paradas:o0?o0.paradas:[],desglose:dSuelto});}
   }catch(e){}
   // Viajes existentes (propios + publicados) cuya ruta pasa cerca de algún silo
-  const trips=[...new Map([...viajesData,...fletesPublicos].map(v=>[v.id,v])).values()];
+  const hoyStr=new Date().toISOString().split('T')[0];
+  const trips=[...new Map([...viajesData,...fletesPublicos].map(v=>[v.id,v])).values()].filter(v=>!v.fecha||v.fecha>=hoyStr);
   const cand=trips.map(vj=>{
     const paradas=parsePar(vj.paradas_snap).filter(x=>x.lat&&x.lng);
     if(!paradas.length)return null;
