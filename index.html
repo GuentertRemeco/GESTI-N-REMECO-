@@ -1789,9 +1789,12 @@ async function armarOpcionRuta(existingStops,userSilos){
   let ordered=order.length?order.map(i=>rest[i]):[...rest];ordered.push(destStop);
   const cobros=repartirPorTramos(ordered.map(s=>s.esp),legs.map(l=>l.distance.value/1000),PRECIO_KM,PISO_CARGA);
   const desglose=ordered.map((s,i)=>({label:s.label,isNew:s.isNew,esp:s.esp,cobro:Math.round(cobros[i]||0)}));
+  // Reparto del flete completo (sin piso): cada tramo lo cubren enteramente los que van arriba
+  const cobrosFull=repartirPorTramos(ordered.map(s=>s.esp),legs.map(l=>l.distance.value/1000),PRECIO_KM,0);
+  const desgloseFull=ordered.map((s,i)=>({label:s.label,isNew:s.isNew,esp:s.esp,cobro:Math.round(cobrosFull[i]||0)}));
   const userCost=desglose.filter(d=>d.isNew).reduce((a,d)=>a+d.cobro,0);
   const paradas=ordered.map(s=>({lat:s.coords.lat,lng:s.coords.lng,isNew:s.isNew,label:s.label}));
-  return{res,km,userCost,desglose,paradas};
+  return{res,km,userCost,desglose,desgloseFull,paradas};
 }
 async function buscarOpciones(){
   if(typeof google==='undefined'){toast('El mapa todavía no cargó');return;}
@@ -1802,8 +1805,8 @@ async function buscarOpciones(){
   const opciones=[];
   // Viaje propio (tus silos juntos)
   try{const o=await armarOpcionRuta([],silos);if(o){
-    const totProp=Math.round(o.km*PRECIO_KM),news=o.desglose.filter(d=>d.isNew),sumEsp=news.reduce((a,d)=>a+(d.esp||0),0)||1;
-    const dProp=news.map(d=>({label:d.label,isNew:true,cobro:Math.round(totProp*(d.esp||0)/sumEsp)}));
+    const dProp=o.desgloseFull.filter(d=>d.isNew);
+    const totProp=dProp.reduce((a,d)=>a+d.cobro,0);
     opciones.push({clase:'propio',nombre:'Viaje propio (flete completo)',costo:totProp,km:o.km,extra:null,res:o.res,paradas:o.paradas,desglose:dProp});
   }}catch(e){}
   // Cada producto mandado suelto (viaje individual, con piso de carga)
