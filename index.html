@@ -1801,7 +1801,11 @@ async function buscarOpciones(){
   cont.innerHTML='<div class="sp"></div><div style="text-align:center;color:var(--text3);font-size:.72rem">Calculando rutas...</div>';
   const opciones=[];
   // Viaje propio (tus silos juntos)
-  try{const o=await armarOpcionRuta([],silos);if(o){opciones.push({clase:'propio',nombre:'Viaje propio (compartido)',costo:o.userCost,km:o.km,extra:null,res:o.res,paradas:o.paradas,desglose:o.desglose});}}catch(e){}
+  try{const o=await armarOpcionRuta([],silos);if(o){
+    const totProp=Math.round(o.km*PRECIO_KM),news=o.desglose.filter(d=>d.isNew),sumEsp=news.reduce((a,d)=>a+(d.esp||0),0)||1;
+    const dProp=news.map(d=>({label:d.label,isNew:true,cobro:Math.round(totProp*(d.esp||0)/sumEsp)}));
+    opciones.push({clase:'propio',nombre:'Viaje propio (flete completo)',costo:totProp,km:o.km,extra:null,res:o.res,paradas:o.paradas,desglose:dProp});
+  }}catch(e){}
   // Cada producto mandado suelto (viaje individual, con piso de carga)
   try{
     const dSuelto=[];let totS=0;
@@ -1843,7 +1847,7 @@ function renderOpciones(ops){
   const medalla=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
   const multi=(ops[0].desglose||[]).filter(d=>d.isNew).length>1;
   cont.innerHTML='<div class="inicio-stitle" style="margin:10px 2px 8px">Opciones (más barata primero)</div>'+ops.map((o,i)=>{
-    const sub=(o.clase==='suelto'?`cada uno paga su propio flete`:o.clase==='propio'?`${o.km} km · compartido`:(o.extra!=null?`+${o.extra} km al viaje`:`${o.km} km`))+(o.clase==='combinar'&&o.fecha?` · <span style="color:var(--yellow);font-weight:700">📅 ${fFecha(o.fecha)}</span>`:'');
+    const sub=(o.clase==='suelto'?`cada uno paga su propio flete`:o.clase==='propio'?`${o.km} km · pagás todo el camión`:(o.extra!=null?`+${o.extra} km al viaje`:`${o.km} km`))+(o.clase==='combinar'&&o.fecha?` · <span style="color:var(--yellow);font-weight:700">📅 ${fFecha(o.fecha)}</span>`:'');
     const desg=multi?`<div style="margin-top:7px;border-top:1px solid #1e3a55;padding-top:6px">${o.desglose.filter(d=>d.isNew).map(d=>`<div style="display:flex;justify-content:space-between;gap:8px;font-size:.68rem;color:var(--text2);padding:2px 0"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.label)}</span><span style="color:var(--gold);font-weight:700;flex-shrink:0">${fPesos(d.cobro)}</span></div>`).join('')}<div style="display:flex;justify-content:space-between;gap:8px;font-size:.7rem;font-weight:800;padding:4px 0 0;margin-top:3px;border-top:1px dashed #1e3a55"><span>Total tus silos</span><span style="color:var(--gold)">${fPesos(o.costo)}</span></div></div>`:'';
     return`<div onclick="verOpcion(${i})" style="cursor:pointer;background:${o.clase==='propio'?'var(--bg3)':'#0d2e18'};border:1px solid ${i===0?'var(--gold)':(o.clase==='propio'?'var(--border)':'#2a8c50')};border-radius:9px;padding:10px 11px;margin-bottom:7px">
       <div style="display:flex;align-items:center;gap:8px">
