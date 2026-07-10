@@ -1818,19 +1818,24 @@ async function buscarOpciones(){
   cont.innerHTML='<div class="sp"></div><div style="text-align:center;color:var(--text3);font-size:.72rem">Calculando rutas...</div>';
   const opciones=[];
   // Viaje propio (tus silos juntos)
-  try{const o=await armarOpcionRuta([],silos);if(o){
+  try{if(silos.length>1){const o=await armarOpcionRuta([],silos);if(o){
     opciones.push({clase:'propio',nombre:'Viaje propio (todos juntos)',costo:o.userCost,km:o.km,extra:null,res:o.res,paradas:o.paradas,desglose:o.desglose});
-  }}catch(e){}
+  }}}catch(e){}
   // Cada producto mandado suelto (viaje individual, con piso de carga)
   try{
-    const dSuelto=[];let totS=0;
+    const dSuelto=[];let totS=0,resUno=null,kmUno=0;
     for(const s of silos){
       const r=await routeDir({lat:FAB_LAT,lng:FAB_LNG},{lat:s.lat,lng:s.lng},[]);
       const kmS=Math.round(r.routes[0].legs.reduce((a,l)=>a+l.distance.value,0)/1000);
+      resUno=r;kmUno=kmS;
       const cobro=Math.round(tarifaItem({productos:[{producto:s.prod,modelo:s.modelo,cantidad:s.cantidad||1}]})*kmS);
       dSuelto.push({label:`${s.nombre} · ${s.modelo}${(s.cantidad||1)>1?' ×'+s.cantidad:''} (${kmS} km)`,isNew:true,cobro});totS+=cobro;
     }
-    if(dSuelto.length){const o0=opciones[0];opciones.push({clase:'suelto',nombre:silos.length>1?'Cada producto suelto (viajes separados)':'Producto suelto (viaje individual)',costo:totS,km:o0?o0.km:0,extra:null,res:o0?o0.res:null,paradas:o0?o0.paradas:[],desglose:dSuelto});}
+    if(dSuelto.length){
+      const uno=silos.length===1,o0=opciones[0];
+      const paradasS=uno?[{lat:silos[0].lat,lng:silos[0].lng,isNew:true,label:silos[0].nombre}]:(o0?o0.paradas:[]);
+      opciones.push({clase:'suelto',nombre:uno?'Producto suelto (viaje individual)':'Cada producto suelto (viajes separados)',costo:totS,km:uno?kmUno:(o0?o0.km:0),extra:null,res:uno?resUno:(o0?o0.res:null),paradas:paradasS,desglose:dSuelto});
+    }
   }catch(e){}
   // Viajes existentes (propios + publicados) cuya ruta pasa cerca de algún silo
   const hoyStr=new Date().toISOString().split('T')[0];
