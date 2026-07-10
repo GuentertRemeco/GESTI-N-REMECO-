@@ -849,6 +849,23 @@ function getMaxPorCamion(producto,modelo){
   for(const k of Object.keys(tabla)){const diff=Math.abs(parseFloat(k)-num);if(diff<bestDiff){bestDiff=diff;best=tabla[k];}}
   return best||(esAuto?20:6);
 }
+// Tarifa $/km por unidad, según cuántas entran en un camión completo
+const TARIFA_KM={'1':3500,'2':2500,'3':1850,'5':1120,'6':930,'8':810,'20':800};
+function tarifaUnidad(producto,modelo){
+  const cap=getMaxPorCamion(producto,modelo);
+  if(TARIFA_KM[cap])return TARIFA_KM[cap];
+  let best=null,bd=Infinity;
+  for(const k of Object.keys(TARIFA_KM)){const d=Math.abs(parseFloat(k)-cap);if(d<bd){bd=d;best=TARIFA_KM[k];}}
+  return best||PRECIO_KM;
+}
+function tarifaItem(obj){return productosDe(obj).reduce((s,a)=>s+(a.cantidad||1)*tarifaUnidad(a.producto,a.modelo),0);}
+// Cobro por parada: tarifa de sus productos × km recorridos hasta esa parada
+function cobrosPorTarifa(tarifas,tramos){
+  let cum=0;const n=Math.min(tarifas.length,tramos.length),out=tarifas.map(()=>0);
+  for(let i=0;i<n;i++){cum+=tramos[i];out[i]=tarifas[i]*cum;}
+  for(let i=n;i<tarifas.length;i++)out[i]=tarifas[i]*cum;
+  return out;
+}
 function productosDe(obj){
   let arr=[];
   if(obj&&obj.productos){try{arr=Array.isArray(obj.productos)?obj.productos:JSON.parse(obj.productos);}catch{}}
@@ -947,7 +964,7 @@ function calcularFlete(vj){
   const loc=items.filter(it=>it.located); // localizadas, en orden de ruta
   const n=Math.min(loc.length,tramos.length);
   let kmTotal=0;for(let i=0;i<n;i++)kmTotal+=tramos[i];
-  const cobros=repartirPorTramos(loc.map(x=>x.espacio),tramos,PRECIO_KM,PISO_CARGA);
+  const cobros=cobrosPorTarifa(loc.map(x=>tarifaItem(x.parada)),tramos);
   loc.forEach((x,idx)=>x.cobro=Math.round(cobros[idx]||0));
   const total=loc.reduce((s,x)=>s+x.cobro,0);
   items.forEach(x=>x.pct=total>0?x.cobro/total:0);
@@ -1234,7 +1251,7 @@ function renderViajes(){
         ${barraCapacidad(p)}
         ${p.length?`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:.72rem">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="color:var(--text3)">Flete total</span><span style="color:var(--gold);font-weight:900;font-size:.9rem">${flete.listo?fPesos(flete.total):'—'}</span></div>
-          ${flete.listo?`<div style="color:var(--text3);font-size:.63rem;margin-bottom:6px">${flete.kmReal} km × ${fPesos(PRECIO_KM)}/km · reparto por tramos</div>`:'<div style="color:var(--text3);font-size:.63rem;margin-bottom:4px">Abrí el viaje para calcular la ruta y ver el flete</div>'}
+          ${flete.listo?`<div style="color:var(--text3);font-size:.63rem;margin-bottom:6px">${flete.kmReal} km · tarifa por producto × km hasta su parada</div>`:'<div style="color:var(--text3);font-size:.63rem;margin-bottom:4px">Abrí el viaje para calcular la ruta y ver el flete</div>'}
           ${flete.ocupacion>1?`<div style="color:var(--red);font-weight:700;font-size:.66rem">⚠️ No entra en un camión (${Math.round(flete.ocupacion*100)}%) — hace falta otro flete</div>`:`<div style="color:var(--text3);font-size:.63rem">Camión ocupado: ${Math.round(flete.ocupacion*100)}%</div>`}
         </div>`:''}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px">
@@ -1777,8 +1794,8 @@ function repartirPorTramos(espacios,tramos,precio,piso){
 }
 async function armarOpcionRuta(existingStops,userSilos){
   const stops=[
-    ...existingStops.map(x=>({coords:{lat:parseFloat(x.lat),lng:parseFloat(x.lng)},esp:ocupacionItem(x),isNew:false,label:x.cliente||x.nombre||x.localidad||''})),
-    ...userSilos.map(s=>({coords:{lat:s.lat,lng:s.lng},esp:ocupacionItem({productos:[{producto:s.prod,modelo:s.modelo,cantidad:s.cantidad||1}]}),isNew:true,label:`${s.nombre} · ${s.modelo}${(s.cantidad||1)>1?' ×'+s.cantidad:''}`}))
+    ...existingStops.map(x=>({coords:{lat:parseFloat(x.lat),lng:parseFloat(x.lng)},esp:ocupacionItem(x),tar:tarifaItem(x),isNew:false,label:x.cliente||x.nombre||x.localidad||''})),
+    ...userSilos.map(s=>{const pr={productos:[{producto:s.prod,modelo:s.modelo,cantidad:s.cantidad||1}]};return{coords:{lat:s.lat,lng:s.lng},esp:ocupacionItem(pr),tar:tarifaItem(pr),isNew:true,label:`${s.nombre} · ${s.modelo}${(s.cantidad||1)>1?' ×'+s.cantidad:''}`};})
   ];
   if(!stops.length)return null;
   let di=0,mx=-1;stops.forEach((s,i)=>{const d=distKm(FAB_LAT,FAB_LNG,s.coords.lat,s.coords.lng);if(d>mx){mx=d;di=i;}});
@@ -1787,14 +1804,11 @@ async function armarOpcionRuta(existingStops,userSilos){
   const legs=res.routes[0].legs,km=Math.round(legs.reduce((s,l)=>s+l.distance.value,0)/1000);
   const order=res.routes[0].waypoint_order||[];
   let ordered=order.length?order.map(i=>rest[i]):[...rest];ordered.push(destStop);
-  const cobros=repartirPorTramos(ordered.map(s=>s.esp),legs.map(l=>l.distance.value/1000),PRECIO_KM,PISO_CARGA);
+  const cobros=cobrosPorTarifa(ordered.map(s=>s.tar),legs.map(l=>l.distance.value/1000));
   const desglose=ordered.map((s,i)=>({label:s.label,isNew:s.isNew,esp:s.esp,cobro:Math.round(cobros[i]||0)}));
-  // Reparto del flete completo (sin piso): cada tramo lo cubren enteramente los que van arriba
-  const cobrosFull=repartirPorTramos(ordered.map(s=>s.esp),legs.map(l=>l.distance.value/1000),PRECIO_KM,0);
-  const desgloseFull=ordered.map((s,i)=>({label:s.label,isNew:s.isNew,esp:s.esp,cobro:Math.round(cobrosFull[i]||0)}));
   const userCost=desglose.filter(d=>d.isNew).reduce((a,d)=>a+d.cobro,0);
   const paradas=ordered.map(s=>({lat:s.coords.lat,lng:s.coords.lng,isNew:s.isNew,label:s.label}));
-  return{res,km,userCost,desglose,desgloseFull,paradas};
+  return{res,km,userCost,desglose,paradas};
 }
 async function buscarOpciones(){
   if(typeof google==='undefined'){toast('El mapa todavía no cargó');return;}
@@ -1805,9 +1819,7 @@ async function buscarOpciones(){
   const opciones=[];
   // Viaje propio (tus silos juntos)
   try{const o=await armarOpcionRuta([],silos);if(o){
-    const dProp=o.desgloseFull.filter(d=>d.isNew);
-    const totProp=dProp.reduce((a,d)=>a+d.cobro,0);
-    opciones.push({clase:'propio',nombre:'Viaje propio (flete completo)',costo:totProp,km:o.km,extra:null,res:o.res,paradas:o.paradas,desglose:dProp});
+    opciones.push({clase:'propio',nombre:'Viaje propio (todos juntos)',costo:o.userCost,km:o.km,extra:null,res:o.res,paradas:o.paradas,desglose:o.desglose});
   }}catch(e){}
   // Cada producto mandado suelto (viaje individual, con piso de carga)
   try{
@@ -1815,8 +1827,7 @@ async function buscarOpciones(){
     for(const s of silos){
       const r=await routeDir({lat:FAB_LAT,lng:FAB_LNG},{lat:s.lat,lng:s.lng},[]);
       const kmS=Math.round(r.routes[0].legs.reduce((a,l)=>a+l.distance.value,0)/1000);
-      const esp=ocupacionItem({productos:[{producto:s.prod,modelo:s.modelo,cantidad:s.cantidad||1}]});
-      const cobro=Math.round((esp/Math.max(esp,PISO_CARGA))*kmS*PRECIO_KM);
+      const cobro=Math.round(tarifaItem({productos:[{producto:s.prod,modelo:s.modelo,cantidad:s.cantidad||1}]})*kmS);
       dSuelto.push({label:`${s.nombre} · ${s.modelo}${(s.cantidad||1)>1?' ×'+s.cantidad:''} (${kmS} km)`,isNew:true,cobro});totS+=cobro;
     }
     if(dSuelto.length){const o0=opciones[0];opciones.push({clase:'suelto',nombre:silos.length>1?'Cada producto suelto (viajes separados)':'Producto suelto (viaje individual)',costo:totS,km:o0?o0.km:0,extra:null,res:o0?o0.res:null,paradas:o0?o0.paradas:[],desglose:dSuelto});}
@@ -1850,7 +1861,7 @@ function renderOpciones(ops){
   const medalla=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
   const multi=(ops[0].desglose||[]).filter(d=>d.isNew).length>1;
   cont.innerHTML='<div class="inicio-stitle" style="margin:10px 2px 8px">Opciones (más barata primero)</div>'+ops.map((o,i)=>{
-    const sub=(o.clase==='suelto'?`cada uno paga su propio flete`:o.clase==='propio'?`${o.km} km · pagás todo el camión`:(o.extra!=null?`+${o.extra} km al viaje`:`${o.km} km`))+(o.clase==='combinar'&&o.fecha?` · <span style="color:var(--yellow);font-weight:700">📅 ${fFecha(o.fecha)}</span>`:'');
+    const sub=(o.clase==='suelto'?`cada uno paga su propio flete`:o.clase==='propio'?`${o.km} km · un solo camión`:(o.extra!=null?`+${o.extra} km al viaje`:`${o.km} km`))+(o.clase==='combinar'&&o.fecha?` · <span style="color:var(--yellow);font-weight:700">📅 ${fFecha(o.fecha)}</span>`:'');
     const desg=multi?`<div style="margin-top:7px;border-top:1px solid #1e3a55;padding-top:6px">${o.desglose.filter(d=>d.isNew).map(d=>`<div style="display:flex;justify-content:space-between;gap:8px;font-size:.68rem;color:var(--text2);padding:2px 0"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.label)}</span><span style="color:var(--gold);font-weight:700;flex-shrink:0">${fPesos(d.cobro)}</span></div>`).join('')}<div style="display:flex;justify-content:space-between;gap:8px;font-size:.7rem;font-weight:800;padding:4px 0 0;margin-top:3px;border-top:1px dashed #1e3a55"><span>Total tus silos</span><span style="color:var(--gold)">${fPesos(o.costo)}</span></div></div>`:'';
     return`<div onclick="verOpcion(${i})" style="cursor:pointer;background:${o.clase==='propio'?'var(--bg3)':'#0d2e18'};border:1px solid ${i===0?'var(--gold)':(o.clase==='propio'?'var(--border)':'#2a8c50')};border-radius:9px;padding:10px 11px;margin-bottom:7px">
       <div style="display:flex;align-items:center;gap:8px">
