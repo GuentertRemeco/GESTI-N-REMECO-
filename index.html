@@ -1550,7 +1550,19 @@ async function eliminarVenta(id){
   if(!confirm('¿Eliminar esta venta?'))return;
   const{error}=await sb.from('ventas').delete().eq('id',id);
   if(error){toast('Error: '+error.message);return;}
-  toast('Eliminada');await cargarDatos();
+  // Sacarlo también de los viajes donde estaba agregado
+  let sacado=0;
+  for(const vj of viajesData){
+    const paradas=parsePar(vj.paradas_snap);
+    const nuevas=paradas.filter(p=>String(p.id)!==String(id));
+    if(nuevas.length!==paradas.length){
+      const pids=(vj.pedido_ids||[]).filter(x=>String(x)!==String(id));
+      await sb.from('viajes').update({paradas_snap:nuevas,pedido_ids:pids,km_real:null,tramos_km:null}).eq('id',vj.id);
+      vj.paradas_snap=nuevas;vj.pedido_ids=pids;vj.km_real=null;vj.tramos_km=null;sacado++;
+    }
+  }
+  toast(sacado?'Eliminada (también se sacó de '+sacado+' viaje'+(sacado>1?'s':'')+')':'Eliminada');
+  await cargarDatos();
 }
 async function guardarNuevoViaje(){
   const n=document.getElementById('fv-nombre').value.trim(),f=document.getElementById('fv-fecha').value;
