@@ -551,7 +551,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v27</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v28</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -826,7 +826,21 @@ function fFecha(d){if(!d)return'—';const[y,m,dd]=d.split('-');return`${parseIn
 function eTag(e){const mp={'Confirmado':['e0','✅'],'En producción':['e1','⚙️'],'Listo para entregar':['e2','📦'],'En camino':['e3','🚛'],'Entregado':['e4','✔']};const[c,i]=mp[e]||['e0','●'];return`<span class="etag ${c}">${i} ${esc(e)||'—'}</span>`;}
 function parsePar(s){if(!s)return[];try{return Array.isArray(s)?s:JSON.parse(s);}catch{return[];}}
 function distKm(lat1,lng1,lat2,lng2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
-function distAlPath(la,ln,path){let m=Infinity;for(const pt of path){const d=distKm(pt.lat,pt.lng,la,ln);if(d<m)m=d;}return m;}
+function distAlPath(la,ln,path){
+  // Distancia mínima del punto a los SEGMENTOS del recorrido (no solo a las paradas)
+  const kx=111.32*Math.cos(la*Math.PI/180),ky=110.57;
+  const P={x:ln*kx,y:la*ky};
+  let m=Infinity;
+  for(let i=0;i<path.length;i++){
+    const A={x:path[i].lng*kx,y:path[i].lat*ky};
+    if(i===path.length-1){m=Math.min(m,Math.hypot(P.x-A.x,P.y-A.y));break;}
+    const B={x:path[i+1].lng*kx,y:path[i+1].lat*ky};
+    const dx=B.x-A.x,dy=B.y-A.y,L2=dx*dx+dy*dy;
+    let t=L2?((P.x-A.x)*dx+(P.y-A.y)*dy)/L2:0;t=Math.max(0,Math.min(1,t));
+    m=Math.min(m,Math.hypot(P.x-(A.x+t*dx),P.y-(A.y+t*dy)));
+  }
+  return m;
+}
 
 // ── MARCADORES NUMERADOS ─────────────────────────────────────
 function clearFleteMarkers(){fleteMarkers.forEach(m=>m.setMap(null));fleteMarkers=[];}
