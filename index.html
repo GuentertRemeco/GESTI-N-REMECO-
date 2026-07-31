@@ -551,7 +551,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v28</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v29</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -644,7 +644,7 @@ let PISO_CARGA=(parseFloat(localStorage.getItem('remeco_piso'))||60)/100;
 let ventas=[],viajesData=[],fletesPublicos=[],editId=null,modalLat=null,modalLng=null,modalReadOnly=false;
 let filterEstado='',filterProd='';
 let mapMapa=null,mapFlete=null,mapModal=null,simMap=null,locAutocomplete=null;
-let markersArr=[],modalMarker=null,directionsRenderer=null,simDirRenderer=null;
+let markersArr=[],modalMarker=null,directionsRenderer=null,simDirRenderer=null,simDirRenderer2=null;
 let fleteMarkers=[],simMarkers=[];
 let simParadas=[],viajeAbierto=null,simKm=0,simTramos=[];
 let agregarViajeId=null,agregarVentasSeleccionadas=new Set(),agregarVentasDisponibles=[];
@@ -1791,13 +1791,14 @@ function initMapaSim(){
   if(simMap){renderSimParadas();return;}
   const el=document.getElementById('map-sim');if(!el||typeof google==='undefined')return;
   simMap=new google.maps.Map(el,{center:{lat:FAB_LAT,lng:FAB_LNG},zoom:6,mapTypeId:'roadmap'});
-  simDirRenderer=new google.maps.DirectionsRenderer({map:simMap,suppressMarkers:true,polylineOptions:{strokeColor:'#4a90d9',strokeWeight:5}});
+  simDirRenderer=new google.maps.DirectionsRenderer({map:simMap,suppressMarkers:true,polylineOptions:{strokeColor:'#4a90d9',strokeWeight:5,zIndex:20}});
+  simDirRenderer2=new google.maps.DirectionsRenderer({map:simMap,suppressMarkers:true,preserveViewport:true,polylineOptions:{strokeColor:'#a9c9f5',strokeWeight:6,zIndex:10}});
   const inp=document.getElementById('sim-input');
   const ac=new google.maps.places.Autocomplete(inp,{componentRestrictions:{country:'ar'}});
   ac.addListener('place_changed',()=>{const pl=ac.getPlace();if(!pl.geometry)return;simParadas.push({nombre:pl.name||inp.value,lat:pl.geometry.location.lat(),lng:pl.geometry.location.lng(),prod:'Autoconsumo',modelo:'12 TN',cantidad:1});inp.value='';renderSimParadas();clearOpcionesSim();});
   renderSimParadas();
 }
-function clearOpcionesSim(){const o=document.getElementById('sim-opciones');if(o)o.innerHTML='';cerrarMapaSim();if(simDirRenderer)simDirRenderer.setDirections({routes:[]});clearSimMarkers();}
+function clearOpcionesSim(){const o=document.getElementById('sim-opciones');if(o)o.innerHTML='';cerrarMapaSim();if(simDirRenderer)simDirRenderer.setDirections({routes:[]});if(simDirRenderer2)simDirRenderer2.setMap(null);clearSimMarkers();}
 function cerrarMapaSim(){const fw=document.querySelector('.simular-wrap');if(fw)fw.classList.remove('map-on');const info=document.getElementById('sim-ruta-info');if(info)info.style.display='none';if(simMap)setTimeout(()=>{try{google.maps.event.trigger(simMap,'resize');}catch(e){}},60);}
 function routeDir(origin,destination,waypoints){
   return new Promise((resolve,reject)=>{
@@ -1883,7 +1884,7 @@ async function buscarOpciones(){
       const kmOrig=parseFloat(c.vj.km_real)||null;
       const extra=kmOrig!=null?o.km-kmOrig:null;
       if(extra!=null&&extra>DESVIO_MAX)continue; // desvío máximo
-      opciones.push({clase:'combinar',nombre:c.vj.nombre,fecha:c.vj.fecha,costo:o.userCost,km:o.km,extra,res:o.res,paradas:o.paradas,desglose:o.desglose});
+      opciones.push({clase:'combinar',nombre:c.vj.nombre,fecha:c.vj.fecha,costo:o.userCost,km:o.km,extra,res:o.res,paradas:o.paradas,desglose:o.desglose,vjParadas:c.paradas});
     }catch(e){}
   }
   opciones.sort((a,b)=>a.costo-b.costo);
@@ -1906,12 +1907,28 @@ function renderOpciones(ops){
     </div>`;
   }).join('')+`<div style="font-size:.62rem;color:var(--text3);margin-top:2px;padding:0 2px">Tocá una opción para ver la ruta.</div>`;
 }
-function verOpcion(i){
+async function verOpcion(i){
   const o=(window._fndOpciones||[])[i];if(!o||!o.res||!simDirRenderer||!simMap)return;
   const fw=document.querySelector('.simular-wrap');if(fw)fw.classList.add('map-on');
   setTimeout(()=>{try{google.maps.event.trigger(simMap,'resize');}catch(e){}},60);
   try{
-    simDirRenderer.setDirections(o.res);simDirRenderer.setRouteIndex(0);
+    if(o.clase==='combinar'&&o.vjParadas&&o.vjParadas.length){
+      // Ruta nueva (con tu silo) en celeste abajo; la ruta publicada original en azul arriba.
+      // El desvío que agregás queda visible en celeste, como las alternativas de Google Maps.
+      if(!o.origRes){
+        try{
+          const pts=o.vjParadas.map(x=>({lat:parseFloat(x.lat),lng:parseFloat(x.lng)}));
+          let di=0,mx=-1;pts.forEach((p,k)=>{const d=distKm(FAB_LAT,FAB_LNG,p.lat,p.lng);if(d>mx){mx=d;di=k;}});
+          o.origRes=await routeDir({lat:FAB_LAT,lng:FAB_LNG},pts[di],pts.filter((_,k)=>k!==di).map(p=>({location:p,stopover:true})));
+        }catch(e){}
+      }
+      simDirRenderer2.setMap(simMap);simDirRenderer2.setDirections(o.res);
+      if(o.origRes){simDirRenderer.setDirections(o.origRes);}else{simDirRenderer.setDirections(o.res);}
+    }else{
+      if(simDirRenderer2)simDirRenderer2.setMap(null);
+      simDirRenderer.setDirections(o.res);
+    }
+    simDirRenderer.setRouteIndex(0);
     clearSimMarkers();
     simMarkers.push(markerFabrica(simMap));
     const bounds=new google.maps.LatLngBounds();bounds.extend({lat:FAB_LAT,lng:FAB_LNG});
