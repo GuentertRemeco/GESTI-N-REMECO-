@@ -551,7 +551,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v29</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v30</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -1028,7 +1028,7 @@ function renderProdItems(){
     let extras='';
     if(it.prod==='Silo Aéreo'&&it.modelo){
       extras=`<div class="prod-extras">${[['35','Cono 35°'],['45','45°'],['55','55°']].map(([a,t])=>`<button type="button" class="opt-btn${(it.cono||'35')===a?' on':''}" onclick="prodSetCono(${idx},'${a}')">${t}</button>`).join('')}</div>`;
-    } else if(it.prod==='Autoconsumo'&&(it.modelo.startsWith('12 TN')||it.modelo.startsWith('18 TN'))&&!it.modelo.includes('cambio de base')){
+    } else if(it.prod==='Autoconsumo'&&(it.modelo.startsWith('12 TN')||it.modelo.startsWith('18 TN'))){
       extras=`<div class="prod-extras"><button type="button" class="opt-btn${it.fibra?' on':''}" onclick="prodToggleFibra(${idx})">${it.fibra?'✓ ':''}Incluye base de fibra</button></div>`;
     }
     const body=`<div class="prod-body">
