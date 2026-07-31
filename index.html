@@ -1857,7 +1857,9 @@ async function buscarOpciones(){
     if(!paradas.length)return null;
     const path=[{lat:FAB_LAT,lng:FAB_LNG},...paradas.map(x=>({lat:parseFloat(x.lat),lng:parseFloat(x.lng)}))];
     let far=path[0],mx=-1;path.forEach(p=>{const d=distKm(FAB_LAT,FAB_LNG,p.lat,p.lng);if(d>mx){mx=d;far=p;}});
-    const cerca=silos.some(s=>{const lateral=distAlPath(s.lat,s.lng,path),ade=distKm(far.lat,far.lng,s.lat,s.lng);return lateral<=RADIO_COSTADO||ade<=RADIO_ADELANTE;});
+    // Pre-filtro generoso (la línea recta entre paradas no es la ruta real):
+    // el filtro fino lo hace después el desvío máximo con la ruta verdadera
+    const cerca=silos.some(s=>{const lateral=distAlPath(s.lat,s.lng,path),ade=distKm(far.lat,far.lng,s.lat,s.lng);return lateral<=RADIO_COSTADO*2.5||ade<=RADIO_ADELANTE;});
     return cerca?{vj,paradas}:null;
   }).filter(Boolean);
   for(const c of cand){
