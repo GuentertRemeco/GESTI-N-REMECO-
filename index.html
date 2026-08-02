@@ -551,7 +551,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v30</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v32</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -1163,9 +1163,34 @@ function renderFpDisponibles(){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px">
         <button class="bp" style="padding:7px;font-size:.72rem" onclick="optimizarViaje('${vj.id}')">🎯 ¿Me conviene?</button>
         <button class="bg" style="padding:7px;font-size:.72rem" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes</button>
+        <button class="bv" style="padding:7px;font-size:.72rem;grid-column:span 2" onclick="verClientesPub('${vj.id}')">👥 Ver clientes y cargas</button>
       </div>
+      <div id="pubcli-${vj.id}" style="display:none"></div>
     </div>`;
   }).join('');
+}
+
+let _vendCache=null,_ownerCache={};
+async function verClientesPub(vjId){
+  const box=document.getElementById('pubcli-'+vjId);if(!box)return;
+  if(box.style.display!=='none'){box.style.display='none';return;}
+  box.style.display='block';box.innerHTML='<div class="sp" style="margin:8px auto"></div>';
+  const vj=fletesPublicos.find(v=>String(v.id)===String(vjId))||buscarViaje(vjId);if(!vj){box.innerHTML='';return;}
+  const p=parsePar(vj.paradas_snap);
+  try{
+    if(!_vendCache){const{data:vend}=await sb.from('vendedores').select('user_id,nombre');_vendCache={};(vend||[]).forEach(x=>{_vendCache[x.user_id]=x.nombre;});}
+    const ids=p.map(x=>x.id).filter(Boolean).filter(id=>!(id in _ownerCache));
+    if(ids.length){const{data:vs}=await sb.from('ventas').select('id,user_id').in('id',ids);(vs||[]).forEach(v=>{_ownerCache[v.id]=v.user_id;});}
+  }catch(e){}
+  box.innerHTML='<div style="border-top:1px solid var(--border);margin-top:8px;padding-top:7px">'+p.map((x,i)=>{
+    const uid=_ownerCache[x.id];
+    const vend=uid?(uid===authedUser?'Vos':(_vendCache&&_vendCache[uid])||'Vendedor '+String(uid).slice(0,6)):'—';
+    const esp=Math.round(ocupacionItem(x)*100);
+    return`<div style="font-size:.68rem;padding:4px 0;border-bottom:1px dashed var(--border)">
+      <div style="display:flex;justify-content:space-between;gap:8px"><span style="font-weight:700;color:var(--text)">${i+1}. ${esc(x.cliente||x.nombre)||'—'}</span><span style="color:${uid===authedUser?'var(--gold)':'var(--text2)'};font-weight:700;flex-shrink:0">👤 ${esc(vend)}</span></div>
+      <div style="color:var(--text3);margin-top:1px">${paradaTexto(x)} · ${esc(x.localidad)} · ocupa ${esp}%</div>
+    </div>`;
+  }).join('')+'</div>';
 }
 
 // ── VENTAS ───────────────────────────────────────────────────
@@ -1243,10 +1268,22 @@ function estadoViaje(vj){
 function renderViajes(){
   const _fw=document.querySelector('.flete-wrap');if(_fw)_fw.classList.toggle('map-on',!!viajeAbierto);
   const el=document.getElementById('fpBody');
-  if(!viajesData.length){el.innerHTML='<div style="text-align:center;padding:28px;color:var(--text3);font-size:.78rem">Creá un viaje y agregá los pedidos</div>';return;}
   const activos=viajesData.filter(v=>estadoViaje(v)!=='historial');
   const histHtml='';
-  if(!activos.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">No hay viajes programados</div>'+histHtml;return;}
+  // Fletes publicados por otros vendedores donde tengo clientes míos
+  const ajenos=fletesPublicos.filter(v=>estadoViaje(v)!=='historial'&&!viajesData.some(m=>String(m.id)===String(v.id))&&parsePar(v.paradas_snap).some(x=>ventas.some(vv=>String(vv.id)===String(x.id))));
+  const ajenosHtml=ajenos.length?`<div class="inicio-stitle" style="margin:14px 2px 8px">🤝 Tus clientes en viajes de otros</div>`+ajenos.map(vj=>{
+    const p=parsePar(vj.paradas_snap);
+    const mios=p.map((x,i)=>({x,i})).filter(({x})=>ventas.some(vv=>String(vv.id)===String(x.id)));
+    return`<div style="background:var(--bg3);border:1px solid #2a8c50;border-radius:9px;padding:9px 11px;margin-bottom:7px">
+      <div onclick="verRutaPublicado('${vj.id}')" style="cursor:pointer">
+        <div style="font-weight:700;font-size:.8rem">🚛 ${esc(vj.nombre)} <span class="flete-pub-badge">PUB</span>${estadoViaje(vj)==='entregado'?'<span style="font-size:.58rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:1px 7px;margin-left:4px">✅ ENTREGADO</span>':''}</div>
+        <div style="font-size:.65rem;color:var(--text3);margin-top:2px">${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · 📍 '+vj.km_real+' km':''} · 📅 ${fFecha(vj.fecha)} · <span style="color:var(--gold)">🗺️ ver recorrido</span></div>
+      </div>
+      ${mios.map(({x,i})=>`<div style="display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--text2);margin-top:5px;padding-top:5px;border-top:1px dashed var(--border)"><span style="flex:1">⭐ ${esc(x.cliente||x.nombre)||'—'} · ${paradaTexto(x)} · ${esc(x.localidad)}</span><button onclick="quitarDelViaje('${vj.id}',${i},'${x.id||''}')" title="Quitar mi cliente" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.8rem;padding:2px 5px;flex-shrink:0">✕</button></div>`).join('')}
+    </div>`;
+  }).join(''):'';
+  if(!activos.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">No hay viajes programados</div>'+ajenosHtml+histHtml;return;}
   el.innerHTML=activos.map(vj=>{
     const entregado=estadoViaje(vj)==='entregado';
     const p=parsePar(vj.paradas_snap);
@@ -1276,7 +1313,7 @@ function renderViajes(){
         </div>
       </div>
     </div>`;
-  }).join('')+histHtml;
+  }).join('')+ajenosHtml+histHtml;
 }
 function toggleViaje(id){
   const yaAbierto=viajeAbierto===id;
