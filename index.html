@@ -262,6 +262,56 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   .modal-sm,.modal-lg{padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
   .modal .mact{bottom:calc(-14px - env(safe-area-inset-bottom));margin:11px -14px calc(-14px - env(safe-area-inset-bottom));padding:11px 14px calc(11px + env(safe-area-inset-bottom));border-radius:0}
 }
+.ajenos-header{cursor:pointer;transition:background-color .15s,border-color .15s}
+.ajenos-header:hover{background-color:rgba(42,140,80,0.3);border-color:#3aad5f}
+/* ── DETALLE DE VIAJE (pantalla completa) ── */
+.vd-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:7200;flex-direction:column}
+.vd-screen.on{display:flex}
+.vd-top{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:2px solid var(--gold);background:var(--bg4);flex-shrink:0}
+.vd-top-info{flex:1;min-width:0}
+.vd-title{font-weight:900;font-size:1.02rem;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.vd-title-sub{font-size:.67rem;color:var(--text3);margin-top:2px}
+.vd-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:15px 14px calc(18px + env(safe-area-inset-bottom))}
+.vd-inner{max-width:700px;margin:0 auto}
+.vd-hero{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:13px}
+.vd-kpi{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 8px;text-align:center}
+.vd-kpi-lbl{font-size:.55rem;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:800;margin-bottom:6px}
+.vd-kpi-val{font-size:1.18rem;font-weight:900;color:var(--text);line-height:1.05}
+.vd-kpi-sub{font-size:.62rem;color:var(--text3);margin-top:4px;font-weight:700}
+.vd-card{background:var(--bg2);border:1px solid var(--border);border-radius:13px;padding:14px;margin-bottom:12px}
+.vd-h{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:var(--gold);margin-bottom:11px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.vd-h span.n{color:var(--text3);letter-spacing:0;font-size:.66rem;text-transform:none}
+.vd-carga{display:flex;flex-wrap:wrap;gap:8px}
+.vd-cchip{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:9px}
+.vd-cchip .q{background:var(--gold);color:#111820;font-weight:900;font-size:.82rem;border-radius:7px;padding:2px 8px;flex-shrink:0}
+.vd-cchip .n{font-size:.86rem;font-weight:700;color:var(--text)}
+.vd-stop{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)}
+.vd-stop:first-of-type{padding-top:0}
+.vd-stop:last-child{border-bottom:none;padding-bottom:2px}
+.vd-numwrap{display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0}
+.vd-num{width:31px;height:31px;border-radius:50%;background:var(--border2);color:var(--text);font-weight:900;font-size:.9rem;display:flex;align-items:center;justify-content:center}
+.vd-num.mio{background:var(--gold);color:#111820}
+.vd-line{flex:1;width:2px;background:var(--border);border-radius:2px;min-height:10px}
+.vd-si{flex:1;min-width:0}
+.vd-cli{font-size:1rem;font-weight:800;color:var(--text);line-height:1.25}
+.vd-loc{font-size:.78rem;color:var(--text2);margin-top:3px}
+.vd-prods{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.vd-prod{background:#0d2438;border:1px solid #1e4a6e;color:#bfe3ff;border-radius:8px;padding:6px 10px;font-size:.8rem;font-weight:700}
+.vd-prod b{color:var(--gold)}
+.vd-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:9px}
+.vd-vend{display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 11px;font-size:.74rem;font-weight:700;color:var(--text2)}
+.vd-vend.yo{border-color:var(--gold);color:var(--gold);background:#2a2410}
+.vd-ocu{font-size:.74rem;color:var(--text3);font-weight:700}
+.vd-precio{font-size:.78rem;color:var(--gold);font-weight:800}
+.vd-quitar{background:none;border:1px solid #5a2020;color:var(--red);border-radius:7px;padding:4px 9px;font-size:.7rem;font-weight:700;cursor:pointer;font-family:inherit}
+.vd-quitar:hover{background:#2a1010}
+.vd-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.vd-acts button{padding:12px;font-size:.82rem;font-weight:700}
+.vd-pub{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid #2a8c50;border-radius:12px;padding:11px 13px;margin-bottom:12px}
+.vd-pub-av{width:34px;height:34px;border-radius:9px;background:#0d2e18;border:1px solid #2a8c50;color:var(--green);font-weight:900;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.vd-pub-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:800}
+.vd-pub-nom{font-size:.9rem;font-weight:800;color:var(--green);margin-top:2px}
+@media(max-width:520px){.vd-hero{grid-template-columns:1fr 1fr}.vd-kpi-val{font-size:1.1rem}}
 @media(min-width:769px){.vcards-wrap{display:none}.vtable-wrap{display:block}}
 </style>
 </head>
@@ -546,12 +596,25 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   </div>
 </div>
 
+<!-- PANTALLA DETALLE DE VIAJE (pantalla completa) -->
+<div class="vd-screen" id="vdScreen">
+  <div class="vd-top">
+    <button class="bd" onclick="cerrarViajeDetalle()" style="padding:8px 12px;flex-shrink:0">←</button>
+    <div class="vd-top-info">
+      <div class="vd-title" id="vdTitulo">Viaje</div>
+      <div class="vd-title-sub" id="vdSub"></div>
+    </div>
+    <button class="bg" id="vdMapaBtn" style="padding:8px 12px;flex-shrink:0" onclick="vdVerMapa()">🗺️ Recorrido</button>
+  </div>
+  <div class="vd-body"><div class="vd-inner" id="vdBody"></div></div>
+</div>
+
 <!-- PANTALLA CONFIGURACIÓN (pantalla completa) -->
 <div id="configScreen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:7000;flex-direction:column">
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v33</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v35</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -646,7 +709,7 @@ let filterEstado='',filterProd='';
 let mapMapa=null,mapFlete=null,mapModal=null,simMap=null,locAutocomplete=null;
 let markersArr=[],modalMarker=null,directionsRenderer=null,simDirRenderer=null,simDirRenderer2=null;
 let fleteMarkers=[],simMarkers=[];
-let simParadas=[],viajeAbierto=null,simKm=0,simTramos=[];
+let simParadas=[],viajeAbierto=null,simKm=0,simTramos=[],ajenosExpandidos={};
 let agregarViajeId=null,agregarVentasSeleccionadas=new Set(),agregarVentasDisponibles=[];
 let prodItems=[];
 const BNAV={inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes'};
@@ -1153,48 +1216,154 @@ function renderFpDisponibles(){
     const libre=Math.max(0,(1-oc)*100).toFixed(0);
     const color=oc>=1?'var(--red)':oc>=0.75?'var(--yellow)':'var(--green)';
     const pct=Math.min(oc*100,100);
+    const fi=vdFechaInfo(vj.fecha);
+    const mios=p.filter(x=>ventas.some(v=>String(v.id)===String(x.id))).length;
+    const prev=p.slice(0,3);
     return`<div class="disp-card">
-      <div onclick="verRutaPublicado('${vj.id}')" style="cursor:pointer">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px"><div style="font-weight:800;font-size:.84rem;color:var(--gold)">🚛 ${esc(vj.nombre)}</div><span style="font-size:.68rem;font-weight:700;color:${color}">${libre}% libre</span></div>
-        <div style="font-size:.7rem;color:var(--text3);margin-bottom:7px">📅 ${fFecha(vj.fecha)} · ${p.length} paradas${vj.km_real?' · '+vj.km_real+' km':''} · <span style="color:var(--gold)">🗺️ ver recorrido</span></div>
-        ${p.map((x,i)=>{const mio=ventas.some(v=>String(v.id)===String(x.id));return`<div style="font-size:.68rem;color:var(--text2);padding:2px 0;display:flex;align-items:center;gap:6px"><span style="flex:1">${i+1}. ${esc(x.cliente||x.nombre)||'—'} · ${esc(x.localidad)}</span>${mio?`<button onclick="event.stopPropagation();quitarDelViaje('${vj.id}',${i},'${x.id||''}')" title="Quitar mi cliente" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.8rem;padding:2px 5px;flex-shrink:0">✕</button>`:''}</div>`;}).join('')}
+      <div onclick="abrirViajeDetalle('${vj.id}')" style="cursor:pointer">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px"><div style="font-weight:800;font-size:.88rem;color:var(--gold)">🚛 ${esc(vj.nombre)}</div><span style="font-size:.68rem;font-weight:800;color:${color};flex-shrink:0">${libre}% libre</span></div>
+        <div style="font-size:.72rem;color:var(--text2);margin-bottom:7px">📅 ${fFecha(vj.fecha)} <span style="color:${fi.color};font-weight:700">(${fi.sub})</span> · ${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · '+vj.km_real+' km':''}${mios?` · <span style="color:var(--gold);font-weight:700">⭐ ${mios} tuya${mios>1?'s':''}</span>`:''}</div>
+        ${prev.map((x,i)=>`<div style="font-size:.72rem;color:var(--text2);padding:2px 0">${i+1}. ${esc(x.cliente||x.nombre)||'—'} <span style="color:var(--text3)">· ${esc(x.localidad)}</span></div>`).join('')}
+        ${p.length>3?`<div style="font-size:.7rem;color:var(--text3);padding:2px 0">+ ${p.length-3} parada${p.length-3>1?'s':''} más…</div>`:''}
         <div class="cap-bar-wrap" style="margin-top:8px"><div class="cap-bar-label"><span>Capacidad</span><span style="color:${color};font-weight:700">${Math.round(oc*100)}%</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px">
+      <button class="bg" style="width:100%;padding:10px;font-size:.82rem;font-weight:800;margin-top:10px" onclick="abrirViajeDetalle('${vj.id}')">👁️ Entrar al viaje</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
         <button class="bp" style="padding:7px;font-size:.72rem" onclick="optimizarViaje('${vj.id}')">🎯 ¿Me conviene?</button>
-        <button class="bg" style="padding:7px;font-size:.72rem" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes</button>
-        <button class="bv" style="padding:7px;font-size:.72rem;grid-column:span 2" onclick="verClientesPub('${vj.id}')">👥 Ver clientes y cargas</button>
+        <button class="bv" style="padding:7px;font-size:.72rem" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes</button>
+        <button class="bd" style="padding:7px;font-size:.72rem;grid-column:span 2" onclick="verRutaPublicado('${vj.id}')">🗺️ Ver recorrido en el mapa</button>
       </div>
-      <div id="pubcli-${vj.id}" style="display:none"></div>
     </div>`;
   }).join('');
 }
 
 let _vendCache=null,_ownerCache={};
-async function verClientesPub(vjId,pref){
-  const box=document.getElementById((pref||'pubcli-')+vjId);if(!box)return;
-  if(box.style.display!=='none'){box.style.display='none';return;}
-  box.style.display='block';box.innerHTML='<div class="sp" style="margin:8px auto"></div>';
-  const vj=fletesPublicos.find(v=>String(v.id)===String(vjId))||buscarViaje(vjId);if(!vj){box.innerHTML='';return;}
+
+// ── DETALLE COMPLETO DE UN VIAJE (pantalla propia) ───────────
+let vdViajeId=null;
+const MESES_C=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function vdFechaCorta(d){if(!d)return'—';const[,m,dd]=d.split('-');return parseInt(dd)+' '+MESES_C[parseInt(m)-1];}
+function vdFechaInfo(d){
+  if(!d)return{sub:'sin fecha',color:'var(--text3)'};
+  const hoy=new Date();hoy.setHours(0,0,0,0);
+  const dias=Math.round((new Date(d+'T00:00:00')-hoy)/86400000);
+  if(dias===0)return{sub:'¡sale hoy!',color:'var(--yellow)'};
+  if(dias===1)return{sub:'sale mañana',color:'var(--yellow)'};
+  if(dias>1)return{sub:'en '+dias+' días',color:'var(--green)'};
+  if(dias===-1)return{sub:'salió ayer',color:'var(--text3)'};
+  return{sub:'hace '+Math.abs(dias)+' días',color:'var(--text3)'};
+}
+function vdBaseProd(a){const tipo=(a.producto==='Silo Aéreo'||a.producto==='Autoconsumo')?a.producto+' ':'';return tipo+(a.modelo||'—');}
+function vdResumenCarga(paradas){
+  const m={};
+  paradas.forEach(x=>productosDe(x).forEach(a=>{const k=vdBaseProd(a);m[k]=(m[k]||0)+(a.cantidad||1);}));
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
+}
+function vdNombreVend(uid){
+  if(!uid)return'—';
+  if(uid===authedUser)return'Vos';
+  return(_vendCache&&_vendCache[uid])||'Vendedor '+String(uid).slice(0,6);
+}
+async function abrirViajeDetalle(vjId){
+  const vj=buscarViaje(vjId);
+  if(!vj){toast('No se encontró el viaje');return;}
+  vdViajeId=vjId;
+  document.getElementById('vdScreen').classList.add('on');
+  document.querySelector('.vd-body').scrollTop=0;
+  vdPintar(vj); // pinta al toque con lo que ya está en memoria
   const p=parsePar(vj.paradas_snap);
   try{
     if(!_vendCache){const{data:vend}=await sb.from('vendedores').select('user_id,nombre');_vendCache={};(vend||[]).forEach(x=>{_vendCache[x.user_id]=x.nombre;});}
     const ids=p.map(x=>x.id).filter(Boolean).filter(id=>!(id in _ownerCache));
     if(ids.length){const{data:vs}=await sb.from('ventas').select('id,user_id').in('id',ids);(vs||[]).forEach(v=>{_ownerCache[v.id]=v.user_id;});}
   }catch(e){}
-  const duenoUid=vj.user_id;
-  const dueno=duenoUid?(duenoUid===authedUser?'Vos':(_vendCache&&_vendCache[duenoUid])||'Vendedor '+String(duenoUid).slice(0,6)):'—';
-  box.innerHTML='<div style="border-top:1px solid var(--border);margin-top:8px;padding-top:7px">'
-  +`<div style="font-size:.7rem;font-weight:700;color:var(--green);padding-bottom:5px">📢 Viaje publicado por ${esc(dueno)}</div>`
-  +p.map((x,i)=>{
-    const uid=_ownerCache[x.id];
-    const vend=uid?(uid===authedUser?'Vos':(_vendCache&&_vendCache[uid])||'Vendedor '+String(uid).slice(0,6)):'—';
-    const esp=Math.round(ocupacionItem(x)*100);
-    return`<div style="font-size:.68rem;padding:4px 0;border-bottom:1px dashed var(--border)">
-      <div style="display:flex;justify-content:space-between;gap:8px"><span style="font-weight:700;color:var(--text)">${i+1}. ${esc(x.cliente||x.nombre)||'—'}</span><span style="color:${uid===authedUser?'var(--gold)':'var(--text2)'};font-weight:700;flex-shrink:0">👤 ${esc(vend)}</span></div>
-      <div style="color:var(--text3);margin-top:1px">${paradaTexto(x)} · ${esc(x.localidad)} · ocupa ${esp}%</div>
-    </div>`;
-  }).join('')+'</div>';
+  if(String(vdViajeId)===String(vjId))vdPintar(vj); // repinta ya con los nombres reales
+}
+function cerrarViajeDetalle(){document.getElementById('vdScreen').classList.remove('on');vdViajeId=null;}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&vdViajeId)cerrarViajeDetalle();});
+function vdRefrescar(){if(!vdViajeId)return;const vj=buscarViaje(vdViajeId);if(vj)vdPintar(vj);else cerrarViajeDetalle();}
+function vdVerMapa(){const id=vdViajeId;if(!id)return;cerrarViajeDetalle();ir('flete');setTimeout(()=>verRutaPublicado(id),120);}
+function vdPintar(vj){
+  const el=document.getElementById('vdBody');if(!el)return;
+  const p=parsePar(vj.paradas_snap);
+  const oc=calcOcupacion(p),camiones=Math.ceil(oc);
+  const libre=Math.max(0,(1-oc)*100);
+  const colOc=oc>=1?'var(--red)':oc>=.75?'var(--yellow)':'var(--green)';
+  const fi=vdFechaInfo(vj.fecha);
+  const flete=calcularFlete(vj);
+  const esMio=viajesData.some(v=>String(v.id)===String(vj.id));
+  const entregado=estadoViaje(vj)==='entregado';
+  const dueno=vdNombreVend(vj.user_id);
+  const mios=p.filter(x=>ventas.some(v=>String(v.id)===String(x.id)));
+  const miParte=flete.listo?p.reduce((s,x,i)=>s+(ventas.some(v=>String(v.id)===String(x.id))?(flete.items[i]?.cobro||0):0),0):0;
+
+  document.getElementById('vdTitulo').textContent=vj.nombre||'Viaje';
+  document.getElementById('vdSub').textContent=`${fFecha(vj.fecha)} · ${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · '+vj.km_real+' km':''}`;
+
+  const resumen=vdResumenCarga(p);
+
+  el.innerHTML=`
+  ${entregado?'<div style="background:#0d2e18;border:1px solid #2a8c50;color:var(--green);border-radius:11px;padding:10px 13px;font-size:.82rem;font-weight:800;margin-bottom:12px">✅ Este viaje ya fue entregado</div>':''}
+
+  <div class="vd-hero">
+    <div class="vd-kpi"><div class="vd-kpi-lbl">📅 Sale</div><div class="vd-kpi-val">${vdFechaCorta(vj.fecha)}</div><div class="vd-kpi-sub" style="color:${fi.color}">${fi.sub}</div></div>
+    <div class="vd-kpi"><div class="vd-kpi-lbl">📍 Recorrido</div><div class="vd-kpi-val">${vj.km_real?Math.round(vj.km_real).toLocaleString('es-AR'):'—'}</div><div class="vd-kpi-sub">km</div></div>
+    <div class="vd-kpi"><div class="vd-kpi-lbl">🚏 Paradas</div><div class="vd-kpi-val">${p.length}</div><div class="vd-kpi-sub">${mios.length?mios.length+' tuya'+(mios.length>1?'s':''):'ninguna tuya'}</div></div>
+    <div class="vd-kpi"><div class="vd-kpi-lbl">📦 Camión</div><div class="vd-kpi-val" style="color:${colOc}">${Math.round(oc*100)}%</div><div class="vd-kpi-sub" style="color:${colOc}">${oc>=1?camiones+' camión'+(camiones>1?'es':''):Math.round(libre)+'% libre'}</div></div>
+  </div>
+
+  <div class="vd-card" style="padding:12px 14px">
+    <div class="cap-bar-label" style="margin-bottom:6px"><span>Ocupación del camión</span><span style="color:${colOc};font-weight:800">${oc>=1?'⚠️ no entra en uno solo':Math.round(libre)+'% de lugar libre'}</span></div>
+    <div class="cap-bar-track"><div class="cap-bar-fill" style="width:${Math.min(oc*100,100)}%;background:${colOc}"></div></div>
+  </div>
+
+  <div class="vd-pub">
+    <div class="vd-pub-av">${esc((dueno||'?').charAt(0).toUpperCase())}</div>
+    <div style="flex:1;min-width:0"><div class="vd-pub-lbl">📢 Viaje publicado por</div><div class="vd-pub-nom">${esc(dueno)}${esMio?' (es tu viaje)':''}</div></div>
+  </div>
+
+  <div class="vd-card">
+    <div class="vd-h">📦 Qué se carga <span class="n">${resumen.reduce((s,[,q])=>s+q,0)} unidad${resumen.reduce((s,[,q])=>s+q,0)!==1?'es':''}</span></div>
+    ${resumen.length?`<div class="vd-carga">${resumen.map(([nom,q])=>`<div class="vd-cchip"><span class="q">×${q}</span><span class="n">${esc(nom)}</span></div>`).join('')}</div>`:'<div style="color:var(--text3);font-size:.82rem">Sin productos cargados</div>'}
+  </div>
+
+  <div class="vd-card">
+    <div class="vd-h">🚏 Paradas <span class="n">en orden de bajada</span></div>
+    ${p.length?p.map((x,i)=>{
+      const mio=ventas.some(v=>String(v.id)===String(x.id));
+      const uid=_ownerCache[x.id];
+      const vend=vdNombreVend(uid);
+      const esp=Math.round(ocupacionItem(x)*100);
+      const c=flete.items[i]||{};
+      const verPrecio=flete.listo&&(esMio||mio)&&c.cobro;
+      const prods=productosDe(x);
+      return`<div class="vd-stop">
+        <div class="vd-numwrap"><div class="vd-num${mio?' mio':''}">${i+1}</div>${i<p.length-1?'<div class="vd-line"></div>':''}</div>
+        <div class="vd-si">
+          <div class="vd-cli">${mio?'⭐ ':''}${esc(x.cliente||x.nombre)||'—'}</div>
+          <div class="vd-loc">📍 ${esc(x.localidad)||'sin localidad'}</div>
+          <div class="vd-prods">${prods.length?prods.map(a=>`<div class="vd-prod">${(a.cantidad&&a.cantidad>1)?`<b>×${a.cantidad}</b> `:''}${esc(vdBaseProd(a))}</div>`).join(''):'<div class="vd-prod" style="opacity:.6">sin producto</div>'}</div>
+          <div class="vd-meta">
+            <span class="vd-vend${uid&&uid===authedUser?' yo':''}">👤 ${esc(vend)}</span>
+            <span class="vd-ocu">ocupa ${esp}%</span>
+            ${verPrecio?`<span class="vd-precio">${fPesos(c.cobro)} de flete</span>`:''}
+            ${mio?`<button class="vd-quitar" onclick="quitarDelViaje('${vj.id}',${i},'${x.id||''}')">✕ Sacar del viaje</button>`:''}
+          </div>
+        </div>
+      </div>`;}).join(''):'<div style="color:var(--text3);font-size:.82rem;text-align:center;padding:10px 0">Todavía no hay paradas</div>'}
+  </div>
+
+  ${flete.listo?`<div class="vd-card">
+    <div class="vd-h">💰 Flete</div>
+    ${esMio?`<div style="display:flex;justify-content:space-between;align-items:center;font-size:.88rem"><span style="color:var(--text2)">Total del viaje</span><span style="color:var(--gold);font-weight:900;font-size:1.15rem">${fPesos(flete.total)}</span></div>`:''}
+    ${mios.length?`<div style="display:flex;justify-content:space-between;align-items:center;font-size:.88rem;margin-top:${esMio?'8px':'0'};padding-top:${esMio?'8px':'0'};${esMio?'border-top:1px solid var(--border)':''}"><span style="color:var(--text2)">Lo tuyo en este viaje</span><span style="color:var(--gold);font-weight:900;font-size:1.15rem">${fPesos(miParte)}</span></div>`:''}
+    <div style="font-size:.68rem;color:var(--text3);margin-top:9px">${flete.kmReal} km · se cobra la tarifa de cada producto × los km hasta su parada</div>
+  </div>`:''}
+
+  <div class="vd-acts">
+    <button class="bp" onclick="cerrarViajeDetalle();optimizarViaje('${vj.id}')">🎯 ¿Me conviene?</button>
+    <button class="bg" onclick="cerrarViajeDetalle();abrirAgregar('${vj.id}')">+ Agregar clientes</button>
+  </div>`;
 }
 
 // ── VENTAS ───────────────────────────────────────────────────
@@ -1279,14 +1448,23 @@ function renderViajes(){
   const ajenosHtml=ajenos.length?`<div class="inicio-stitle" style="margin:14px 2px 8px">🤝 Tus clientes en viajes de otros</div>`+ajenos.map(vj=>{
     const p=parsePar(vj.paradas_snap);
     const mios=p.map((x,i)=>({x,i})).filter(({x})=>ventas.some(vv=>String(vv.id)===String(x.id)));
-    return`<div style="background:var(--bg3);border:1px solid #2a8c50;border-radius:9px;padding:9px 11px;margin-bottom:7px">
-      <div onclick="verRutaPublicado('${vj.id}')" style="cursor:pointer">
-        <div style="font-weight:700;font-size:.8rem">🚛 ${esc(vj.nombre)} <span class="flete-pub-badge">PUB</span>${estadoViaje(vj)==='entregado'?'<span style="font-size:.58rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:1px 7px;margin-left:4px">✅ ENTREGADO</span>':''}</div>
-        <div style="font-size:.65rem;color:var(--text3);margin-top:2px">${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · 📍 '+vj.km_real+' km':''} · 📅 ${fFecha(vj.fecha)} · <span style="color:var(--gold)">🗺️ ver recorrido</span></div>
+    return`<div style="background:var(--bg3);border:1px solid #2a8c50;border-radius:9px;margin-bottom:7px">
+      <div onclick="toggleAjenos('${vj.id}')" class="ajenos-header" style="padding:9px 11px;display:flex;gap:8px;align-items:flex-start;justify-content:space-between;border-radius:9px">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:.8rem;display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="color:var(--gold);font-size:.7rem;transition:transform .2s;display:inline-block;transform:rotate(${ajenosExpandidos&&ajenosExpandidos[vj.id]?'90':'0'}deg)" id="ajenos-arr-${vj.id}">▶</span>
+            🚛 ${esc(vj.nombre)} <span class="flete-pub-badge">PUB</span>
+          </div>
+          <div style="font-size:.65rem;color:var(--text3)">${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · 📍 '+vj.km_real+' km':''} · 📅 ${fFecha(vj.fecha)} · <span style="color:var(--gold);font-weight:700">⭐ ${mios.length} tuya${mios.length>1?'s':''}</span></div>
+        </div>
+        <button style="background:var(--gold);color:#111820;border:none;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:.68rem;font-weight:800;flex-shrink:0;font-family:inherit" onclick="event.stopPropagation();abrirViajeDetalle('${vj.id}')">👁️ Entrar</button>
       </div>
-      ${mios.map(({x,i})=>`<div style="display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--text2);margin-top:5px;padding-top:5px;border-top:1px dashed var(--border)"><span style="flex:1">⭐ ${esc(x.cliente||x.nombre)||'—'} · ${paradaTexto(x)} · ${esc(x.localidad)}</span><button onclick="quitarDelViaje('${vj.id}',${i},'${x.id||''}')" title="Quitar mi cliente" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.8rem;padding:2px 5px;flex-shrink:0">✕</button></div>`).join('')}
-      <button class="bv" style="width:100%;padding:6px;font-size:.7rem;margin-top:7px" onclick="verClientesPub('${vj.id}','pubcli2-')">👥 Ver quiénes van en este viaje</button>
-      <div id="pubcli2-${vj.id}" style="display:none"></div>
+      ${estadoViaje(vj)==='entregado'?'<div style="padding:0 11px;margin-bottom:8px"><span style="font-size:.58rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:2px 8px">✅ ENTREGADO</span></div>':''}
+      <div id="ajenos-body-${vj.id}" style="display:${ajenosExpandidos&&ajenosExpandidos[vj.id]?'block':'none'};padding:0 11px 11px 11px;border-top:1px solid #1a5a35">
+        ${mios.map(({x,i})=>`<div style="display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--text2);margin-bottom:6px;padding-top:5px;border-top:1px dashed var(--border)"><span style="flex:1">⭐ ${esc(x.cliente||x.nombre)||'—'} · ${paradaTexto(x)} · ${esc(x.localidad)}</span><button onclick="quitarDelViaje('${vj.id}',${i},'${x.id||''}')" title="Quitar mi cliente" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.8rem;padding:2px 5px;flex-shrink:0">✕</button></div>`).join('')}
+        <button class="bg" style="width:100%;padding:9px;font-size:.78rem;font-weight:800;margin-top:8px" onclick="abrirViajeDetalle('${vj.id}')">👁️ Entrar al viaje</button>
+        <button class="bd" style="width:100%;padding:6px;font-size:.7rem;margin-top:5px" onclick="verRutaPublicado('${vj.id}')">🗺️ Ver recorrido en el mapa</button>
+      </div>
     </div>`;
   }).join(''):'';
   if(!activos.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">No hay viajes programados</div>'+ajenosHtml+histHtml;return;}
@@ -1313,6 +1491,7 @@ function renderViajes(){
           ${flete.ocupacion>1?`<div style="color:var(--red);font-weight:700;font-size:.66rem">⚠️ No entra en un camión (${Math.round(flete.ocupacion*100)}%) — hace falta otro flete</div>`:`<div style="color:var(--text3);font-size:.63rem">Camión ocupado: ${Math.round(flete.ocupacion*100)}%</div>`}
         </div>`:''}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px">
+          <button class="bg" style="font-size:.7rem;padding:7px;grid-column:span 2;font-weight:800" onclick="abrirViajeDetalle('${vj.id}')">👁️ Ver detalle completo</button>
           <button class="bv" style="font-size:.68rem;padding:5px" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes</button>
           <button class="bp" style="font-size:.68rem;padding:5px" onclick="optimizarViaje('${vj.id}')">🎯 Optimizar</button>
           <button style="background:${pubBg};border:1px solid ${pubColor};color:${pubTxt};border-radius:7px;font-size:.68rem;padding:5px;cursor:pointer;font-weight:600;font-family:inherit;grid-column:span 2" onclick="togglePublico('${vj.id}',${!vj.publico})">${vj.publico?'✅ Publicado — tocá para ocultar':'📢 Publicar flete disponible'}</button>
@@ -1334,6 +1513,13 @@ function toggleViaje(id){
     const ri=document.getElementById('ruta-info');if(ri)ri.style.display='none';
     setFletePlaceholder(true);
   }
+}
+function toggleAjenos(vjId){
+  ajenosExpandidos[vjId]=!ajenosExpandidos[vjId];
+  const body=document.getElementById('ajenos-body-'+vjId);
+  const arr=document.getElementById('ajenos-arr-'+vjId);
+  if(body){body.style.display=ajenosExpandidos[vjId]?'block':'none';}
+  if(arr){arr.style.transform=ajenosExpandidos[vjId]?'rotate(90deg)':'rotate(0deg)';}
 }
 let editViajeId=null;
 function editarViaje(id){
@@ -1386,7 +1572,7 @@ async function quitarDelViaje(vjId,idx,paradaId){
   if(error){toast('Error: '+error.message);return;}
   if(!upd||!upd.length){alert('⚠️ No se guardó (permisos RLS de "viajes").');return;}
   vj.paradas_snap=paradas;vj.pedido_ids=pedido_ids;
-  renderViajes();renderFpDisponibles();renderProxFletes();setTimeout(()=>mostrarRutaViaje(vjId),100);toast('Cliente quitado del viaje');
+  renderViajes();renderFpDisponibles();renderProxFletes();vdRefrescar();setTimeout(()=>mostrarRutaViaje(vjId),100);toast('Cliente quitado del viaje');
 }
 function exportarViaje(id){
   const vj=viajesData.find(v=>v.id===id);if(!vj)return;
