@@ -614,7 +614,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v35</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v36</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -1054,6 +1054,16 @@ function productosTexto(v){
   return arr.map(a=>{const tipo=(a.producto==='Silo Aéreo'||a.producto==='Autoconsumo')?a.producto+' ':'';const cant=(a.cantidad&&a.cantidad>1)?` <span style="color:var(--gold)">×${a.cantidad}</span>`:'';return`${tipo}<span style="color:var(--text3)">${esc(a.modelo)}</span>${cant}`;}).join(' <span style="color:var(--gold)">+</span> ');
 }
 function paradaTexto(x){return productosDe(x).map(a=>nombreProd(a)).join(' + ')||'—';}
+// Localidad legible: saca los plus-codes de Google (PRGW+Q4R), "Departamento" y el ", Argentina" final
+function locCorta(s){
+  const t=String(s==null?'':s)
+    .replace(/\b[A-Z0-9]{4,8}\+[A-Z0-9]{2,4}\b/g,'')
+    .replace(/\bDepartamento\s+/gi,'')
+    .replace(/,\s*Argentina\s*$/i,'')
+    .replace(/\s{2,}/g,' ')
+    .replace(/^[\s,]+|[\s,]+$/g,'');
+  return t;
+}
 
 // ── PRODUCTOS ────────────────────────────────────────────────
 function modelosDe(prod){return prod==='Autoconsumo'?AUTO_MODELOS:AEREO_MODELOS;}
@@ -1164,7 +1174,11 @@ async function cargarDatos(){
   else{viajesData=vj||[];renderViajes();renderProxFletes();renderStats();}
   // Fletes publicados por cualquier vendedor (visibles para todos en "Disponibles")
   const{data:vp}=await sb.from('viajes').select('*').eq('publico',true).order('fecha');
-  fletesPublicos=vp||[];renderFpDisponibles();
+  fletesPublicos=vp||[];
+  // Nombres de vendedores: se precargan para mostrar quién publicó cada flete sin esperar
+  try{if(!_vendCache){const{data:vend}=await sb.from('vendedores').select('user_id,nombre');_vendCache={};(vend||[]).forEach(x=>{_vendCache[x.user_id]=x.nombre;});}}catch(e){}
+  // renderViajes() de nuevo: la sección "tus clientes en viajes de otros" necesita fletesPublicos
+  renderViajes();renderFpDisponibles();
   if(mapMapa)actMarkersMapa();
 }
 function buscarViaje(id){return viajesData.find(v=>v.id===id)||fletesPublicos.find(v=>v.id===id);}
@@ -1223,15 +1237,14 @@ function renderFpDisponibles(){
       <div onclick="abrirViajeDetalle('${vj.id}')" style="cursor:pointer">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px"><div style="font-weight:800;font-size:.88rem;color:var(--gold)">🚛 ${esc(vj.nombre)}</div><span style="font-size:.68rem;font-weight:800;color:${color};flex-shrink:0">${libre}% libre</span></div>
         <div style="font-size:.72rem;color:var(--text2);margin-bottom:7px">📅 ${fFecha(vj.fecha)} <span style="color:${fi.color};font-weight:700">(${fi.sub})</span> · ${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · '+vj.km_real+' km':''}${mios?` · <span style="color:var(--gold);font-weight:700">⭐ ${mios} tuya${mios>1?'s':''}</span>`:''}</div>
-        ${prev.map((x,i)=>`<div style="font-size:.72rem;color:var(--text2);padding:2px 0">${i+1}. ${esc(x.cliente||x.nombre)||'—'} <span style="color:var(--text3)">· ${esc(x.localidad)}</span></div>`).join('')}
+        ${prev.map((x,i)=>`<div style="font-size:.72rem;color:var(--text2);padding:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i+1}. ${esc(x.cliente||x.nombre)||'—'} <span style="color:var(--text3)">· ${esc(locCorta(x.localidad))}</span></div>`).join('')}
         ${p.length>3?`<div style="font-size:.7rem;color:var(--text3);padding:2px 0">+ ${p.length-3} parada${p.length-3>1?'s':''} más…</div>`:''}
-        <div class="cap-bar-wrap" style="margin-top:8px"><div class="cap-bar-label"><span>Capacidad</span><span style="color:${color};font-weight:700">${Math.round(oc*100)}%</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>
+        <div class="cap-bar-wrap" style="margin-top:8px"><div class="cap-bar-label"><span>👤 ${esc(vdNombreVend(vj.user_id))}</span><span style="color:${color};font-weight:700">${Math.round(oc*100)}% cargado</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>
       </div>
       <button class="bg" style="width:100%;padding:10px;font-size:.82rem;font-weight:800;margin-top:10px" onclick="abrirViajeDetalle('${vj.id}')">👁️ Entrar al viaje</button>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
         <button class="bp" style="padding:7px;font-size:.72rem" onclick="optimizarViaje('${vj.id}')">🎯 ¿Me conviene?</button>
         <button class="bv" style="padding:7px;font-size:.72rem" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes</button>
-        <button class="bd" style="padding:7px;font-size:.72rem;grid-column:span 2" onclick="verRutaPublicado('${vj.id}')">🗺️ Ver recorrido en el mapa</button>
       </div>
     </div>`;
   }).join('');
@@ -1341,7 +1354,7 @@ function vdPintar(vj){
         <div class="vd-numwrap"><div class="vd-num${mio?' mio':''}">${i+1}</div>${i<p.length-1?'<div class="vd-line"></div>':''}</div>
         <div class="vd-si">
           <div class="vd-cli">${mio?'⭐ ':''}${esc(x.cliente||x.nombre)||'—'}</div>
-          <div class="vd-loc">📍 ${esc(x.localidad)||'sin localidad'}</div>
+          <div class="vd-loc">📍 ${esc(locCorta(x.localidad))||'sin localidad'}</div>
           <div class="vd-prods">${prods.length?prods.map(a=>`<div class="vd-prod">${(a.cantidad&&a.cantidad>1)?`<b>×${a.cantidad}</b> `:''}${esc(vdBaseProd(a))}</div>`).join(''):'<div class="vd-prod" style="opacity:.6">sin producto</div>'}</div>
           <div class="vd-meta">
             <span class="vd-vend${uid&&uid===authedUser?' yo':''}">👤 ${esc(vend)}</span>
@@ -1461,7 +1474,7 @@ function renderViajes(){
       </div>
       ${estadoViaje(vj)==='entregado'?'<div style="padding:0 11px;margin-bottom:8px"><span style="font-size:.58rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:2px 8px">✅ ENTREGADO</span></div>':''}
       <div id="ajenos-body-${vj.id}" style="display:${ajenosExpandidos&&ajenosExpandidos[vj.id]?'block':'none'};padding:0 11px 11px 11px;border-top:1px solid #1a5a35">
-        ${mios.map(({x,i})=>`<div style="display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--text2);margin-bottom:6px;padding-top:5px;border-top:1px dashed var(--border)"><span style="flex:1">⭐ ${esc(x.cliente||x.nombre)||'—'} · ${paradaTexto(x)} · ${esc(x.localidad)}</span><button onclick="quitarDelViaje('${vj.id}',${i},'${x.id||''}')" title="Quitar mi cliente" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.8rem;padding:2px 5px;flex-shrink:0">✕</button></div>`).join('')}
+        ${mios.map(({x,i})=>`<div style="display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--text2);margin-bottom:6px;padding-top:5px;border-top:1px dashed var(--border)"><span style="flex:1">⭐ ${esc(x.cliente||x.nombre)||'—'} · ${paradaTexto(x)} · ${esc(locCorta(x.localidad))}</span><button onclick="quitarDelViaje('${vj.id}',${i},'${x.id||''}')" title="Quitar mi cliente" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.8rem;padding:2px 5px;flex-shrink:0">✕</button></div>`).join('')}
         <button class="bg" style="width:100%;padding:9px;font-size:.78rem;font-weight:800;margin-top:8px" onclick="abrirViajeDetalle('${vj.id}')">👁️ Entrar al viaje</button>
         <button class="bd" style="width:100%;padding:6px;font-size:.7rem;margin-top:5px" onclick="verRutaPublicado('${vj.id}')">🗺️ Ver recorrido en el mapa</button>
       </div>
@@ -1474,12 +1487,28 @@ function renderViajes(){
     const flete=calcularFlete(vj);
     const estaAbierto=viajeAbierto===vj.id;
     const pubColor=vj.publico?'#2a8c50':'var(--border2)',pubBg=vj.publico?'#0d2e18':'var(--bg3)',pubTxt=vj.publico?'var(--green)':'var(--text3)';
+    const fi=vdFechaInfo(vj.fecha);
+    const clientesPrev=p.map(x=>esc(x.cliente||x.nombre||'')).filter(Boolean);
+    const ocPct=Math.round(calcOcupacion(p)*100);
+    const colOc=ocPct>=100?'var(--red)':ocPct>=75?'var(--yellow)':'var(--green)';
     return`<div class="viaje-card${estaAbierto?' activo':''}" id="vjcard-${vj.id}" style="border-color:${estaAbierto?'var(--gold)':vj.publico?'#2a8c50':'var(--border)'}">
       <div class="viaje-header" onclick="toggleViaje('${vj.id}')" style="cursor:pointer">
-        <span style="font-size:.8rem;color:${estaAbierto?'var(--gold)':'var(--text3)'};transition:transform .2s;display:inline-block;transform:rotate(${estaAbierto?'90':'0'}deg)">▶</span>
-        <div class="viaje-info"><div class="viaje-nombre">🚛 ${esc(vj.nombre)}${entregado?'<span style="font-size:.58rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:1px 7px;margin-left:4px;vertical-align:middle">✅ ENTREGADO</span>':vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div><div class="viaje-meta"><span>${p.length} parada${p.length!==1?'s':''}</span>${vj.km_real?`<span class="viaje-km">📍 ${vj.km_real} km</span>`:''}<span>📅 ${fFecha(vj.fecha)}</span></div></div>
-        <button class="vbtn" style="background:var(--bg3);border:1px solid var(--border2);color:var(--gold)" onclick="event.stopPropagation();editarViaje('${vj.id}')">✏️</button>
-        <button class="vbtn del" onclick="event.stopPropagation();eliminarViaje('${vj.id}')">✕</button>
+        <span style="font-size:.8rem;color:${estaAbierto?'var(--gold)':'var(--text3)'};transition:transform .2s;display:inline-block;align-self:flex-start;margin-top:2px;transform:rotate(${estaAbierto?'90':'0'}deg)">▶</span>
+        <div class="viaje-info">
+          <div class="viaje-nombre">🚛 ${esc(vj.nombre)}${entregado?'<span style="font-size:.58rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:1px 7px;margin-left:4px;vertical-align:middle">✅ ENTREGADO</span>':vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div>
+          <div class="viaje-meta"><span>${p.length} parada${p.length!==1?'s':''}</span>${vj.km_real?`<span class="viaje-km">📍 ${vj.km_real} km</span>`:''}<span>📅 ${fFecha(vj.fecha)}</span><span style="color:${fi.color};font-weight:700">${fi.sub}</span></div>
+          ${clientesPrev.length?`<div style="font-size:.66rem;color:var(--text2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${clientesPrev.slice(0,2).join(' · ')}${clientesPrev.length>2?` <span style="color:var(--text3)">+${clientesPrev.length-2} más</span>`:''}</div>`:''}
+          ${p.length?`<div style="display:flex;align-items:center;gap:7px;margin-top:5px">
+            <div class="cap-bar-track" style="flex:1"><div class="cap-bar-fill" style="width:${Math.min(ocPct,100)}%;background:${colOc}"></div></div>
+            <span style="font-size:.62rem;font-weight:800;color:${colOc};flex-shrink:0">${ocPct}%</span>
+            ${flete.listo?`<span style="font-size:.66rem;font-weight:800;color:var(--gold);flex-shrink:0">${fPesos(flete.total)}</span>`:''}
+          </div>`:''}
+        </div>
+        <div style="display:flex;gap:3px;flex-shrink:0;align-self:flex-start">
+          <button class="vbtn" style="background:var(--gold);border:1px solid var(--gold);color:#111820;font-weight:800" title="Ver detalle completo" onclick="event.stopPropagation();abrirViajeDetalle('${vj.id}')">👁️</button>
+          <button class="vbtn" style="background:var(--bg3);border:1px solid var(--border2);color:var(--gold)" onclick="event.stopPropagation();editarViaje('${vj.id}')">✏️</button>
+          <button class="vbtn del" onclick="event.stopPropagation();eliminarViaje('${vj.id}')">✕</button>
+        </div>
       </div>
       <div class="viaje-body${estaAbierto?' open':''}" id="vbody-${vj.id}">
         ${estaAbierto?'<div class="ruta-cargando" id="ruta-status-'+vj.id+'">🗺️ Calculando ruta más corta...</div>':''}
