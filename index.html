@@ -312,6 +312,20 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .vd-pub-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:800}
 .vd-pub-nom{font-size:.9rem;font-weight:800;color:var(--green);margin-top:2px}
 @media(max-width:520px){.vd-hero{grid-template-columns:1fr 1fr}.vd-kpi-val{font-size:1.1rem}}
+/* En el celu editar/eliminar viven adentro del viaje desplegado, no en el encabezado */
+.solo-mobile{display:none}
+@media(max-width:768px){.solo-desktop{display:none}.solo-mobile{display:block}}
+/* En el celu: botones que se puedan tocar con el dedo y letra un toque mas grande */
+@media(max-width:768px){
+  .vbtn{min-width:42px;min-height:42px;font-size:.85rem;padding:6px 9px}
+  .viaje-meta{font-size:.7rem;gap:8px}
+  .viaje-nombre{font-size:.88rem}
+  .vd-top .bd{min-width:44px;min-height:44px;font-size:1rem}
+  .vd-kpi-lbl{font-size:.6rem}
+  .vd-kpi-sub{font-size:.68rem}
+  .vd-h{font-size:.7rem}
+  .cap-bar-label{font-size:.68rem}
+}
 @media(min-width:769px){.vcards-wrap{display:none}.vtable-wrap{display:block}}
 </style>
 </head>
@@ -614,7 +628,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v36</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v37</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -956,7 +970,7 @@ function barraCapacidad(paradas){
   if(!paradas.length)return'';
   const oc=calcOcupacion(paradas),pct=Math.min(oc*100,100),camiones=Math.ceil(oc);
   const color=oc>=1?'var(--red)':oc>=0.75?'var(--yellow)':'var(--green)';
-  const label=oc>=1?`${camiones} camión${camiones>1?'es':''} lleno${camiones>1?'s':''}`:`${Math.round(oc*100)}% cargado`;
+  const label=oc>=1?`${camiones} ${camiones>1?'camiones':'camión'} lleno${camiones>1?'s':''}`:`${Math.round(oc*100)}% cargado`;
   return`<div class="cap-bar-wrap"><div class="cap-bar-label"><span>Capacidad</span><span style="color:${color};font-weight:700">${label}</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>`;
 }
 function nombreProd(a){const tipo=(a.producto==='Silo Aéreo'||a.producto==='Autoconsumo')?a.producto+' ':'';const cant=(a.cantidad&&a.cantidad>1)?` ×${a.cantidad}`:'';return`${tipo}${esc(a.modelo)}${cant}`;}
@@ -1322,7 +1336,7 @@ function vdPintar(vj){
     <div class="vd-kpi"><div class="vd-kpi-lbl">📅 Sale</div><div class="vd-kpi-val">${vdFechaCorta(vj.fecha)}</div><div class="vd-kpi-sub" style="color:${fi.color}">${fi.sub}</div></div>
     <div class="vd-kpi"><div class="vd-kpi-lbl">📍 Recorrido</div><div class="vd-kpi-val">${vj.km_real?Math.round(vj.km_real).toLocaleString('es-AR'):'—'}</div><div class="vd-kpi-sub">km</div></div>
     <div class="vd-kpi"><div class="vd-kpi-lbl">🚏 Paradas</div><div class="vd-kpi-val">${p.length}</div><div class="vd-kpi-sub">${mios.length?mios.length+' tuya'+(mios.length>1?'s':''):'ninguna tuya'}</div></div>
-    <div class="vd-kpi"><div class="vd-kpi-lbl">📦 Camión</div><div class="vd-kpi-val" style="color:${colOc}">${Math.round(oc*100)}%</div><div class="vd-kpi-sub" style="color:${colOc}">${oc>=1?camiones+' camión'+(camiones>1?'es':''):Math.round(libre)+'% libre'}</div></div>
+    <div class="vd-kpi"><div class="vd-kpi-lbl">📦 Camión</div><div class="vd-kpi-val" style="color:${colOc}">${Math.round(oc*100)}%</div><div class="vd-kpi-sub" style="color:${colOc}">${oc>=1?(camiones>1?camiones+' camiones':'1 camión'):Math.round(libre)+'% libre'}</div></div>
   </div>
 
   <div class="vd-card" style="padding:12px 14px">
@@ -1506,8 +1520,8 @@ function renderViajes(){
         </div>
         <div style="display:flex;gap:3px;flex-shrink:0;align-self:flex-start">
           <button class="vbtn" style="background:var(--gold);border:1px solid var(--gold);color:#111820;font-weight:800" title="Ver detalle completo" onclick="event.stopPropagation();abrirViajeDetalle('${vj.id}')">👁️</button>
-          <button class="vbtn" style="background:var(--bg3);border:1px solid var(--border2);color:var(--gold)" onclick="event.stopPropagation();editarViaje('${vj.id}')">✏️</button>
-          <button class="vbtn del" onclick="event.stopPropagation();eliminarViaje('${vj.id}')">✕</button>
+          <button class="vbtn solo-desktop" style="background:var(--bg3);border:1px solid var(--border2);color:var(--gold)" onclick="event.stopPropagation();editarViaje('${vj.id}')">✏️</button>
+          <button class="vbtn del solo-desktop" style="margin-left:5px" onclick="event.stopPropagation();eliminarViaje('${vj.id}')">✕</button>
         </div>
       </div>
       <div class="viaje-body${estaAbierto?' open':''}" id="vbody-${vj.id}">
@@ -1521,6 +1535,8 @@ function renderViajes(){
         </div>`:''}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px">
           <button class="bg" style="font-size:.7rem;padding:7px;grid-column:span 2;font-weight:800" onclick="abrirViajeDetalle('${vj.id}')">👁️ Ver detalle completo</button>
+          <button class="bd solo-mobile" style="font-size:.68rem;padding:7px" onclick="editarViaje('${vj.id}')">✏️ Editar viaje</button>
+          <button class="bd solo-mobile" style="font-size:.68rem;padding:7px;background:#2a1010;border-color:#5a2020;color:#fcc" onclick="eliminarViaje('${vj.id}')">✕ Eliminar</button>
           <button class="bv" style="font-size:.68rem;padding:5px" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes</button>
           <button class="bp" style="font-size:.68rem;padding:5px" onclick="optimizarViaje('${vj.id}')">🎯 Optimizar</button>
           <button style="background:${pubBg};border:1px solid ${pubColor};color:${pubTxt};border-radius:7px;font-size:.68rem;padding:5px;cursor:pointer;font-weight:600;font-family:inherit;grid-column:span 2" onclick="togglePublico('${vj.id}',${!vj.publico})">${vj.publico?'✅ Publicado — tocá para ocultar':'📢 Publicar flete disponible'}</button>
@@ -1611,7 +1627,7 @@ function exportarViaje(id){
   p.forEach((x,i)=>{const c=flete.items[i];const cobro=flete.listo&&c?` — *${fPesos(c.cobro)}* (${Math.round(c.pct*100)}%)`:'';t+=`${i+1}. *${x.cliente||x.nombre||'—'}*\n   ${paradaTexto(x)} · ${x.localidad||''}${cobro}\n\n`;});
   if(vj.km_real)t+=`📍 Total ida: ${vj.km_real} km\n`;
   if(flete.listo)t+=`💰 Flete total: ${fPesos(flete.total)} (${flete.kmReal} km × ${fPesos(PRECIO_KM)}/km)\n`;
-  t+=`📦 Capacidad: ${Math.round(oc*100)}% (${Math.ceil(oc)} camión${Math.ceil(oc)>1?'es':''})`;
+  t+=`📦 Capacidad: ${Math.round(oc*100)}% (${Math.ceil(oc)>1?Math.ceil(oc)+' camiones':'1 camión'})`;
   if(oc>1)t+=`\n⚠️ No entra en un camión — hace falta otro flete`;
   navigator.clipboard.writeText(t).then(()=>toast('Copiado para WhatsApp ✓')).catch(()=>alert(t));
 }
@@ -1721,8 +1737,8 @@ async function confirmarAgregar(){
     const camiones=Math.ceil(ocNueva),pct=Math.round(ocNueva*100);
     const yaLleno=ocActual>=1;
     const msg=yaLleno
-      ?`⚠️ El viaje ya estaba lleno y seguirá requiriendo ${camiones} camión${camiones>1?'es':''}.\n\n¿Agregar igual?`
-      :`⚠️ Con estos clientes el viaje va a necesitar ${camiones} camión${camiones>1?'es':''} (${pct}% de carga).\n\n¿Agregar igual?`;
+      ?`⚠️ El viaje ya estaba lleno y seguirá requiriendo ${camiones} ${camiones>1?'camiones':'camión'}.\n\n¿Agregar igual?`
+      :`⚠️ Con estos clientes el viaje va a necesitar ${camiones} ${camiones>1?'camiones':'camión'} (${pct}% de carga).\n\n¿Agregar igual?`;
     if(!confirm(msg))return;
   }
   const pedido_ids=[...new Set([...parsePar(vj.pedido_ids||[]).map(String),...nuevas.map(v=>String(v.id))])];
