@@ -1330,7 +1330,7 @@ function renderRecordatorios(){
 }
 function renderPendientes(){
   const p=ventas.filter(v=>v.estado!=='Entregado').slice(0,4);
-  document.getElementById('pendientesList').innerHTML=p.length?p.map(v=>`<div class="pend-row" onclick="verVenta('${v.id}')"><span class="pend-dot" style="background:${COL[v.estado]||'#888'}"></span><div class="pc-info"><div class="pc-cli">${esc(v.cliente)||'—'}</div><div class="pc-sub">${paradaTexto(v)} · ${esc(v.localidad)}</div></div>${eTag(v.estado)}</div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin pedidos pendientes</div>';
+  document.getElementById('pendientesList').innerHTML=p.length?p.map(v=>`<div class="pend-row" onclick="verVenta('${v.id}')"><span class="pend-dot" style="background:${COL[v.estado]||'#888'}"></span><div class="pc-info"><div class="pc-cli">${esc(v.cliente)||'—'}</div><div class="pc-sub">${paradaTexto(v)} · ${esc(locCorta(v.localidad))}</div></div><span onclick="event.stopPropagation();menuEstado(event,'${v.id}')" title="Tocá para cambiar el estado">${eTag(v.estado)}</span></div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin pedidos pendientes</div>';
 }
 function renderProxFletes(){
   const hoy=new Date().toISOString().split('T')[0];
@@ -1556,7 +1556,10 @@ async function setEstadoRapido(id,est){
   if(error){toast('Error: '+error.message);return;}
   const v=ventas.find(x=>x.id===id);if(v)v.estado=est;
   renderVentas();renderStats();renderPendientes();renderClientes();
-  toast('Estado actualizado ✓');
+  // El color del cliente en el mapa depende del estado, así que se repinta
+  if(mapMapa)actMarkersMapa();
+  if(mapClientes&&cliVistaActual==='mapa')initMapaClientes();
+  toast('Ahora está en "'+est+'" ✓');
 }
 document.addEventListener('click',e=>{
   const em=document.getElementById('estadoMenu');
