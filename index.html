@@ -922,7 +922,22 @@ function verRutaPublicado(id){
 }
 
 // ── UTILS ────────────────────────────────────────────────────
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',2800);}
+function toast(m,ms){const t=document.getElementById('toast');t.textContent=m;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(()=>t.style.opacity='0',ms||2800);}
+// Diagnóstico: escribí  remecoTest()  en la consola (F12) para ver qué servicio de Google falla
+function remecoTest(){
+  console.log('%c— Remeco: probando Google Maps —','font-weight:bold');
+  if(typeof google==='undefined'||!google.maps){console.error('❌ La librería de Google Maps no cargó. Algo bloquea maps.googleapis.com (extensión, antivirus o red).');return;}
+  console.log('✅ Librería de Google Maps: cargada');
+  console.log(google.maps.places?'✅ Módulo Places: presente':'❌ Módulo Places: NO cargó');
+  let volvio=false;
+  setTimeout(()=>{if(!volvio)console.error('❌ El geocoder no respondió en 8s: el pedido está siendo bloqueado.');},8000);
+  new google.maps.Geocoder().geocode({address:'Mayor Buratovich, Buenos Aires',componentRestrictions:{country:'AR'}},(r,s)=>{
+    volvio=true;
+    if(s==='OK')console.log('✅ Geocoding API: anda bien →',r[0].formatted_address);
+    else if(s==='REQUEST_DENIED')console.error('❌ Geocoding API: RECHAZADA. Falta habilitarla en Google Cloud para esta clave.');
+    else console.error('❌ Geocoding API respondió:',s);
+  });
+}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function fNum(n){n=parseFloat(n)||0;if(n>=1000000)return(n/1000000).toFixed(1).replace('.',',')+'M';if(n>=1000)return Math.round(n/1000)+'K';return Math.round(n).toLocaleString('es-AR');}
 function fPesos(n){return'$'+Math.round(parseFloat(n)||0).toLocaleString('es-AR');}
@@ -2068,10 +2083,25 @@ function buscarLocalidad(){
   if(typeof google==='undefined'||!google.maps||!google.maps.Geocoder){toast('El mapa todavía no cargó, esperá unos segundos');return;}
   const btn=document.getElementById('btnBuscarLoc');
   if(btn){btn.disabled=true;btn.textContent='…';}
+  const restaurar=()=>{if(btn){btn.disabled=false;btn.textContent='🔍';}};
+  // Si algo bloquea el pedido a Google, la respuesta no llega nunca: avisamos igual
+  let respondio=false;
+  const cortar=setTimeout(()=>{
+    if(respondio)return;
+    restaurar();
+    toast('Google no respondió. Puede haber una extensión del navegador bloqueando el mapa: probá en una ventana de incógnito.',7000);
+    console.warn('[Remeco] El geocoder no respondió en 8s. Suele ser un bloqueador de anuncios o de rastreo.');
+  },8000);
   new google.maps.Geocoder().geocode({address:txt,componentRestrictions:{country:'AR'}},(res,status)=>{
-    if(btn){btn.disabled=false;btn.textContent='🔍';}
+    respondio=true;clearTimeout(cortar);restaurar();
     if(status!=='OK'||!res||!res.length){
-      toast('No encontré "'+txt+'". Agregá la provincia, o tocá el mapa para marcarlo a mano.');
+      // Cada motivo se arregla distinto, así que conviene decir cuál es
+      const msg=status==='ZERO_RESULTS'?`No encontré "${txt}". Agregá la provincia, o tocá el mapa para marcarlo a mano.`
+        :status==='REQUEST_DENIED'?'Google rechazó la búsqueda: falta habilitar la Geocoding API en tu clave de Google Maps.'
+        :status==='OVER_QUERY_LIMIT'?'Se pasó el límite de consultas de Google. Probá más tarde o marcá el punto en el mapa.'
+        :`Google no pudo responder (${status}). Marcá el punto tocando el mapa.`;
+      toast(msg,7000);
+      console.warn('[Remeco] Geocoder respondió:',status);
       return;
     }
     const r=res[0],loc=r.geometry.location;
