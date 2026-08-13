@@ -90,8 +90,8 @@ th{padding:9px 10px;text-align:left;color:var(--text3);font-size:.63rem;text-tra
 td{padding:9px 10px;border-bottom:1px solid #1a2a3a;vertical-align:middle}
 tr:hover td{background:var(--bg3)}
 .etag{display:inline-flex;align-items:center;padding:3px 8px;border-radius:12px;font-size:.63rem;font-weight:700;white-space:nowrap;gap:4px;cursor:pointer}
-.e0{background:#1a3a20;color:var(--green)}.e1{background:#3a2800;color:var(--yellow)}
-.e2{background:#2a1a40;color:var(--purple)}.e3{background:#0d2e4a;color:var(--blue)}.e4{background:#1a3a1a;color:#40df40}
+.e0{background:#23303b;color:#ffffff}.e1{background:#3a2800;color:var(--yellow)}
+.e2{background:#2a1a40;color:var(--purple)}.e3{background:#0d2e4a;color:var(--blue)}.e4{background:#12331f;color:#3ddc84}
 .act-btns{display:flex;gap:3px}
 .ab{background:none;border:none;padding:5px 6px;border-radius:5px;cursor:pointer;font-size:.78rem;color:var(--text3);transition:all .15s}
 .ab:hover{color:var(--text);background:var(--border)}
@@ -502,6 +502,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   </div>
   <div id="cli-mapa-wrap" style="display:none;flex:1;min-height:0;position:relative">
     <div id="map-clientes" style="width:100%;height:100%"></div>
+    <div id="cli-mapa-ref" style="position:absolute;left:10px;bottom:10px;background:rgba(13,21,32,.92);border:1px solid var(--border2);border-radius:9px;padding:8px 10px;pointer-events:none"></div>
     <div id="cli-mapa-vacio" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:var(--bg);color:var(--text3);font-size:.82rem;text-align:center;padding:24px"></div>
   </div>
 </div>
@@ -754,7 +755,7 @@ let agregarViajeId=null,agregarVentasSeleccionadas=new Set(),agregarVentasDispon
 let prodItems=[];
 const BNAV={inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes'};
 const ESTADOS=['Confirmado','En producción','Listo para entregar','En camino','Entregado'];
-const COL={'Confirmado':'#5adf8a','En producción':'#ffc040','Listo para entregar':'#c0a0ff','En camino':'#5ab8ff','Entregado':'#40df40'};
+const COL={'Confirmado':'#ffffff','En producción':'#ffc040','Listo para entregar':'#c0a0ff','En camino':'#5ab8ff','Entregado':'#3ddc84'};
 
 // ── PERFIL LOCAL ─────────────────────────────────────────────
 function getPerfil(){try{return JSON.parse(localStorage.getItem('remeco_perfil'))||{};}catch{return{};}}
@@ -2174,6 +2175,14 @@ function initMapaClientes(){
   if(!mapClientes)mapClientes=new google.maps.Map(el,{center:{lat:FAB_LAT,lng:FAB_LNG},zoom:6,mapTypeId:'hybrid'});
   else google.maps.event.trigger(mapClientes,'resize');
   markersCli=pintarClientesEn(mapClientes,markersCli);
+  // Referencia de colores, armada desde COL para que nunca quede desfasada
+  const ref=document.getElementById('cli-mapa-ref');
+  if(ref)ref.innerHTML=ESTADOS.map(e=>{
+    const n=ventas.filter(v=>v.estado===e&&v.lat&&v.lng).length;
+    return`<div style="display:flex;align-items:center;gap:6px;font-size:.66rem;color:${n?'var(--text)':'var(--text3)'};padding:1px 0">
+      <span style="width:9px;height:9px;border-radius:50%;background:${COL[e]};border:1px solid #fff;flex-shrink:0;opacity:${n?1:.35}"></span>
+      <span style="flex:1">${esc(e)}</span><span style="font-weight:800">${n||''}</span>
+    </div>`;}).join('');
   const ubic=ventas.filter(v=>v.lat&&v.lng);
   const vacio=document.getElementById('cli-mapa-vacio');
   if(vacio){
