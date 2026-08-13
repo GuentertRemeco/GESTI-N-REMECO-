@@ -374,6 +374,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div><div class="ini-fecha" id="inicioFecha"></div><div class="ini-saludo" id="inicioBienvenida">Remeco</div></div>
       <div class="ini-user"><div class="ini-bell" title="Configuración" onclick="abrirConfig()" style="cursor:pointer">⚙️</div><div class="ini-uc" id="ini-uc" onclick="abrirPerfilMenu(event)">U</div></div>
     </div>
+    <div id="recordatoriosBox"></div>
     <div class="ini-cards-big">
       <div class="ic-big"><div class="ic-label">Facturado · <span id="ic-mes"></span></div><div class="ic-val" id="ic-fact">$0</div><div class="ic-sub" id="ic-fact-sub"></div></div>
       <div class="ic-big"><div class="ic-label">Rentabilidad</div><div class="ic-val" style="color:var(--green)" id="ic-rent">$0</div><div class="ic-sub" id="ic-rent-sub" style="color:var(--text3)"></div></div>
@@ -491,9 +492,17 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 
 <!-- CLIENTES -->
 <div class="page" id="page-clientes">
-  <div class="cli-wrap">
+  <div class="fp-tabs">
+    <button class="fp-tab on" id="cli-tab-lista" onclick="setCliVista('lista')">📋 Lista</button>
+    <button class="fp-tab" id="cli-tab-mapa" onclick="setCliVista('mapa')">🗺️ Mapa</button>
+  </div>
+  <div class="cli-wrap" id="cli-wrap">
     <div class="cli-list" id="cliList"><div class="sp"></div></div>
     <div class="cli-detail-wrap" id="cli-detail"><div style="color:var(--text3);font-size:.82rem;padding-top:40px;text-align:center">Seleccioná un cliente</div></div>
+  </div>
+  <div id="cli-mapa-wrap" style="display:none;flex:1;min-height:0;position:relative">
+    <div id="map-clientes" style="width:100%;height:100%"></div>
+    <div id="cli-mapa-vacio" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:var(--bg);color:var(--text3);font-size:.82rem;text-align:center;padding:24px"></div>
   </div>
 </div>
 
@@ -524,9 +533,14 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       </div>
     </div>
     <div class="fg"><label>Fecha de entrega</label><input id="f-fecha-entrega" type="date"/></div>
-    <div class="fg"><label>Localidad</label><input id="f-localidad" placeholder="Escribí la ciudad y elegí de la lista..." autocomplete="off"/></div>
+    <div class="fg"><label>Localidad</label>
+      <div style="display:flex;gap:6px">
+        <input id="f-localidad" style="flex:1;min-width:0" placeholder="Escribí la ciudad y tocá Buscar" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();buscarLocalidad();}"/>
+        <button class="bg" id="btnBuscarLoc" onclick="buscarLocalidad()" style="flex-shrink:0;padding:8px 14px;font-size:.8rem" title="Buscar en el mapa">🔍</button>
+      </div>
+    </div>
     <div class="fg"><label>Notas</label><textarea id="f-notas" placeholder="Info adicional..." rows="2"></textarea></div>
-    <p class="mmhint">📍 Elegí la localidad arriba o tocá el mapa para marcar la ubicación exacta</p>
+    <p class="mmhint">📍 Escribí la localidad y tocá 🔍 (o Enter). Después podés tocar el mapa para afinar el punto exacto.</p>
     <div id="mmap-div" style="height:180px;border-radius:8px;overflow:hidden;border:1px solid #1e3a55;margin-bottom:4px"></div>
     <div class="mact">
       <button class="bd" id="btnCancelarVenta" onclick="cerrarModal()">Cancelar</button>
@@ -628,7 +642,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v37</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v39</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -656,6 +670,17 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
           </div>
           <div class="fg"><label>Desvío máximo al viaje (km)</label><input id="cfg-desvio" type="number" min="1" placeholder="150"/></div>
           <p class="mmhint" style="margin-bottom:0">Definen cuándo un cliente "entra" en un flete: a cuántos km al costado de la ruta o más adelante. Y el desvío máximo: si sumar el silo le mete más km que eso a un viaje, no se ofrece como opción.</p>
+        </div>
+      </div>
+
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px">
+        <div onclick="toggleCfg('aviso')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+          <div class="inicio-stitle" style="margin:0">⏰ Aviso de salida</div>
+          <span id="cfg-arr-aviso" style="color:var(--gold);font-size:.8rem">▶</span>
+        </div>
+        <div id="cfg-body-aviso" style="display:none;margin-top:14px">
+          <div class="fg"><label>Avisarme cuántos días antes</label><input id="cfg-dias-aviso" type="number" min="1" max="30" placeholder="3"/></div>
+          <p class="mmhint" style="margin-bottom:0">En Inicio aparece un cartel para confirmar la fecha de salida de cada viaje con esta anticipación. Sirve para fijar el día real, porque un viaje suele atrasarse o adelantarse. El cartel sigue apareciendo hasta que confirmes o cambies la fecha.</p>
         </div>
       </div>
       <button class="bg" onclick="guardarConfig()" style="width:100%;padding:12px;font-size:.88rem;margin-top:2px">Guardar configuración</button>
@@ -709,6 +734,7 @@ const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
 let RADIO_ADELANTE=parseFloat(localStorage.getItem('remeco_adelante'))||300;
 let DESVIO_MAX=parseFloat(localStorage.getItem('remeco_desvio'))||150; // km máx de desvío que puede meterle a un viaje
+let DIAS_AVISO=parseFloat(localStorage.getItem('remeco_dias_aviso'))||3; // días antes de la salida en que se pide confirmar la fecha
 
 const AEREO_MODELOS=['6TN','10TN','16TN','22TN','28TN','30TN','40TN','50TN','60TN','62TN','72TN','80TN','100TN','120TN','140TN','150TN','175TN','200TN'];
 const AUTO_MODELOS=['2 TN 12 bocas','2 TN 18 bocas','4 TN','7 TN','7 TN con alero al medio','12 TN','12 TN alero grande','12 TN con alero al medio','12 TN cambio de base','18 TN alero al medio','18 TN cambio de base'];
@@ -873,6 +899,7 @@ function ir(pg){
   const fab=document.getElementById('fabBtn');
   if(fab)fab.style.display=(pg==='inicio'&&window.innerWidth<=768)?'block':'none';
   if(pg==='mapa'&&typeof google!=='undefined')initMapaMapa();
+  if(pg==='clientes'&&cliVistaActual==='mapa'&&typeof google!=='undefined')setTimeout(initMapaClientes,60);
   if(pg==='flete'&&typeof google!=='undefined'){initMapaFlete();setFletePlaceholder(!viajeAbierto);if(viajeAbierto)setTimeout(()=>mostrarRutaViaje(viajeAbierto),400);}
   if(pg==='simular'&&typeof google!=='undefined')initMapaSim();
 }
@@ -983,11 +1010,12 @@ function abrirConfig(){
   document.getElementById('cfg-costado').value=RADIO_COSTADO;
   document.getElementById('cfg-adelante').value=RADIO_ADELANTE;
   document.getElementById('cfg-desvio').value=DESVIO_MAX;
+  document.getElementById('cfg-dias-aviso').value=DIAS_AVISO;
   const rc=document.getElementById('cfg-ranking-card');
   const esPrincipal=authedEmail===MAIN_EMAIL;
   if(rc)rc.style.display=esPrincipal?'block':'none';
   // Arrancan todas cerradas
-  ['flete','busc','rank','hist'].forEach(k=>{const b=document.getElementById('cfg-body-'+k),a=document.getElementById('cfg-arr-'+k);if(b)b.style.display='none';if(a)a.textContent='▶';});
+  ['flete','busc','aviso','rank','hist'].forEach(k=>{const b=document.getElementById('cfg-body-'+k),a=document.getElementById('cfg-arr-'+k);if(b)b.style.display='none';if(a)a.textContent='▶';});
   document.getElementById('configScreen').style.display='flex';
 }
 function toggleCfg(k){
@@ -1045,6 +1073,8 @@ function guardarConfig(){
   if(co>0){RADIO_COSTADO=co;localStorage.setItem('remeco_costado',co);}
   if(ad>0){RADIO_ADELANTE=ad;localStorage.setItem('remeco_adelante',ad);}
   if(de>0){DESVIO_MAX=de;localStorage.setItem('remeco_desvio',de);}
+  const da=parseFloat(document.getElementById('cfg-dias-aviso').value);
+  if(da>0){DIAS_AVISO=da;localStorage.setItem('remeco_dias_aviso',da);}
   renderViajes();renderProxFletes();if(simParadas.length)renderSimParadas();cerrarConfig();toast('Configuración guardada ✓');
 }
 function calcularFlete(vj){
@@ -1194,6 +1224,7 @@ async function cargarDatos(){
   // renderViajes() de nuevo: la sección "tus clientes en viajes de otros" necesita fletesPublicos
   renderViajes();renderFpDisponibles();
   if(mapMapa)actMarkersMapa();
+  if(mapClientes&&cliVistaActual==='mapa')initMapaClientes();
 }
 function buscarViaje(id){return viajesData.find(v=>v.id===id)||fletesPublicos.find(v=>v.id===id);}
 
@@ -1221,6 +1252,66 @@ function renderStats(){
   document.getElementById('ic-viajes').textContent=viajesData.length;
   document.getElementById('ic-viajes-sub').textContent=kmProg?fNum(kmProg)+' km programados':'';
 }
+// ── RECORDATORIO DE SALIDA ───────────────────────────────────
+// La fecha que se pone al programar es una intención: se atrasa o se adelanta.
+// Unos días antes preguntamos si sigue en pie, para fijar el día de verdad.
+function getConfSalida(){try{return JSON.parse(localStorage.getItem('remeco_conf_salida'))||{};}catch{return{};}}
+function confirmarSalida(id){
+  const vj=viajesData.find(v=>v.id===id);if(!vj)return;
+  const c=getConfSalida();c[id]=vj.fecha;
+  localStorage.setItem('remeco_conf_salida',JSON.stringify(c));
+  renderRecordatorios();toast('✅ Fecha confirmada');
+}
+function sumarDias(fecha,n){const f=new Date(fecha+'T00:00:00');f.setDate(f.getDate()+n);return f.toISOString().split('T')[0];}
+async function cambiarFechaSalida(id,nueva){
+  if(!nueva)return;
+  const vj=viajesData.find(v=>v.id===id);if(!vj)return;
+  const{data:upd,error}=await sb.from('viajes').update({fecha:nueva}).eq('id',id).select();
+  if(error){toast('Error: '+error.message);return;}
+  if(!upd||!upd.length){alert('⚠️ No se guardó (permisos de "viajes" en Supabase).');return;}
+  vj.fecha=nueva;
+  const fp=fletesPublicos.find(v=>v.id===id);if(fp)fp.fecha=nueva;
+  const c=getConfSalida();c[id]=nueva;localStorage.setItem('remeco_conf_salida',JSON.stringify(c));
+  renderViajes();renderProxFletes();renderFpDisponibles();renderStats();
+  toast('📅 Nueva fecha: '+fFecha(nueva));
+}
+function viajesPorConfirmar(){
+  const hoy=new Date();hoy.setHours(0,0,0,0);
+  const confs=getConfSalida();
+  return viajesData.filter(vj=>{
+    if(!vj.fecha)return false;
+    if(confs[vj.id]===vj.fecha)return false; // ya dijo que esa fecha va
+    const dias=Math.round((new Date(vj.fecha+'T00:00:00')-hoy)/86400000);
+    return dias<=DIAS_AVISO&&dias>=-10; // se viene, o ya pasó y quedó sin resolver
+  }).sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
+}
+function renderRecordatorios(){
+  const el=document.getElementById('recordatoriosBox');if(!el)return;
+  const lista=viajesPorConfirmar();
+  if(!lista.length){el.innerHTML='';return;}
+  const hoy=new Date();hoy.setHours(0,0,0,0);
+  const btn='width:38px;height:38px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;font-size:.9rem;background:var(--bg3);border:1px solid var(--border2);padding:0';
+  el.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:0 11px 7px;margin-bottom:13px">
+    <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);padding:9px 0 2px">⏰ Confirmá la salida</div>
+    ${lista.map(vj=>{
+      const dias=Math.round((new Date(vj.fecha+'T00:00:00')-hoy)/86400000);
+      const tarde=dias<0;
+      const cuando=dias>1?`sale en ${dias} días`:dias===1?'sale mañana':dias===0?'sale hoy':dias===-1?'era para ayer':`era para hace ${Math.abs(dias)} días`;
+      const col=tarde?'var(--red)':dias<=1?'var(--yellow)':'var(--gold)';
+      return`<div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-top:1px solid var(--border)">
+        <span style="width:7px;height:7px;border-radius:50%;background:${col};flex-shrink:0"></span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(vj.nombre)}</div>
+          <div style="font-size:.66rem;color:${col};font-weight:700">${cuando} · ${fFecha(vj.fecha)}</div>
+        </div>
+        <button title="Sale ese día" style="${btn}" onclick="confirmarSalida('${vj.id}')">✅</button>
+        <label title="Cambiar la fecha" style="${btn};position:relative">📅
+          <input type="date" value="${vj.fecha}" onchange="cambiarFechaSalida('${vj.id}',this.value)" style="position:absolute;inset:0;opacity:0;cursor:pointer"/>
+        </label>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
 function renderPendientes(){
   const p=ventas.filter(v=>v.estado!=='Entregado').slice(0,4);
   document.getElementById('pendientesList').innerHTML=p.length?p.map(v=>`<div class="pend-row" onclick="verVenta('${v.id}')"><span class="pend-dot" style="background:${COL[v.estado]||'#888'}"></span><div class="pc-info"><div class="pc-cli">${esc(v.cliente)||'—'}</div><div class="pc-sub">${paradaTexto(v)} · ${esc(v.localidad)}</div></div>${eTag(v.estado)}</div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin pedidos pendientes</div>';
@@ -1233,6 +1324,7 @@ function renderProxFletes(){
     const color=oc>=1?'var(--red)':oc>=0.75?'var(--yellow)':'var(--gold)';
     return`<div class="flete-prox" onclick="ir('flete')"><div style="display:flex;justify-content:space-between;align-items:center"><div class="vp-nombre">${esc(vj.nombre)}${vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div><div style="color:var(--gold);font-size:.72rem;font-weight:700">${fFecha(vj.fecha)}</div></div><div class="cap-bar-track" style="margin:9px 0 6px"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div><div style="font-size:.7rem;color:var(--text3)">${par.length} paradas${vj.km_real?' · '+vj.km_real+' km reales':''} · ${Math.round(oc*100)}% cargado</div></div>`;
   }).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:8px 0">Sin fletes programados</div>';
+  renderRecordatorios();
 }
 function renderFpDisponibles(){
   const hoyStr=new Date().toISOString().split('T')[0];
@@ -1864,7 +1956,7 @@ async function guardarNuevoViaje(){
 }
 function setModalRO(ro){
   modalReadOnly=ro;
-  ['f-cliente','f-telefono','f-cuit','f-estado','f-fecha-entrega','f-localidad','f-notas'].forEach(id=>document.getElementById(id).disabled=ro);
+  ['f-cliente','f-telefono','f-cuit','f-estado','f-fecha-entrega','f-localidad','f-notas','btnBuscarLoc'].forEach(id=>document.getElementById(id).disabled=ro);
   const pc=document.getElementById('prod-container');
   pc.style.pointerEvents=ro?'none':'auto';pc.style.opacity=ro?'.85':'1';
   document.getElementById('btnAddProd').style.display=ro?'none':'block';
@@ -1966,6 +2058,31 @@ function verCliente(i){
     ${cv.map(v=>`<div class="pend-row" onclick="verVenta('${v.id}')"><div class="pc-info"><div class="pc-cli">${paradaTexto(v)}</div><div class="pc-sub">${esc(v.localidad)} · ${fFecha(v.fecha_entrega)}</div></div><div style="text-align:right">${eTag(v.estado)}<div style="font-size:.78rem;font-weight:700;color:var(--gold);margin-top:4px">${v.precio?'$'+fNum(v.precio):''}</div></div></div>`).join('')}`;
 }
 
+// Busca la localidad escrita a mano. Es la salida cuando el autocompletado
+// de Google no muestra sugerencias (pasa si la Places API no está habilitada).
+function buscarLocalidad(){
+  if(modalReadOnly)return;
+  const inp=document.getElementById('f-localidad');if(!inp)return;
+  const txt=(inp.value||'').trim();
+  if(!txt){toast('Escribí una localidad primero');return;}
+  if(typeof google==='undefined'||!google.maps||!google.maps.Geocoder){toast('El mapa todavía no cargó, esperá unos segundos');return;}
+  const btn=document.getElementById('btnBuscarLoc');
+  if(btn){btn.disabled=true;btn.textContent='…';}
+  new google.maps.Geocoder().geocode({address:txt,componentRestrictions:{country:'AR'}},(res,status)=>{
+    if(btn){btn.disabled=false;btn.textContent='🔍';}
+    if(status!=='OK'||!res||!res.length){
+      toast('No encontré "'+txt+'". Agregá la provincia, o tocá el mapa para marcarlo a mano.');
+      return;
+    }
+    const r=res[0],loc=r.geometry.location;
+    modalLat=loc.lat();modalLng=loc.lng();
+    inp.value=(r.formatted_address||txt).replace(/,\s*Argentina\s*$/i,'');
+    if(mapModal){mapModal.setCenter(loc);mapModal.setZoom(11);}
+    if(modalMarker){modalMarker.setPosition(loc);modalMarker.setVisible(true);}
+    toast('📍 Ubicación marcada en el mapa');
+  });
+}
+
 // ── GOOGLE MAPS ───────────────────────────────────────────────
 function initMaps(){
   const mm=document.getElementById('mmap-div');
@@ -1994,18 +2111,52 @@ function initMapaMapa(){
   mapMapa=new google.maps.Map(el,{center:{lat:FAB_LAT,lng:FAB_LNG},zoom:6,mapTypeId:'hybrid'});
   actMarkersMapa();
 }
-function actMarkersMapa(){
-  if(!mapMapa)return;
-  markersArr.forEach(m=>m.setMap(null));markersArr=[];
-  const fabM=new google.maps.Marker({position:{lat:FAB_LAT,lng:FAB_LNG},map:mapMapa,title:'Remeco – Fábrica',label:{text:'🏭',fontSize:'16px'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:14,fillColor:'#1a5230',fillOpacity:1,strokeColor:'#fff',strokeWeight:2}});
+// Pinta la fábrica + los clientes ubicados. Sirve para el mapa grande y para el de Clientes.
+function pintarClientesEn(map,previos){
+  (previos||[]).forEach(m=>m.setMap(null));
+  const out=[];
+  const fabM=new google.maps.Marker({position:{lat:FAB_LAT,lng:FAB_LNG},map,title:'Remeco – Fábrica',label:{text:'🏭',fontSize:'16px'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:14,fillColor:'#1a5230',fillOpacity:1,strokeColor:'#fff',strokeWeight:2}});
   const fabIW=new google.maps.InfoWindow({content:'<div style="font-family:sans-serif"><strong>🏭 Metalúrgica Remeco</strong><br>Colonia Menonita, Campo 2, La Pampa</div>'});
-  fabM.addListener('click',()=>fabIW.open(mapMapa,fabM));markersArr.push(fabM);
+  fabM.addListener('click',()=>fabIW.open(map,fabM));out.push(fabM);
   ventas.forEach(v=>{
     if(!v.lat||!v.lng)return;
-    const mk=new google.maps.Marker({position:{lat:parseFloat(v.lat),lng:parseFloat(v.lng)},map:mapMapa,title:v.cliente,icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:COL[v.estado]||'#c9a840',fillOpacity:1,strokeColor:'#fff',strokeWeight:2,scale:9}});
+    const mk=new google.maps.Marker({position:{lat:parseFloat(v.lat),lng:parseFloat(v.lng)},map,title:v.cliente,icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:COL[v.estado]||'#c9a840',fillOpacity:1,strokeColor:'#fff',strokeWeight:2,scale:9}});
     const iw=new google.maps.InfoWindow({content:`<div style="font-family:sans-serif;min-width:150px"><strong>${esc(v.cliente)}</strong><br>${paradaTexto(v)}<br>📍 ${esc(v.localidad)}<br><span style="color:${COL[v.estado]||'#333'}">${esc(v.estado)}</span><br>${v.precio?'<strong>$'+fNum(v.precio)+'</strong>':''}${v.fecha_entrega?'<br>📅 '+fFecha(v.fecha_entrega):''}</div>`});
-    mk.addListener('click',()=>iw.open(mapMapa,mk));markersArr.push(mk);
+    mk.addListener('click',()=>iw.open(map,mk));out.push(mk);
   });
+  return out;
+}
+function actMarkersMapa(){if(!mapMapa)return;markersArr=pintarClientesEn(mapMapa,markersArr);}
+
+// ── MAPA DENTRO DE CLIENTES ──────────────────────────────────
+let mapClientes=null,markersCli=[],cliVistaActual='lista';
+function setCliVista(v){
+  cliVistaActual=v;
+  document.getElementById('cli-tab-lista').classList.toggle('on',v==='lista');
+  document.getElementById('cli-tab-mapa').classList.toggle('on',v==='mapa');
+  document.getElementById('cli-wrap').style.display=v==='lista'?'flex':'none';
+  document.getElementById('cli-mapa-wrap').style.display=v==='mapa'?'flex':'none';
+  if(v==='mapa')setTimeout(initMapaClientes,60);
+}
+function initMapaClientes(){
+  const el=document.getElementById('map-clientes');
+  if(!el||typeof google==='undefined')return;
+  if(!mapClientes)mapClientes=new google.maps.Map(el,{center:{lat:FAB_LAT,lng:FAB_LNG},zoom:6,mapTypeId:'hybrid'});
+  else google.maps.event.trigger(mapClientes,'resize');
+  markersCli=pintarClientesEn(mapClientes,markersCli);
+  const ubic=ventas.filter(v=>v.lat&&v.lng);
+  const vacio=document.getElementById('cli-mapa-vacio');
+  if(vacio){
+    vacio.style.display=ubic.length?'none':'flex';
+    if(!ubic.length)vacio.innerHTML='Todavía ningún cliente tiene la ubicación marcada.<br><br>Abrí una venta, marcá el lugar en el mapa y va a aparecer acá.';
+  }
+  // Encuadra para que entren todos los clientes, no solo la fábrica
+  if(ubic.length){
+    const b=new google.maps.LatLngBounds();
+    b.extend({lat:FAB_LAT,lng:FAB_LNG});
+    ubic.forEach(v=>b.extend({lat:parseFloat(v.lat),lng:parseFloat(v.lng)}));
+    mapClientes.fitBounds(b,60);
+  }
 }
 function initMapaFlete(){
   if(mapFlete)return;
