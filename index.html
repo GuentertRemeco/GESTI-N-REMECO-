@@ -1029,7 +1029,12 @@ function abrirConfig(){
   document.getElementById('cfg-dias-aviso').value=DIAS_AVISO;
   const rc=document.getElementById('cfg-ranking-card');
   const esPrincipal=authedEmail===MAIN_EMAIL;
-  if(rc)rc.style.display=esPrincipal?'block':'none';
+  // El ranking lo ven todos los vendedores: si no lo ven, no hay con quién competir.
+  if(rc)rc.style.display='block';
+  // La ganancia sí queda solo para el dueño: deja ver los costos y el margen.
+  const bGan=document.querySelector('#cfg-rank-metricas .opt-btn[data-m="gan"]');
+  if(bGan)bGan.style.display=esPrincipal?'':'none';
+  if(!esPrincipal&&rankMetrica==='gan')setRankMetrica('fact');
   // Arrancan todas cerradas
   ['flete','busc','aviso','rank','hist'].forEach(k=>{const b=document.getElementById('cfg-body-'+k),a=document.getElementById('cfg-arr-'+k);if(b)b.style.display='none';if(a)a.textContent='▶';});
   document.getElementById('configScreen').style.display='flex';
@@ -1066,16 +1071,25 @@ async function cargarRanking(){
   const now=new Date();
   const enPeriodo=d=>{const f=new Date(d);if(per==='mes')return f.getMonth()===now.getMonth()&&f.getFullYear()===now.getFullYear();if(per==='anio')return f.getFullYear()===now.getFullYear();return true;};
   const agg={};
-  (vs||[]).forEach(v=>{if(!enPeriodo(v.created_at))return;const k=v.user_id||'sin';if(!agg[k])agg[k]={fact:0,cant:0,gan:0};const pr=parseFloat(v.precio)||0;agg[k].fact+=pr;agg[k].cant++;agg[k].gan+=pr-(parseFloat(v.costo_producto)||0)-(parseFloat(v.costo_flete)||0);});
-  const filas=Object.entries(agg).map(([uid,a])=>({uid,nombre:nombreDe[uid]||(uid===authedUser?(getPerfil().nombre||'Vos'):'Vendedor '+String(uid).slice(0,6)),...a})).sort((a,b)=>b[rankMetrica]-a[rankMetrica]);
-  if(!filas.length){el.innerHTML='<div style="color:var(--text3);font-size:.8rem;text-align:center;padding:16px">Sin ventas en este período</div>';return;}
+  // Todos los vendedores de la tabla arrancan en cero: así figuran aunque no hayan
+  // vendido en el período, en vez de desaparecer del ranking.
+  Object.keys(nombreDe).forEach(uid=>{agg[uid]={fact:0,cant:0,gan:0};});
+  if(authedUser&&!agg[authedUser])agg[authedUser]={fact:0,cant:0,gan:0};
+  let enPer=0;
+  (vs||[]).forEach(v=>{if(!enPeriodo(v.created_at))return;enPer++;const k=v.user_id||'sin';if(!agg[k])agg[k]={fact:0,cant:0,gan:0};const pr=parseFloat(v.precio)||0;agg[k].fact+=pr;agg[k].cant++;agg[k].gan+=pr-(parseFloat(v.costo_producto)||0)-(parseFloat(v.costo_flete)||0);});
+  const filas=Object.entries(agg).map(([uid,a])=>({uid,nombre:uid==='sin'?'Sin vendedor asignado':(nombreDe[uid]||(uid===authedUser?(getPerfil().nombre||'Vos'):'Vendedor '+String(uid).slice(0,6))),...a})).sort((a,b)=>b[rankMetrica]-a[rankMetrica]||b.cant-a.cant);
+  if(!filas.length){el.innerHTML='<div style="color:var(--text3);font-size:.8rem;text-align:center;padding:16px">Todavía no hay vendedores cargados.<br>Se cargan en la tabla "vendedores" de Supabase.</div>';return;}
   const fmt=v=>rankMetrica==='cant'?String(v):('$'+fNum(v));
   const medalla=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="color:var(--text3);font-weight:700">${i+1}</span>`;
-  el.innerHTML=filas.map((f,i)=>`<div style="display:flex;align-items:center;gap:11px;padding:10px 11px;border:1px solid ${i===0?'var(--gold)':'var(--border)'};border-radius:10px;margin-bottom:6px;background:${i===0?'#1a2c40':'var(--bg3)'}">
+  el.innerHTML=filas.map((f,i)=>{
+    const yo=f.uid===authedUser;
+    const sinVentas=f.cant===0;
+    return`<div style="display:flex;align-items:center;gap:11px;padding:10px 11px;border:1px solid ${i===0?'var(--gold)':yo?'var(--border2)':'var(--border)'};border-radius:10px;margin-bottom:6px;background:${i===0?'#1a2c40':'var(--bg3)'};opacity:${sinVentas?.55:1}">
     <div style="width:26px;text-align:center;font-size:1.1rem">${medalla(i)}</div>
-    <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:.86rem">${esc(f.nombre)}</div><div style="font-size:.66rem;color:var(--text3)">${f.cant} venta${f.cant!==1?'s':''}</div></div>
+    <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:.86rem">${esc(f.nombre)}${yo?'<span style="color:var(--gold);font-size:.66rem;font-weight:800;margin-left:5px">· VOS</span>':''}</div><div style="font-size:.66rem;color:var(--text3)">${f.cant} venta${f.cant!==1?'s':''}</div></div>
     <div style="text-align:right;font-weight:900;color:var(--gold);font-size:.95rem">${fmt(f[rankMetrica])}</div>
-  </div>`).join('')+'<div style="font-size:.63rem;color:var(--text3);margin-top:6px">Los nombres se cargan en la tabla "vendedores" de Supabase.</div>';
+  </div>`;}).join('')
+  +`<div style="font-size:.63rem;color:var(--text3);margin-top:8px;line-height:1.5">Se leyeron <b>${(vs||[]).length}</b> ventas en total; <b>${enPer}</b> caen en el período elegido, repartidas entre <b>${filas.length}</b> vendedores.${enPer<(vs||[]).length?'<br>Si falta alguien, probá con "Todo el tiempo".':''}<br>Los nombres salen de la tabla "vendedores" de Supabase.</div>`;
 }
 function cerrarConfig(){document.getElementById('configScreen').style.display='none';}
 function guardarConfig(){
