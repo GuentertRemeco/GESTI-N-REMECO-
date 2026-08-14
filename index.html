@@ -264,6 +264,32 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 }
 .ajenos-header{cursor:pointer;transition:background-color .15s,border-color .15s}
 .ajenos-header:hover{background-color:rgba(42,140,80,0.3);border-color:#3aad5f}
+/* ── ASISTENTE ── */
+.as-wrap{flex:1;display:flex;flex-direction:column;min-height:0;max-width:760px;width:100%;margin:0 auto}
+.as-hist{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 14px 4px}
+.as-msg{margin-bottom:12px;display:flex}
+.as-msg.yo{justify-content:flex-end}
+.as-burb{max-width:88%;border-radius:14px;padding:11px 13px;font-size:.86rem;line-height:1.5}
+.as-msg.yo .as-burb{background:var(--gold);color:#111820;font-weight:600;border-bottom-right-radius:4px}
+.as-msg.bot .as-burb{background:var(--bg2);border:1px solid var(--border);border-bottom-left-radius:4px}
+.as-burb b{color:var(--gold)}
+.as-msg.yo .as-burb b{color:#111820}
+.as-dato{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--border)}
+.as-dato:last-child{border-bottom:none}
+.as-dato .k{color:var(--text2)}
+.as-dato .v{font-weight:800;color:var(--gold);white-space:nowrap}
+.as-tit{font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:7px}
+.as-barra{height:6px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:3px}
+.as-barra i{display:block;height:100%;background:var(--gold);border-radius:4px}
+.as-nota{font-size:.68rem;color:var(--text3);margin-top:9px;padding-top:7px;border-top:1px solid var(--border)}
+.as-chips{display:flex;gap:6px;overflow-x:auto;padding:8px 14px 0;scrollbar-width:none;flex-shrink:0}
+.as-chips::-webkit-scrollbar{display:none}
+.as-chip{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:20px;padding:7px 12px;font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit}
+.as-chip:hover{border-color:var(--gold);color:var(--gold)}
+.as-barra-inp{display:flex;gap:8px;padding:10px 14px calc(12px + env(safe-area-inset-bottom));flex-shrink:0}
+.as-barra-inp input{flex:1;min-width:0;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:22px;padding:12px 16px;font-size:.86rem;font-family:inherit}
+.as-barra-inp input:focus{outline:none;border-color:var(--gold)}
+.as-barra-inp button{border-radius:50%;width:44px;height:44px;flex-shrink:0;background:var(--gold);color:#111820;font-size:1.05rem;padding:0}
 /* ── DETALLE DE VIAJE (pantalla completa) ── */
 .vd-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:7200;flex-direction:column}
 .vd-screen.on{display:flex}
@@ -352,6 +378,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <button class="ntab" onclick="ir('flete')">🚛 Flete</button>
   <button class="ntab" onclick="ir('simular')">🧮 Simular</button>
   <button class="ntab" onclick="ir('clientes')">👤 Clientes</button>
+  <button class="ntab" onclick="ir('asistente')">🤖 Asistente</button>
   <div class="nav-right">
     <div class="bell" title="Configuración" onclick="abrirConfig()" style="cursor:pointer">⚙️</div>
     <div class="user-chip" onclick="abrirPerfilMenu(event)"><span class="uc-ini" id="ucIniTop">U</span><span class="uc-name" id="ucNameTop">Usuario</span></div>
@@ -372,7 +399,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div class="inicio-wrap">
     <div class="ini-top">
       <div><div class="ini-fecha" id="inicioFecha"></div><div class="ini-saludo" id="inicioBienvenida">Remeco</div></div>
-      <div class="ini-user"><div class="ini-bell" title="Configuración" onclick="abrirConfig()" style="cursor:pointer">⚙️</div><div class="ini-uc" id="ini-uc" onclick="abrirPerfilMenu(event)">U</div></div>
+      <div class="ini-user"><div class="ini-bell" title="Asistente" onclick="ir('asistente')" style="cursor:pointer;border-color:var(--gold);color:var(--gold)">🤖</div><div class="ini-bell" title="Configuración" onclick="abrirConfig()" style="cursor:pointer">⚙️</div><div class="ini-uc" id="ini-uc" onclick="abrirPerfilMenu(event)">U</div></div>
     </div>
     <div id="recordatoriosBox"></div>
     <div class="ini-cards-big">
@@ -504,6 +531,18 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <div id="map-clientes" style="width:100%;height:100%"></div>
     <div id="cli-mapa-ref" style="position:absolute;left:10px;bottom:10px;background:rgba(13,21,32,.92);border:1px solid var(--border2);border-radius:9px;padding:8px 10px;pointer-events:none"></div>
     <div id="cli-mapa-vacio" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:var(--bg);color:var(--text3);font-size:.82rem;text-align:center;padding:24px"></div>
+  </div>
+</div>
+
+<!-- ASISTENTE -->
+<div class="page" id="page-asistente">
+  <div class="as-wrap">
+    <div class="as-hist" id="asHist"></div>
+    <div class="as-chips" id="asChips"></div>
+    <div class="as-barra-inp">
+      <input id="asInput" placeholder="Preguntá sobre tus ventas..." autocomplete="off" onkeydown="if(event.key==='Enter')asPreguntar()"/>
+      <button onclick="asPreguntar()" title="Preguntar">➤</button>
+    </div>
   </div>
 </div>
 
@@ -753,7 +792,7 @@ let fleteMarkers=[],simMarkers=[];
 let simParadas=[],viajeAbierto=null,simKm=0,simTramos=[],ajenosExpandidos={};
 let agregarViajeId=null,agregarVentasSeleccionadas=new Set(),agregarVentasDisponibles=[];
 let prodItems=[];
-const BNAV={inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes'};
+const BNAV={inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes',asistente:null};
 const ESTADOS=['Confirmado','En producción','Listo para entregar','En camino','Entregado'];
 const COL={'Confirmado':'#ffffff','En producción':'#ffc040','Listo para entregar':'#c0a0ff','En camino':'#5ab8ff','Entregado':'#3ddc84'};
 
@@ -893,7 +932,7 @@ function ir(pg){
     const tx=t.textContent.toLowerCase();
     if((pg==='inicio'&&tx.includes('inicio'))||(pg==='ventas'&&tx.includes('venta'))||
        (pg==='mapa'&&tx.includes('mapa'))||(pg==='flete'&&tx.includes('flete'))||
-       (pg==='simular'&&tx.includes('simul'))||(pg==='clientes'&&tx.includes('cliente')))
+       (pg==='simular'&&tx.includes('simul'))||(pg==='clientes'&&tx.includes('cliente'))||(pg==='asistente'&&tx.includes('asistente')))
       t.classList.add('on');
   });
   const bid=BNAV[pg];if(bid)document.getElementById(bid)?.classList.add('on');
@@ -901,6 +940,7 @@ function ir(pg){
   if(fab)fab.style.display=(pg==='inicio'&&window.innerWidth<=768)?'block':'none';
   if(pg==='mapa'&&typeof google!=='undefined')initMapaMapa();
   if(pg==='clientes'&&cliVistaActual==='mapa'&&typeof google!=='undefined')setTimeout(initMapaClientes,60);
+  if(pg==='asistente'){asIniciar();setTimeout(()=>{const i=document.getElementById('asInput');if(i&&window.innerWidth>768)i.focus();},80);}
   if(pg==='flete'&&typeof google!=='undefined'){initMapaFlete();setFletePlaceholder(!viajeAbierto);if(viajeAbierto)setTimeout(()=>mostrarRutaViaje(viajeAbierto),400);}
   if(pg==='simular'&&typeof google!=='undefined')initMapaSim();
 }
@@ -1513,6 +1553,131 @@ function vdPintar(vj){
     <button class="bp" onclick="cerrarViajeDetalle();optimizarViaje('${vj.id}')">🎯 ¿Me conviene?</button>
     <button class="bg" onclick="cerrarViajeDetalle();abrirAgregar('${vj.id}')">+ Agregar clientes</button>
   </div>`;
+}
+
+// ── ASISTENTE ────────────────────────────────────────────────
+// Responde sobre "ventas", que ya viene filtrado por user_id: son siempre
+// los datos de quien está logueado, nunca los de otro vendedor.
+const PROVINCIAS=['Buenos Aires','Catamarca','Chaco','Chubut','Córdoba','Corrientes','Entre Ríos','Formosa','Jujuy','La Pampa','La Rioja','Mendoza','Misiones','Neuquén','Río Negro','Salta','San Juan','San Luis','Santa Cruz','Santa Fe','Santiago del Estero','Tierra del Fuego','Tucumán'];
+const MESES_NOM=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function sinTildes(s){return String(s==null?'':s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+function provinciaDe(loc){
+  const t=sinTildes(loc).replace(/provincia de /g,'');
+  let mejor=null;
+  PROVINCIAS.forEach(p=>{if(t.includes(sinTildes(p))&&(!mejor||p.length>mejor.length))mejor=p;});
+  return mejor||'Sin provincia';
+}
+function ventaFecha(v){return new Date(v.created_at||v.fecha_entrega||Date.now());}
+function ventaGan(v){return (parseFloat(v.precio)||0)-(parseFloat(v.costo_producto)||0)-(parseFloat(v.costo_flete)||0);}
+// Interpreta el período pedido: "enero", "enero 2025", "este mes", "el año pasado"...
+function asPeriodo(q){
+  const hoy=new Date();
+  const my=q.match(/\b(20\d{2})\b/), anio=my?parseInt(my[1]):null;
+  const mi=MESES_NOM.findIndex(m=>q.includes(m));
+  if(mi>=0){const y=anio||hoy.getFullYear();return{f:v=>{const d=ventaFecha(v);return d.getMonth()===mi&&d.getFullYear()===y;},label:MESES_NOM[mi]+' de '+y};}
+  if(/mes pasado/.test(q)){const d=new Date(hoy);d.setMonth(d.getMonth()-1);return{f:v=>{const x=ventaFecha(v);return x.getMonth()===d.getMonth()&&x.getFullYear()===d.getFullYear();},label:'el mes pasado'};}
+  if(/este mes|del mes/.test(q))return{f:v=>{const d=ventaFecha(v);return d.getMonth()===hoy.getMonth()&&d.getFullYear()===hoy.getFullYear();},label:'este mes'};
+  if(/(ano|año) pasado/.test(q))return{f:v=>ventaFecha(v).getFullYear()===hoy.getFullYear()-1,label:String(hoy.getFullYear()-1)};
+  if(/este (ano|año)/.test(q))return{f:v=>ventaFecha(v).getFullYear()===hoy.getFullYear(),label:'este año'};
+  if(anio)return{f:v=>ventaFecha(v).getFullYear()===anio,label:String(anio)};
+  return{f:()=>true,label:'todo el tiempo'};
+}
+function asResumen(lista,label){
+  const fact=lista.reduce((s,v)=>s+(parseFloat(v.precio)||0),0);
+  const gan=lista.reduce((s,v)=>s+ventaGan(v),0);
+  const flete=lista.reduce((s,v)=>s+(parseFloat(v.costo_flete)||0),0);
+  const marg=fact>0?Math.round(gan/fact*100):0;
+  if(!lista.length)return`<div>No tenés ventas registradas en <b>${esc(label)}</b>.</div>`;
+  return`<div class="as-tit">${esc(label)}</div>
+    <div class="as-dato"><span class="k">Facturación</span><span class="v">${fPesos(fact)}</span></div>
+    <div class="as-dato"><span class="k">Ganancia</span><span class="v" style="color:var(--green)">${fPesos(gan)} · ${marg}%</span></div>
+    <div class="as-dato"><span class="k">Ventas</span><span class="v">${lista.length}</span></div>
+    <div class="as-dato"><span class="k">Ticket promedio</span><span class="v">${fPesos(fact/lista.length)}</span></div>
+    <div class="as-dato"><span class="k">Costo de fletes</span><span class="v">${fPesos(flete)}</span></div>`;
+}
+// Ranking generico: agrupa por lo que devuelva clave() y ordena por facturación
+function asRanking(lista,clave,titulo,label){
+  const m={};
+  lista.forEach(v=>{const k=clave(v)||'—';if(!m[k])m[k]={fact:0,cant:0,gan:0};m[k].fact+=parseFloat(v.precio)||0;m[k].cant++;m[k].gan+=ventaGan(v);});
+  const filas=Object.entries(m).sort((a,b)=>b[1].fact-a[1].fact);
+  if(!filas.length)return`<div>No tengo datos para eso en <b>${esc(label)}</b>.</div>`;
+  const max=filas[0][1].fact||1;
+  return`<div class="as-tit">${esc(titulo)} · ${esc(label)}</div>`+filas.slice(0,8).map(([k,a],i)=>`
+    <div style="padding:6px 0">
+      <div style="display:flex;justify-content:space-between;gap:10px">
+        <span>${i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':`${i+1}. `}${esc(k)}</span>
+        <span style="font-weight:800;color:var(--gold);white-space:nowrap">${fPesos(a.fact)}</span>
+      </div>
+      <div style="font-size:.68rem;color:var(--text3)">${a.cant} venta${a.cant!==1?'s':''} · ganancia ${fPesos(a.gan)}</div>
+      <div class="as-barra"><i style="width:${Math.round(a.fact/max*100)}%"></i></div>
+    </div>`).join('');
+}
+function asResponder(txt){
+  const q=sinTildes(txt);
+  const per=asPeriodo(q);
+  const lista=ventas.filter(per.f);
+  const nota='<div class="as-nota">Son solo tus ventas. La fecha que uso es la de carga de cada venta.</div>';
+
+  if(/provincia|region|zona|donde .*(vend|factur)/.test(q))
+    return asRanking(lista,v=>provinciaDe(v.localidad),'Por provincia',per.label)+nota;
+  if(/localidad|pueblo|ciudad|cliente.*(mas|mejor)|mejores? cliente/.test(q))
+    return asRanking(lista,v=>/cliente/.test(q)?(v.cliente||'—'):(locCorta(v.localidad)||'—'),/cliente/.test(q)?'Mejores clientes':'Por localidad',per.label)+nota;
+  if(/producto|modelo|silo|autoconsumo|que.*(vend|sale) mas/.test(q))
+    return asRanking(lista,v=>{const a=productosDe(v)[0];return a?vdBaseProd(a):'—';},'Por producto',per.label)+nota;
+  if(/epoca|mes.*(mas|mejor)|estacion|temporada|cuando/.test(q)){
+    const base=/todo el tiempo/.test(per.label)?ventas:lista;
+    return asRanking(base,v=>MESES_NOM[ventaFecha(v).getMonth()],'Por mes del año',/todo el tiempo/.test(per.label)?'todo el tiempo':per.label)
+      +'<div class="as-nota">Junta todos los años, para ver en qué meses se mueve más.</div>';
+  }
+  if(/estado|produccion|camino|entregad|pendiente/.test(q))
+    return asRanking(lista,v=>v.estado||'—','Por estado',per.label)+nota;
+  if(/viaje|flete|km|camion/.test(q)){
+    const act=viajesData.filter(v=>estadoViaje(v)!=='historial');
+    const km=viajesData.reduce((s,v)=>s+(parseFloat(v.km_real)||0),0);
+    return`<div class="as-tit">Tus viajes</div>
+      <div class="as-dato"><span class="k">Programados</span><span class="v">${act.length}</span></div>
+      <div class="as-dato"><span class="k">Total de viajes</span><span class="v">${viajesData.length}</span></div>
+      <div class="as-dato"><span class="k">Km acumulados</span><span class="v">${Math.round(km).toLocaleString('es-AR')} km</span></div>
+      <div class="as-dato"><span class="k">Costo de fletes ${esc(per.label)}</span><span class="v">${fPesos(lista.reduce((s,v)=>s+(parseFloat(v.costo_flete)||0),0))}</span></div>`;
+  }
+  if(/factur|gana|vend|venta|cuanto|resumen|como (voy|vengo)|total/.test(q))
+    return asResumen(lista,per.label)+nota;
+
+  return`<div>No entendí la pregunta. Probá con alguna de estas:</div>
+    <div style="margin-top:8px;line-height:1.9;font-size:.82rem">
+      · <b>¿Cuánto facturé en enero?</b><br>
+      · <b>¿Qué ganancia tuve este año?</b><br>
+      · <b>¿En qué provincia vendo más?</b><br>
+      · <b>¿En qué época del año se vende más?</b><br>
+      · <b>¿Qué producto se vende más?</b><br>
+      · <b>¿Quiénes son mis mejores clientes?</b><br>
+      · <b>¿Cómo vengo con los viajes?</b>
+    </div>`;
+}
+const AS_SUGES=['¿Cuánto facturé este mes?','¿En qué provincia vendo más?','¿En qué época se vende más?','¿Qué producto se vende más?','Mis mejores clientes','¿Cuánto facturé en enero?'];
+function asBurbuja(html,quien){
+  const h=document.getElementById('asHist');
+  const d=document.createElement('div');
+  d.className='as-msg '+quien;
+  d.innerHTML='<div class="as-burb">'+html+'</div>';
+  h.appendChild(d);h.scrollTop=h.scrollHeight;
+}
+function asPreguntar(txt){
+  const inp=document.getElementById('asInput');
+  const pregunta=(typeof txt==='string'?txt:inp.value).trim();
+  if(!pregunta)return;
+  inp.value='';
+  asBurbuja(esc(pregunta),'yo');
+  setTimeout(()=>asBurbuja(asResponder(pregunta),'bot'),120);
+}
+function asIniciar(){
+  const h=document.getElementById('asHist');
+  if(h&&!h.children.length){
+    const n=(getPerfil().nombre||'').split(' ')[0];
+    asBurbuja(`Hola${n?' '+esc(n):''} 👋 Soy tu asistente. Puedo mirar <b>tus ventas</b> y contarte cuánto facturaste, qué ganancia tuviste, en qué provincia vendés más o en qué época del año se mueve el negocio.<br><br>Preguntame lo que quieras, o tocá una de las sugerencias de abajo.`,'bot');
+  }
+  const c=document.getElementById('asChips');
+  if(c&&!c.children.length)c.innerHTML=AS_SUGES.map(s=>`<button class="as-chip" onclick="asPreguntar('${s.replace(/'/g,"\\'")}')">${esc(s)}</button>`).join('');
 }
 
 // ── VENTAS ───────────────────────────────────────────────────
