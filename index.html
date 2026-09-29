@@ -682,7 +682,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v39</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v48</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -2296,6 +2296,11 @@ function buscarLocalidad(){
   });
 }
 
+// Google llama a esto si rechaza la clave. Sin esto solo se ve su cartel en inglés.
+window.gm_authFailure=function(){
+  toast('El mapa no funciona: Google rechazó la clave. Revisá en Google Cloud que el proyecto tenga facturación y las APIs habilitadas.',9000);
+  console.error('[Remeco] Google rechazó la clave de Maps (gm_authFailure). Causas típicas: proyecto sin facturación vinculada, API sin habilitar, clave borrada o restringida a otro dominio.');
+};
 // ── GOOGLE MAPS ───────────────────────────────────────────────
 function initMaps(){
   const mm=document.getElementById('mmap-div');
@@ -2670,6 +2675,6 @@ if(window.innerWidth<=768)document.getElementById('fabBtn').style.display='block
 initAuth();
 </script>
 
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCfazpbJrCmanf7yNvFo9e68l2DvdNX7lg&callback=initMaps&libraries=places"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAti9zv9jVhNaPpmecY3aymbe4YHaNs_dA&callback=initMaps&libraries=places"></script>
 </body>
 </html>
