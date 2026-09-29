@@ -688,7 +688,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v54</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v55</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -1214,8 +1214,10 @@ async function cargarPrecios(){
   try{const r=await sb.from('config').select('*');if(!r.error)(r.data||[]).forEach(x=>{CFG[x.clave]=parseFloat(x.valor);});}catch(e){}
 }
 function cfgNum(k,porDefecto){const v=CFG[k];return (v==null||isNaN(v))?porDefecto:v;}
-// Precio en pesos de un modelo, con cono, base de fibra, margen e IVA
-function precioSilo(modeloId,{cono=0,fibra=false,margen=0,iva=true}={}){
+// Precio en pesos de un modelo. Verificado contra los presupuestos en PDF:
+// precio = USD x recargo de cono x cotizacion. El IVA YA VIENE ADENTRO del
+// precio en dolares, por eso no se multiplica de nuevo.
+function precioSilo(modeloId,{cono=35,fibra=false,margen=0}={}){
   const p=PRECIOS.find(x=>String(x.id)===String(modeloId));
   if(!p)return null;
   let usd=parseFloat(p.usd)||0;
@@ -1223,9 +1225,18 @@ function precioSilo(modeloId,{cono=0,fibra=false,margen=0,iva=true}={}){
   else if(cono===55)usd*=1+cfgNum('cono55',30)/100;
   if(fibra)usd+=cfgNum('base_fibra',1077);
   if(margen)usd*=1+margen/100;
-  let ars=usd*cfgNum('dolar',1485);
-  if(iva)ars*=1+cfgNum('iva',10.5)/100;
-  return{usd,ars:Math.round(ars),ref:p};
+  return{usd,ars:Math.round(usd*cfgNum('dolar',1485)),ref:p,
+         descripcion:descripcionSilo(p,cono)};
+}
+// Conos disponibles para un modelo: los grandes (mas de 60tn) van solo estandar
+function conosDe(p){
+  const d=p&&p.descripciones;
+  const ks=d?Object.keys(d).map(Number).filter(n=>n).sort((a,b)=>a-b):[];
+  return ks.length?ks:[35];
+}
+function descripcionSilo(p,cono){
+  const d=p&&p.descripciones;
+  return (d&&(d[String(cono)]||d['35']))||`${p.tipo==='aereo'?'Silo base aérea':'Comedero'} ${p.modelo}`;
 }
 
 // ── EDITOR DE LA LISTA (solo dueños) ─────────────────────────
