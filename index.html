@@ -688,7 +688,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v53</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v54</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -751,6 +751,14 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
           </div>
           <div id="cfg-rank-lista"></div>
         </div>
+      </div>
+
+      <div id="cfg-precios-card" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:12px">
+        <div onclick="toggleCfg('precios')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+          <div class="inicio-stitle" style="margin:0">💲 Lista de precios</div>
+          <span id="cfg-arr-precios" style="color:var(--gold);font-size:.8rem">▶</span>
+        </div>
+        <div id="cfg-body-precios" style="display:none;margin-top:14px"><div id="cfg-precios-lista"></div></div>
       </div>
 
       <div id="cfg-equipo-card" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:12px">
@@ -884,7 +892,8 @@ async function cerrarSesion(){
 
 // ── AUTENTICACIÓN (Supabase Auth) ────────────────────────────
 let authMode='login',authedUser=null,authedEmail=null;
-let miEmpresa=null,miRol=null; // de la tabla vendedores: a qué empresa pertenezco y si soy dueño
+let miEmpresa=null,miRol=null;
+let PRECIOS=[],CFG={}; // lista de precios en dólares y parámetros, desde Supabase // de la tabla vendedores: a qué empresa pertenezco y si soy dueño
 const MAIN_EMAIL='guentergerherd@gmail.com';
 let rankMetrica='fact';
 function mostrarGate(){document.getElementById('authGate').classList.add('on');}
@@ -1110,8 +1119,9 @@ function abrirConfig(){
   if(bGan)bGan.style.display=esPrincipal?'':'none';
   if(!esPrincipal&&rankMetrica==='gan')setRankMetrica('fact');
   const ec=document.getElementById('cfg-equipo-card');if(ec)ec.style.display=(miRol==='admin')?'block':'none';
+  const pc=document.getElementById('cfg-precios-card');if(pc)pc.style.display=(miRol==='admin')?'block':'none';
   // Arrancan todas cerradas
-  ['flete','busc','aviso','rank','equipo','hist'].forEach(k=>{const b=document.getElementById('cfg-body-'+k),a=document.getElementById('cfg-arr-'+k);if(b)b.style.display='none';if(a)a.textContent='▶';});
+  ['flete','busc','aviso','rank','precios','equipo','hist'].forEach(k=>{const b=document.getElementById('cfg-body-'+k),a=document.getElementById('cfg-arr-'+k);if(b)b.style.display='none';if(a)a.textContent='▶';});
   document.getElementById('configScreen').style.display='flex';
 }
 function toggleCfg(k){
@@ -1119,6 +1129,7 @@ function toggleCfg(k){
   if(!b)return;const open=b.style.display!=='none';
   b.style.display=open?'none':'block';if(a)a.textContent=open?'▶':'▼';
   if(!open&&k==='rank')cargarRanking();
+  if(!open&&k==='precios')cargarListaPrecios();
   if(!open&&k==='equipo')cargarMiEquipo();
   if(!open&&k==='hist')renderHistorialCfg();
 }
@@ -1195,6 +1206,66 @@ async function renderRankingInicio(){
     ${mensaje}
   </div>`;
 }
+// ── LISTA DE PRECIOS ─────────────────────────────────────────
+// Los precios viven en dólares; la cotización los pasa a pesos. Así una sola
+// cifra actualiza toda la lista cuando se mueve el dólar.
+async function cargarPrecios(){
+  try{const r=await sb.from('precios').select('*').order('tipo').order('orden');if(!r.error)PRECIOS=r.data||[];}catch(e){}
+  try{const r=await sb.from('config').select('*');if(!r.error)(r.data||[]).forEach(x=>{CFG[x.clave]=parseFloat(x.valor);});}catch(e){}
+}
+function cfgNum(k,porDefecto){const v=CFG[k];return (v==null||isNaN(v))?porDefecto:v;}
+// Precio en pesos de un modelo, con cono, base de fibra, margen e IVA
+function precioSilo(modeloId,{cono=0,fibra=false,margen=0,iva=true}={}){
+  const p=PRECIOS.find(x=>String(x.id)===String(modeloId));
+  if(!p)return null;
+  let usd=parseFloat(p.usd)||0;
+  if(cono===45)usd*=1+cfgNum('cono45',20)/100;
+  else if(cono===55)usd*=1+cfgNum('cono55',30)/100;
+  if(fibra)usd+=cfgNum('base_fibra',1077);
+  if(margen)usd*=1+margen/100;
+  let ars=usd*cfgNum('dolar',1485);
+  if(iva)ars*=1+cfgNum('iva',10.5)/100;
+  return{usd,ars:Math.round(ars),ref:p};
+}
+
+// ── EDITOR DE LA LISTA (solo dueños) ─────────────────────────
+async function cargarListaPrecios(){
+  const el=document.getElementById('cfg-precios-lista');if(!el)return;
+  el.innerHTML='<div class="sp"></div>';
+  await cargarPrecios();
+  const campo=(k,lbl,def,paso)=>`<div class="fg" style="margin-bottom:8px"><label>${lbl}</label><input id="cfgp-${k}" type="number" step="${paso||'any'}" value="${cfgNum(k,def)}"/></div>`;
+  const grupo=(tipo,titulo)=>{
+    const filas=PRECIOS.filter(x=>x.tipo===tipo);
+    return`<div class="inicio-stitle" style="margin:14px 0 8px">${titulo} <span style="color:var(--text3);text-transform:none;letter-spacing:0">· precios en USD</span></div>`
+      +(filas.length?filas.map(x=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+          <span style="flex:1;min-width:0;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.modelo)}</span>
+          <input id="pr-${x.id}" type="number" value="${x.usd}" style="width:110px;flex-shrink:0;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:7px 9px;font-size:.82rem;font-family:inherit;text-align:right"/>
+        </div>`).join('')
+        :'<div style="font-size:.76rem;color:var(--text3)">Sin modelos cargados.</div>');
+  };
+  el.innerHTML=`<div class="frow">${campo('dolar','Cotización del dólar',1485)}${campo('iva','IVA (%)',10.5,'0.1')}</div>
+    <div class="frow">${campo('cono45','Cono 45° (% extra)',20,'0.1')}${campo('cono55','Cono 55° (% extra)',30,'0.1')}</div>
+    <div class="frow">${campo('base_fibra','Base de fibra (USD)',1077)}${campo('comision','Comisión del vendedor (%)',0,'0.1')}</div>
+    <p class="mmhint">Cuando se mueve el dólar, cambiás un solo número y se actualiza toda la lista.</p>
+    ${grupo('aereo','Silos Base Aérea')}
+    ${grupo('comedero','Comederos / Autoconsumo')}
+    <button class="bg" onclick="guardarPrecios()" style="width:100%;padding:12px;font-weight:800;margin-top:14px">Guardar lista de precios</button>`;
+}
+async function guardarPrecios(){
+  const cambios=[];
+  ['dolar','iva','cono45','cono55','base_fibra','comision'].forEach(k=>{
+    const e=document.getElementById('cfgp-'+k);
+    if(e&&e.value!=='')cambios.push({clave:k,valor:String(parseFloat(e.value))});
+  });
+  const filas=PRECIOS.map(x=>{const e=document.getElementById('pr-'+x.id);return e?{id:x.id,usd:parseFloat(e.value)||0}:null;}).filter(Boolean);
+  try{
+    if(cambios.length){const r=await sb.from('config').upsert(cambios,{onConflict:'clave'});if(r.error)throw r.error;}
+    for(const f of filas){const r=await sb.from('precios').update({usd:f.usd}).eq('id',f.id);if(r.error)throw r.error;}
+  }catch(e){toast('Error: '+(e.message||e));return;}
+  await cargarPrecios();
+  toast('💲 Lista de precios guardada',5000);
+}
+
 // ── MI EQUIPO E INVITACIONES ─────────────────────────────────
 async function cargarMiEquipo(){
   const el=document.getElementById('cfg-equipo-lista');if(!el)return;
@@ -1422,6 +1493,7 @@ function cargarProdItems(v){
 // ── DATOS ────────────────────────────────────────────────────
 async function cargarDatos(){
   try{const{data:mv}=await sb.from('vendedores').select('empresa_id,rol').eq('user_id',authedUser).maybeSingle();if(mv){miEmpresa=mv.empresa_id;miRol=mv.rol;}}catch(e){}
+  await cargarPrecios();
   const{data:v,error:ve}=await sb.from('ventas').select('*').eq('user_id',authedUser).order('created_at',{ascending:false});
   if(ve){toast('⚠️ Error Supabase: '+ve.message);console.error(ve);}
   else{ventas=v||[];renderVentas();renderStats();renderPendientes();renderClientes();}
