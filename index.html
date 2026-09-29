@@ -193,29 +193,42 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .bd{background:var(--border);color:var(--text);border:1px solid var(--border2)}
 .bv{background:#1a5230;color:#9fe;border:1px solid #2a8c50}
 .bp{background:#0d2e18;color:var(--green);border:1px solid #2a8c50}
-.calc-wrap{flex:1;overflow-y:auto;padding:16px 18px 30px;max-width:1080px;width:100%;margin:0 auto}
+.calc-wrap{flex:1;overflow-y:auto;padding:16px 18px 34px;max-width:700px;width:100%;margin:0 auto}
 .calc-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;flex-wrap:wrap}
 .calc-h1{font-size:1.5rem;font-weight:900;color:var(--gold);letter-spacing:.5px}
 .calc-h2{font-size:.78rem;color:var(--text3);margin-top:2px}
 .calc-gest{margin-left:auto;padding:9px 15px;font-size:.78rem;white-space:nowrap}
-.calc-cols{display:flex;gap:18px;align-items:flex-start}
-.calc-col{flex:1;min-width:0}
-.calc-col:last-child{flex:0 0 340px;position:sticky;top:0}
-.calc-step{margin-bottom:15px}
-.calc-label{font-size:.63rem;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:var(--gold);margin-bottom:7px}
-.calc-chips{display:flex;flex-wrap:wrap;gap:6px}
-.calc-chip{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:9px;padding:11px 14px;font-size:.86rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .12s;min-width:46px}
-.calc-chip.big{flex:1;padding:14px 12px;font-size:.95rem}
-.calc-chip.on{background:var(--gold);color:#111820;border-color:var(--gold)}
-.calc-chip:active{transform:scale(.97)}
-.calc-cant{display:flex;align-items:center;gap:12px;font-size:1.15rem;font-weight:900}
-.calc-cant .calc-chip{width:48px;text-align:center;font-size:1.2rem}
-.calc-total{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:14px}
-.calc-foto{width:100%;height:150px;object-fit:cover;border-radius:9px;margin-bottom:10px;background:var(--bg)}
-.calc-row{display:flex;justify-content:space-between;gap:10px;font-size:.84rem;padding:5px 0;border-bottom:1px solid var(--border)}
-.calc-row:last-of-type{border-bottom:none}
-.calc-big{font-size:1.45rem;font-weight:900;color:var(--gold);text-align:right;margin-top:8px}
-@media (max-width:900px){.calc-cols{flex-direction:column}.calc-col:last-child{flex:1 1 auto;width:100%;position:static}}
+.calc-fs{border:1px solid var(--gold);border-radius:10px;padding:14px 14px 16px;margin:0 0 16px}
+.calc-fs>legend{padding:0 8px;font-size:1.05rem;font-weight:700;color:var(--text)}
+.calc-lb{display:block;font-size:.86rem;color:var(--text2);margin:0 0 6px}
+.calc-in{width:100%;background:#fff;border:1px solid #cfd6de;color:#11202e;border-radius:7px;padding:12px;font-size:.95rem;font-family:inherit}
+.calc-in:focus{outline:2px solid var(--gold);outline-offset:-1px}
+.calc-silo{border:1px solid var(--border2);border-radius:9px;padding:13px;margin-bottom:11px;position:relative}
+.calc-silo-t{font-size:.92rem;font-weight:700;margin-bottom:6px}
+.calc-quitar{position:absolute;top:9px;right:9px;background:none;border:none;color:var(--text3);font-size:1rem;cursor:pointer;padding:3px 6px}
+.calc-btn{width:100%;border:none;border-radius:8px;padding:13px;font-size:.95rem;font-weight:700;font-family:inherit;cursor:pointer;color:#fff}
+.calc-btn.naranja{background:#e8710a}
+.calc-btn.grande{padding:15px;font-size:1rem;margin-bottom:9px}
+.calc-btn.roja{background:#e02020}
+.calc-ck{display:flex;align-items:center;gap:11px;font-size:.92rem;color:var(--text2);cursor:pointer}
+.calc-ck input{width:20px;height:20px;accent-color:#e8710a;cursor:pointer}
+.calc-radios{display:flex;gap:20px;margin:4px 0 13px}
+.calc-rd{display:flex;align-items:center;gap:7px;font-size:.92rem;cursor:pointer}
+.calc-rd input{width:18px;height:18px;accent-color:#e8710a;cursor:pointer}
+.calc-resumen{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:.88rem}
+.calc-rrow{display:flex;justify-content:space-between;gap:10px;padding:4px 0}
+.hoja{background:#fff;color:#11202e;max-width:720px;margin:0 auto;border-radius:6px;padding:26px 24px;font-size:.88rem;line-height:1.5}
+.hoja h3{margin:0;font-size:1rem;text-align:right}
+.hoja .emp{text-align:right;font-size:.8rem;color:#445}
+.hoja table{width:100%;border-collapse:collapse;margin:14px 0}
+.hoja th{background:#eef1f5;border:1px solid #b9c2cd;padding:7px;font-size:.84rem}
+.hoja td{border:1px solid #b9c2cd;padding:8px;vertical-align:middle}
+.hoja textarea,.hoja input{width:100%;border:1.5px solid #e8710a;border-radius:5px;padding:7px;font-family:inherit;font-size:.85rem;color:#11202e;background:#fff;box-sizing:border-box}
+.hoja textarea{resize:vertical}
+.hoja .imp{width:100%;text-align:right}
+.hoja .lbl{font-size:.82rem;color:#556;margin:14px 0 5px}
+.hoja .tot{font-weight:800}
+@media (max-width:768px){.hoja{padding:16px 11px}.hoja td{padding:6px}.hoja textarea,.hoja input{font-size:.8rem;padding:5px}}
 .opt-btn{background:var(--bg);border:1px solid var(--border2);color:var(--text2);border-radius:7px;padding:5px 10px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
 .opt-btn.on{background:var(--gold);color:#111820;border-color:var(--gold)}
 .prod-item{background:var(--bg3);border:1px solid #1e3a55;border-radius:9px;margin-bottom:7px;overflow:hidden}
@@ -425,50 +438,57 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <div class="calc-head">
       <div>
         <div class="calc-h1">Presupuesto</div>
-        <div class="calc-h2">Elegí el silo y la localidad. El precio sale solo.</div>
+        <div class="calc-h2">Cargá el silo y creá la vista previa.</div>
       </div>
       <button class="bg calc-gest" onclick="ir('inicio')">Ir a la gestión →</button>
     </div>
 
-    <div class="calc-cols">
-      <div class="calc-col">
-        <div class="calc-step">
-          <div class="calc-label">1 · Qué silo</div>
-          <div class="calc-chips">
-            <button class="calc-chip big" id="calc-t-aereo" onclick="calcSetTipo('aereo')">Base aérea</button>
-            <button class="calc-chip big" id="calc-t-comedero" onclick="calcSetTipo('comedero')">Autoconsumo</button>
-          </div>
-        </div>
-        <div class="calc-step">
-          <div class="calc-label">2 · Capacidad</div>
-          <div class="calc-chips" id="calc-modelos"></div>
-        </div>
-        <div class="calc-step" id="calc-step-extras">
-          <div class="calc-label" id="calc-extras-label">3 · Opciones</div>
-          <div class="calc-chips" id="calc-extras"></div>
-        </div>
-        <div class="calc-step">
-          <div class="calc-label">Cantidad</div>
-          <div class="calc-cant">
-            <button class="calc-chip" onclick="calcSetCant(-1)">−</button>
-            <span id="calc-cant">1</span>
-            <button class="calc-chip" onclick="calcSetCant(1)">+</button>
-          </div>
-        </div>
-        <div class="calc-step">
-          <div class="calc-label">Localidad de entrega <span style="color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0">· para el flete</span></div>
-          <div style="display:flex;gap:6px">
-            <input id="calc-loc" placeholder="Escribí la localidad y elegila de la lista" style="flex:1;min-width:0;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:9px;padding:12px;font-size:.92rem;font-family:inherit" onkeydown="if(event.key==='Enter'){event.preventDefault();calcBuscarLoc();}"/>
-            <button class="bv" id="calc-btn-loc" onclick="calcBuscarLoc()" style="padding:0 15px;font-size:1rem">🔍</button>
-          </div>
-          <div id="calc-km" style="font-size:.76rem;color:var(--text3);margin-top:6px"></div>
-        </div>
-      </div>
+    <fieldset class="calc-fs">
+      <legend>Cliente</legend>
+      <label class="calc-lb">Nombre de cliente</label>
+      <input class="calc-in" id="calc-cliente" placeholder=""/>
+    </fieldset>
 
-      <div class="calc-col">
-        <div class="calc-total" id="calc-total"></div>
+    <fieldset class="calc-fs">
+      <legend>Agregar Silo</legend>
+      <div id="calc-silos"></div>
+      <button class="calc-btn naranja" onclick="calcAgregarSilo()">+ Agregar Silo</button>
+    </fieldset>
+
+    <fieldset class="calc-fs">
+      <legend>Flete</legend>
+      <label class="calc-ck"><span>¿Incluye flete?</span><input type="checkbox" id="calc-flete-on" onchange="calcSetFlete(this.checked)"/></label>
+      <div id="calc-flete-box" style="display:none;margin-top:12px">
+        <div class="calc-lb" style="font-weight:800;color:var(--text)">¿Cómo querés calcular el flete?</div>
+        <div class="calc-radios">
+          <label class="calc-rd"><input type="radio" name="calc-modo" value="distancia" onchange="calcSetModo('distancia')"/><span>Distancia</span></label>
+          <label class="calc-rd"><input type="radio" name="calc-modo" value="direccion" checked onchange="calcSetModo('direccion')"/><span>Dirección</span></label>
+        </div>
+        <div id="calc-modo-dir">
+          <label class="calc-lb">Dirección</label>
+          <div style="display:flex;gap:6px">
+            <input class="calc-in" id="calc-loc" style="flex:1;min-width:0" placeholder="Escribí la localidad y elegila de la lista" onkeydown="if(event.key==='Enter'){event.preventDefault();calcBuscarLoc();}"/>
+            <button class="bv" onclick="calcBuscarLoc()" style="padding:0 15px;font-size:1rem">🔍</button>
+          </div>
+        </div>
+        <div id="calc-modo-km" style="display:none">
+          <label class="calc-lb">Distancia en km (solo ida)</label>
+          <input class="calc-in" id="calc-km-in" type="number" min="0" placeholder="0" oninput="calcSetKm(this.value)"/>
+        </div>
+        <div id="calc-km-txt" style="font-size:.76rem;color:var(--text3);margin-top:8px"></div>
       </div>
-    </div>
+    </fieldset>
+
+    <fieldset class="calc-fs">
+      <legend>Margen e Impuestos</legend>
+      <label class="calc-lb">Margen extra de presupuesto (%)</label>
+      <input class="calc-in" id="calc-margen" type="number" step="0.5" value="0" oninput="calcSetMargen(this.value)"/>
+      <label class="calc-ck" style="margin-top:12px"><span>¿Incluye IVA?</span><input type="checkbox" id="calc-iva" checked onchange="calcSetIva(this.checked)"/></label>
+    </fieldset>
+
+    <div id="calc-resumen" class="calc-resumen"></div>
+    <button class="calc-btn naranja grande" onclick="calcVistaPrevia()">Crear Vista Previa</button>
+    <button class="calc-btn roja" onclick="calcResetear()">Resetear formulario</button>
   </div>
 </div>
 
@@ -762,11 +782,26 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 </div>
 
 <!-- PANTALLA CONFIGURACIÓN (pantalla completa) -->
+<!-- VISTA PREVIA DEL PRESUPUESTO -->
+<div id="calcPrevScreen" style="display:none;position:fixed;inset:0;background:#2b3138;z-index:7000;flex-direction:column">
+  <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--bg4);border-bottom:1px solid var(--border);flex-shrink:0">
+    <button class="bd" onclick="calcCerrarPrev()" style="padding:8px 13px">← Volver</button>
+    <div style="font-weight:900;color:var(--gold);font-size:.9rem;letter-spacing:1.4px">VISTA PREVIA</div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:14px">
+    <div class="hoja" id="calc-hoja"></div>
+  </div>
+  <div style="padding:11px 14px;background:var(--bg4);border-top:1px solid var(--border);display:flex;gap:7px;flex-shrink:0">
+    <button class="bg" style="flex:1;padding:12px;font-weight:800" onclick="calcPDF()">📄 Generar PDF</button>
+    <button class="bv" style="flex:1;padding:12px;font-weight:800" onclick="calcAVenta()">✅ Convertir en venta</button>
+  </div>
+</div>
+
 <div id="configScreen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:7000;flex-direction:column">
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v56</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v57</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -2997,86 +3032,94 @@ function eliminarParadaSim(i){simParadas.splice(i,1);renderSimParadas();clearOpc
 function limpiarSim(){simParadas=[];renderSimParadas();clearOpcionesSim();const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';}
 
 // ── CALCULADORA DE PRESUPUESTO (pantalla de entrada) ─────────
-// Es la primera pantalla: elegís silo, capacidad y localidad, y sale el precio.
-// El flete usa la misma tarifa por km que el resto de la app, así un presupuesto
-// nunca contradice lo que después se cobra en el viaje.
-let calc={tipo:'aereo',id:null,cono:35,fibra:false,cant:1,loc:'',lat:null,lng:null,km:null,margen:0};
-function calcModelos(){return PRECIOS.filter(p=>p.tipo===calc.tipo&&p.activo!==false);}
-function calcRef(){return PRECIOS.find(p=>String(p.id)===String(calc.id))||null;}
-// Nombre del producto tal como lo usa la gestión, para que el flete y la venta coincidan
-function calcProdNombre(){return calc.tipo==='aereo'?'Silo Aéreo':'Autoconsumo';}
-function calcModeloStr(){const r=calcRef();return r?String(r.modelo).toUpperCase():'';}
-function calcSetTipo(t){
-  if(calc.tipo!==t){calc.tipo=t;calc.id=null;calc.cono=35;calc.fibra=false;}
+// Sigue el mismo camino que la calculadora vieja: Cliente → Agregar Silo →
+// Flete → Margen e Impuestos → Crear Vista Previa. La vista previa se puede
+// editar a mano antes de generar el PDF, igual que antes.
+let calcSilos=[{tipo:'aereo',id:null,cono:35,fibra:false}];
+let calc={cliente:'',flete:false,modo:'direccion',km:null,loc:'',lat:null,lng:null,margen:0,iva:true};
+let calcPrev=null;
+const PAGOS_DEF='Pago 100 % contra entrega, mediante cheques a 0, 30, 60, 90, 120 o 150 días;Pago de contado.';
+function calcModelos(tipo){return PRECIOS.filter(p=>p.tipo===tipo&&p.activo!==false);}
+function calcRef(s){return PRECIOS.find(p=>String(p.id)===String(s.id))||null;}
+function calcProdNombre(s){return s.tipo==='aereo'?'Silo Aéreo':'Autoconsumo';}
+function calcModeloStr(s){const r=calcRef(s);return r?String(r.modelo).toUpperCase():'';}
+function calcFibraAplica(s){const m=calcModeloStr(s);return s.tipo==='comedero'&&(m.startsWith('12')||m.startsWith('18'));}
+function calcAgregarSilo(){calcSilos.push({tipo:'aereo',id:null,cono:35,fibra:false});calcRender();}
+function calcQuitarSilo(i){calcSilos.splice(i,1);if(!calcSilos.length)calcSilos.push({tipo:'aereo',id:null,cono:35,fibra:false});calcRender();}
+function calcSetTipo(i,v){const s=calcSilos[i];s.tipo=v;s.id=null;s.cono=35;s.fibra=false;calcRender();}
+function calcSetModelo(i,v){
+  const s=calcSilos[i];s.id=v||null;
+  const conos=s.id?conosDe(calcRef(s)):[35];
+  if(!conos.includes(s.cono))s.cono=conos[0];
   calcRender();
 }
-function calcSetModelo(id){
-  calc.id=id;
-  const conos=conosDe(calcRef());
-  if(!conos.includes(calc.cono))calc.cono=conos[0];
-  calcRender();
+function calcSetCono(i,c){calcSilos[i].cono=c;calcRender();}
+function calcSetFibra(i,v){calcSilos[i].fibra=v;calcRender();}
+function calcSetFlete(v){calc.flete=v;document.getElementById('calc-flete-box').style.display=v?'block':'none';calcPintarResumen();}
+function calcSetModo(m){
+  calc.modo=m;
+  document.getElementById('calc-modo-dir').style.display=m==='direccion'?'block':'none';
+  document.getElementById('calc-modo-km').style.display=m==='distancia'?'block':'none';
+  if(m==='distancia'){const e=document.getElementById('calc-km-in');calc.km=parseFloat(e.value)||null;}
+  calcPintarResumen();
 }
-function calcSetCono(c){calc.cono=c;calcRender();}
-function calcToggleFibra(){calc.fibra=!calc.fibra;calcRender();}
-function calcSetCant(d){calc.cant=Math.max(1,(calc.cant||1)+d);calcRender();}
-function calcSetMargen(v){calc.margen=parseFloat(v)||0;calcPintarTotal();}
-function calcFibraAplica(){const m=calcModeloStr();return calc.tipo==='comedero'&&(m.startsWith('12')||m.startsWith('18'));}
+function calcSetKm(v){calc.km=parseFloat(v)||null;document.getElementById('calc-km-txt').textContent=calc.km?`📍 ${calc.km} km`:'';calcPintarResumen();}
+function calcSetMargen(v){calc.margen=parseFloat(v)||0;calcPintarResumen();}
+function calcSetIva(v){calc.iva=v;calcPintarResumen();}
 function calcRender(){
-  const ms=calcModelos();
-  document.getElementById('calc-t-aereo').classList.toggle('on',calc.tipo==='aereo');
-  document.getElementById('calc-t-comedero').classList.toggle('on',calc.tipo==='comedero');
-  const cm=document.getElementById('calc-modelos');
-  cm.innerHTML=ms.length?ms.map(p=>`<button class="calc-chip${String(p.id)===String(calc.id)?' on':''}" onclick="calcSetModelo('${p.id}')">${esc(p.modelo)}</button>`).join('')
-    :'<div style="font-size:.78rem;color:var(--text3)">Todavía no hay precios cargados de este tipo. Se cargan en ⚙️ Configuración → Lista de precios.</div>';
-  const ex=document.getElementById('calc-extras'),lbl=document.getElementById('calc-extras-label'),paso=document.getElementById('calc-step-extras');
-  let html='';
-  if(calc.id&&calc.tipo==='aereo'){
-    const conos=conosDe(calcRef());
-    lbl.textContent='3 · Cono';
-    html=conos.map(c=>`<button class="calc-chip${calc.cono===c?' on':''}" onclick="calcSetCono(${c})">${c}°</button>`).join('');
-  }else if(calcFibraAplica()){
-    lbl.textContent='3 · Opciones';
-    html=`<button class="calc-chip${calc.fibra?' on':''}" onclick="calcToggleFibra()">${calc.fibra?'✓ ':''}Base de fibra</button>`;
-  }
-  paso.style.display=html?'block':'none';
-  ex.innerHTML=html;
-  document.getElementById('calc-cant').textContent=calc.cant||1;
-  calcPintarTotal();
+  const cont=document.getElementById('calc-silos');if(!cont)return;
+  cont.innerHTML=calcSilos.map((s,i)=>{
+    const ms=calcModelos(s.tipo);
+    const capLbl=s.tipo==='aereo'?'Capacidad silos en altura':'Capacidad silos Comederos';
+    const opciones=`<option value="">Seleccionar...</option>`+ms.map(p=>`<option value="${p.id}" ${String(p.id)===String(s.id)?'selected':''}>${esc(p.modelo)}</option>`).join('');
+    let extra='';
+    if(s.id&&s.tipo==='aereo'){
+      const conos=conosDe(calcRef(s));
+      extra=`<div class="calc-silo-t" style="margin-top:12px">Base Cono ${i+1}</div><div class="calc-radios" style="margin-bottom:0">`
+        +conos.map(c=>`<label class="calc-rd"><input type="radio" name="calc-cono-${i}" ${s.cono===c?'checked':''} onchange="calcSetCono(${i},${c})"/><span>${c===35?'Estándar':c+'°'}</span></label>`).join('')+`</div>`;
+    }else if(calcFibraAplica(s)){
+      extra=`<label class="calc-ck" style="margin-top:12px"><span>Agregar Base de fibra</span><input type="checkbox" ${s.fibra?'checked':''} onchange="calcSetFibra(${i},this.checked)"/></label>`;
+    }
+    return`<div class="calc-silo">
+      ${calcSilos.length>1?`<button class="calc-quitar" title="Quitar" onclick="calcQuitarSilo(${i})">✕</button>`:''}
+      <div class="calc-silo-t">Tipo de Silo ${i+1}</div>
+      <select class="calc-in" onchange="calcSetTipo(${i},this.value)">
+        <option value="aereo" ${s.tipo==='aereo'?'selected':''}>Base Aérea</option>
+        <option value="comedero" ${s.tipo==='comedero'?'selected':''}>Comederos</option>
+      </select>
+      <div class="calc-silo-t" style="margin-top:12px">${capLbl}</div>
+      <select class="calc-in" onchange="calcSetModelo(${i},this.value)">${opciones}</select>
+      ${extra}
+    </div>`;
+  }).join('');
+  calcPintarResumen();
 }
-// Flete de un solo silo hasta la localidad: tarifa del modelo × km de ida
-function calcFlete(){
-  if(calc.km==null||!calc.id)return 0;
-  const item={productos:[{producto:calcProdNombre(),modelo:calcModeloStr(),cantidad:calc.cant||1}]};
-  return Math.round(tarifaItem(item)*calc.km);
-}
-function calcCuentas(){
-  if(!calc.id)return null;
-  const pu=precioSilo(calc.id,{cono:calc.cono,fibra:calcFibraAplica()&&calc.fibra,margen:calc.margen});
+// Precio de una línea, con el margen extra y el IVA según lo elegido.
+// Los precios de la lista ya vienen con IVA adentro: si lo destildás, se saca.
+function calcPrecioLinea(s){
+  if(!s.id)return null;
+  const pu=precioSilo(s.id,{cono:s.cono,fibra:calcFibraAplica(s)&&s.fibra,margen:calc.margen});
   if(!pu)return null;
-  const cant=calc.cant||1,sub=pu.ars*cant,flete=calcFlete();
-  return{pu,cant,sub,flete,total:sub+flete};
+  const iva=cfgNum('iva',10.5);
+  const ars=calc.iva?pu.ars:Math.round(pu.ars/(1+iva/100));
+  return{...pu,ars,silo:s};
 }
-function calcPintarTotal(){
-  const el=document.getElementById('calc-total');if(!el)return;
-  const c=calcCuentas();
-  if(!c){el.innerHTML='<div style="text-align:center;padding:26px 14px;color:var(--text3);font-size:.82rem">Elegí una capacidad y aparece el precio.</div>';return;}
-  const r=c.pu.ref,foto=r.imagen?`<img class="calc-foto" src="${esc(r.imagen)}" alt="${esc(r.modelo)}" onerror="this.style.display='none'"/>`:'';
-  const nom=`${calcProdNombre()} ${esc(r.modelo)}${calc.tipo==='aereo'?' · cono '+calc.cono+'°':''}${(calcFibraAplica()&&calc.fibra)?' · base de fibra':''}`;
-  el.innerHTML=`${foto}
-    <div style="font-weight:800;font-size:.95rem;margin-bottom:8px">${nom}</div>
-    <div class="calc-row"><span>Precio unitario</span><span>${fPesos(c.pu.ars)}</span></div>
-    ${c.cant>1?`<div class="calc-row"><span>Cantidad</span><span>×${c.cant} = ${fPesos(c.sub)}</span></div>`:''}
-    <div class="calc-row"><span>Flete${calc.km!=null?' ('+calc.km+' km)':''}</span><span>${calc.km==null?'<span style="color:var(--text3)">falta la localidad</span>':fPesos(c.flete)}</span></div>
-    <div class="calc-row" style="font-weight:800"><span>Total</span><span style="color:var(--gold)">${fPesos(c.total)}</span></div>
-    <div class="calc-big">${fPesos(c.total)}</div>
-    <div style="font-size:.66rem;color:var(--text3);text-align:right;margin-bottom:10px">IVA incluido · USD ${Math.round(c.pu.usd).toLocaleString('es-AR')} c/u a $${cfgNum('dolar',1485)}</div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-      <span style="font-size:.74rem;color:var(--text2)">Ajuste del precio</span>
-      <input type="number" step="0.5" value="${calc.margen}" oninput="calcSetMargen(this.value)" style="width:72px;background:var(--bg);border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:7px;font-size:.82rem;font-family:inherit;text-align:right"/>
-      <span style="font-size:.78rem;color:var(--text3)">%</span>
-    </div>
-    <button class="bg" style="width:100%;padding:12px;font-weight:800;margin-bottom:7px" onclick="calcPDF()">📄 Ver presupuesto para enviar</button>
-    <button class="bv" style="width:100%;padding:12px;font-weight:800" onclick="calcAVenta()">✅ Convertir en venta</button>`;
+function calcSilosCargados(){return calcSilos.filter(s=>s.id);}
+function calcFleteTotal(){
+  if(!calc.flete||!calc.km)return 0;
+  const prods=calcSilosCargados().map(s=>({producto:calcProdNombre(s),modelo:calcModeloStr(s),cantidad:1}));
+  if(!prods.length)return 0;
+  return Math.round(tarifaItem({productos:prods})*calc.km);
+}
+function calcPintarResumen(){
+  const el=document.getElementById('calc-resumen');if(!el)return;
+  const lineas=calcSilosCargados().map(calcPrecioLinea).filter(Boolean);
+  if(!lineas.length){el.innerHTML='<div style="color:var(--text3);text-align:center;padding:6px">Elegí la capacidad y acá aparece el precio.</div>';return;}
+  const sub=lineas.reduce((a,l)=>a+l.ars,0),fl=calcFleteTotal();
+  el.innerHTML=lineas.map(l=>`<div class="calc-rrow"><span>${esc(calcProdNombre(l.silo))} ${esc(l.ref.modelo)}${l.silo.tipo==='aereo'?' · cono '+l.silo.cono+'°':''}${(calcFibraAplica(l.silo)&&l.silo.fibra)?' · base de fibra':''}</span><span>${fPesos(l.ars)}</span></div>`).join('')
+    +(calc.flete?`<div class="calc-rrow"><span>Flete${calc.km?' ('+calc.km+' km)':''}</span><span>${calc.km?fPesos(fl):'<span style="color:var(--text3)">falta la distancia</span>'}</span></div>`:'')
+    +`<div class="calc-rrow" style="border-top:1px solid var(--border);margin-top:5px;padding-top:7px;font-weight:800"><span>Total</span><span style="color:var(--gold)">${fPesos(sub+fl)}</span></div>
+      <div style="font-size:.68rem;color:var(--text3);text-align:right;margin-top:3px">${calc.iva?'IVA '+cfgNum('iva',10.5)+'% incluido':'Sin IVA'} · dólar $${cfgNum('dolar',1485)}</div>`;
 }
 function calcBuscarLoc(){
   const inp=document.getElementById('calc-loc'),txt=(inp.value||'').trim();
@@ -3091,76 +3134,160 @@ function calcBuscarLoc(){
 }
 function calcFijarDestino(nombre,lat,lng){
   calc.loc=nombre;calc.lat=lat;calc.lng=lng;calc.km=null;
-  const km=document.getElementById('calc-km');
+  const km=document.getElementById('calc-km-txt');
   km.textContent='Calculando los km...';
-  calcPintarTotal();
+  calcPintarResumen();
   routeDir({lat:FAB_LAT,lng:FAB_LNG},{lat,lng},[]).then(res=>{
     calc.km=Math.round(res.routes[0].legs.reduce((a,l)=>a+l.distance.value,0)/1000);
     km.textContent=`📍 ${calc.km} km desde la fábrica`;
-    calcPintarTotal();
+    calcPintarResumen();
   }).catch(()=>{
     // Sin ruta usamos la distancia en línea recta con un 20% por los caminos
     calc.km=Math.round(distKm(FAB_LAT,FAB_LNG,lat,lng)*1.2);
     km.textContent=`📍 ~${calc.km} km (estimado, Google no dio la ruta)`;
-    calcPintarTotal();
+    calcPintarResumen();
   });
 }
-// El presupuesto sale en una ventana lista para imprimir o guardar como PDF
+function calcResetear(){
+  calcSilos=[{tipo:'aereo',id:null,cono:35,fibra:false}];
+  calc={cliente:'',flete:false,modo:'direccion',km:null,loc:'',lat:null,lng:null,margen:0,iva:true};
+  ['calc-cliente','calc-loc'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('calc-km-in').value='';
+  document.getElementById('calc-margen').value='0';
+  document.getElementById('calc-iva').checked=true;
+  document.getElementById('calc-flete-on').checked=false;
+  document.getElementById('calc-flete-box').style.display='none';
+  document.getElementById('calc-km-txt').textContent='';
+  calcSetModo('direccion');
+  calcRender();
+}
+// ── VISTA PREVIA (se puede editar antes de generar el PDF) ───
+function calcVistaPrevia(){
+  const lineas=calcSilosCargados().map(calcPrecioLinea).filter(Boolean);
+  if(!lineas.length){toast('Elegí al menos una capacidad');return;}
+  calc.cliente=(document.getElementById('calc-cliente').value||'').trim();
+  const iva=cfgNum('iva',10.5);
+  calcPrev={
+    filas:lineas.map(l=>({desc:l.descripcion,importe:l.ars,ref:l.ref,silo:l.silo})),
+    extraDesc:'',extraImporte:0,
+    flete:calcFleteTotal(),
+    detalles:[calc.flete?'El precio incluye el flete':'El precio no incluye el flete','Montaje incluido',calc.iva?`Incluye IVA ${iva}%`:'Precios sin IVA'].join(';'),
+    materiales:'',
+    pagos:PAGOS_DEF,
+    plazo:cfgNum('entrega_dias',15)
+  };
+  calcPintarHoja();
+  document.getElementById('calcPrevScreen').style.display='flex';
+}
+function calcCerrarPrev(){document.getElementById('calcPrevScreen').style.display='none';}
+function calcPrevSet(campo,v){calcPrev[campo]=v;}
+function calcPrevFila(i,campo,v){calcPrev.filas[i][campo]=campo==='importe'?(parseFloat(v)||0):v;if(campo==='importe')calcPintarTotalHoja();}
+function calcTotalHoja(){
+  if(!calcPrev)return 0;
+  return calcPrev.filas.reduce((a,f)=>a+(parseFloat(f.importe)||0),0)+(parseFloat(calcPrev.extraImporte)||0)+(parseFloat(calcPrev.flete)||0);
+}
+function calcPintarTotalHoja(){const e=document.getElementById('hoja-total');if(e)e.textContent=fPesos(calcTotalHoja());}
+function calcPintarHoja(){
+  const el=document.getElementById('calc-hoja');if(!el||!calcPrev)return;
+  el.innerHTML=`
+  <div style="display:flex;align-items:flex-start;gap:14px">
+    <div style="font-weight:900;font-size:1.5rem;color:#8a1c22;letter-spacing:1px">MR</div>
+    <div style="flex:1">
+      <h3>Metalúrgica Remeco.</h3>
+      <div class="emp">Colonia Menonita<br>Tel: 2954201051<br>metalurgicaremeco4@gmail.com</div>
+    </div>
+  </div>
+  <div style="margin-top:22px"><strong>Estimado ${esc(calc.cliente)}:</strong><br>Le agradecemos su consulta y hacemos la siguiente oferta según nuestra comunicación previa.</div>
+  <table>
+    <tr><th>Descripción</th><th style="width:120px">Importe</th></tr>
+    ${calcPrev.filas.map((f,i)=>`<tr>
+      <td><textarea rows="3" oninput="calcPrevFila(${i},'desc',this.value)">${esc(f.desc)}</textarea></td>
+      <td><input class="imp" type="number" value="${Math.round(f.importe)}" oninput="calcPrevFila(${i},'importe',this.value)"/></td>
+    </tr>`).join('')}
+    <tr>
+      <td>Puedes agregar una descripción personalizada<br><textarea rows="2" oninput="calcPrevSet('extraDesc',this.value)">${esc(calcPrev.extraDesc)}</textarea></td>
+      <td style="text-align:center;font-size:.76rem;color:#556">Precio producto personalizado<br><input class="imp" type="number" value="${calcPrev.extraImporte}" oninput="calcPrevSet('extraImporte',parseFloat(this.value)||0);calcPintarTotalHoja()"/></td>
+    </tr>
+    <tr><td>Flete</td><td><input class="imp" type="number" value="${Math.round(calcPrev.flete)}" oninput="calcPrevSet('flete',parseFloat(this.value)||0);calcPintarTotalHoja()"/></td></tr>
+    <tr><td class="tot">Total</td><td class="tot" id="hoja-total" style="text-align:right">${fPesos(calcTotalHoja())}</td></tr>
+  </table>
+  <div class="lbl">Detalles adicionales (para agregar una nueva línea separar con ";")</div>
+  <textarea rows="2" oninput="calcPrevSet('detalles',this.value)">${esc(calcPrev.detalles)}</textarea>
+  <div class="lbl">Detalle de materiales</div>
+  <textarea rows="2" oninput="calcPrevSet('materiales',this.value)">${esc(calcPrev.materiales)}</textarea>
+  <div class="lbl">Formas de pago (para agregar una nueva línea separar con ";")</div>
+  <textarea rows="3" oninput="calcPrevSet('pagos',this.value)">${esc(calcPrev.pagos)}</textarea>
+  <div class="lbl">Plazo de entrega estimado (días)</div>
+  <input type="number" value="${calcPrev.plazo}" oninput="calcPrevSet('plazo',parseFloat(this.value)||0)" style="width:110px"/>`;
+}
+// El PDF sale igual que el que mandabas: hoja 1 el presupuesto, después una
+// hoja por silo con la foto.
 function calcPDF(){
-  const c=calcCuentas();if(!c)return;
-  const r=c.pu.ref,hoy=new Date().toLocaleDateString('es-AR');
-  const dias=cfgNum('entrega_dias',15);
-  const img=r.imagen?new URL(r.imagen,location.href).href:'';
-  const nom=`${calcProdNombre()} ${r.modelo}${calc.tipo==='aereo'?' · cono '+calc.cono+'°':''}${(calcFibraAplica()&&calc.fibra)?' · base de fibra':''}`;
-  const fila=(a,b)=>`<tr><td>${a}</td><td class="r">${b}</td></tr>`;
+  if(!calcPrev)return;
+  const hoy=new Date().toLocaleDateString('es-AR');
+  const li=t=>String(t||'').split(';').map(x=>x.trim()).filter(Boolean);
+  const pesos=n=>'$'+Math.round(parseFloat(n)||0).toLocaleString('es-AR');
+  const filas=calcPrev.filas.map(f=>`<tr><td>${esc(f.desc)}</td><td class="r">${pesos(f.importe)}</td></tr>`).join('')
+    +(calcPrev.extraDesc?`<tr><td>${esc(calcPrev.extraDesc)}</td><td class="r">${pesos(calcPrev.extraImporte)}</td></tr>`:'')
+    +(parseFloat(calcPrev.flete)?`<tr><td>Flete</td><td class="r">${pesos(calcPrev.flete)}</td></tr>`:'')
+    +`<tr><td><strong>Total</strong></td><td class="r"><strong>${pesos(calcTotalHoja())}</strong></td></tr>`;
+  const hojasFoto=calcPrev.filas.filter(f=>f.ref&&f.ref.imagen).map(f=>`<div class="pag">
+      <h2>${f.silo.tipo==='aereo'?'Silo Base Aérea':'Comedero'} ${esc(f.ref.modelo)}</h2>
+      <img src="${new URL(f.ref.imagen,location.href).href}" alt="">
+    </div>`).join('');
   const w=window.open('','_blank');
   if(!w){toast('El navegador bloqueó la ventana del presupuesto');return;}
   w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Presupuesto Remeco ${esc(r.modelo)}</title><style>
-  body{font-family:system-ui,Arial,sans-serif;color:#11202e;margin:0;padding:26px;max-width:760px}
-  h1{color:#8a6d1f;font-size:1.3rem;margin:0}
-  .sub{color:#667;font-size:.8rem;margin:3px 0 18px}
-  img{width:100%;max-width:330px;border-radius:8px;float:right;margin:0 0 12px 16px}
-  table{width:100%;border-collapse:collapse;margin:14px 0;clear:both}
-  td{padding:8px 4px;border-bottom:1px solid #e3e8ee;font-size:.9rem}
-  .r{text-align:right}
-  .tot{font-size:1.25rem;font-weight:800;color:#8a6d1f;text-align:right;margin-top:6px}
-  .desc{font-size:.85rem;line-height:1.5;background:#f5f7fa;border-radius:8px;padding:12px}
-  .pie{font-size:.72rem;color:#778;margin-top:20px;line-height:1.6}
-  @media print{body{padding:10px}}
+  <title>Presupuesto Remeco${calc.cliente?' - '+esc(calc.cliente):''}</title><style>
+  body{font-family:system-ui,Arial,sans-serif;color:#11202e;margin:0;padding:26px;max-width:760px;font-size:.88rem;line-height:1.5}
+  .cab{display:flex;gap:14px;align-items:flex-start}
+  .mr{font-weight:900;font-size:1.6rem;color:#8a1c22;letter-spacing:1px}
+  .emp{text-align:right;font-size:.8rem;color:#445;flex:1}
+  .emp strong{font-size:.95rem;color:#11202e}
+  table{width:100%;border-collapse:collapse;margin:16px 0}
+  th{background:#eef1f5;border:1px solid #b9c2cd;padding:7px;font-size:.85rem}
+  td{border:1px solid #b9c2cd;padding:8px}
+  .r{text-align:right;white-space:nowrap}
+  ul{margin:6px 0;padding-left:18px}
+  .pag{page-break-before:always;padding-top:20px}
+  .pag h2{font-size:1.15rem;margin:0 0 12px}
+  .pag img{width:100%;border-radius:6px}
+  @media print{body{padding:12px}}
   </style></head><body>
-  <h1>Metalúrgica Remeco</h1><div class="sub">Presupuesto del ${hoy}${calc.loc?' · '+esc(calc.loc):''}</div>
-  ${img?`<img src="${img}" alt="">`:''}
-  <div class="desc"><strong>${esc(nom)}</strong><br>${esc(c.pu.descripcion)}</div>
-  <table>
-    ${fila('Precio unitario','$'+Math.round(c.pu.ars).toLocaleString('es-AR'))}
-    ${c.cant>1?fila('Cantidad','×'+c.cant):''}
-    ${c.cant>1?fila('Subtotal','$'+c.sub.toLocaleString('es-AR')):''}
-    ${fila('Flete'+(calc.km!=null?' ('+calc.km+' km)':''),calc.km==null?'a confirmar':'$'+c.flete.toLocaleString('es-AR'))}
-    ${fila('<strong>Total</strong>','<strong>$'+c.total.toLocaleString('es-AR')+'</strong>')}
-  </table>
-  <div class="tot">$${c.total.toLocaleString('es-AR')}</div>
-  <div class="pie">Precios con IVA incluido.<br>Entrega estimada: ${dias} días desde la confirmación.<br>Presupuesto válido por 7 días — los valores se ajustan con la cotización del dólar.<br>Metalúrgica Remeco · Colonia Menonita, La Pampa</div>
-  <script>setTimeout(function(){window.print();},350)<\/script>
+  <div class="cab"><div class="mr">MR</div><div class="emp"><strong>Metalúrgica Remeco.</strong><br>Colonia Menonita<br>Tel: 2954201051<br>metalurgicaremeco4@gmail.com</div></div>
+  <p><strong>Estimado ${esc(calc.cliente)}:</strong><br>Le agradecemos su consulta y hacemos la siguiente oferta según nuestra comunicación previa.</p>
+  <table>${filas}</table>
+  ${li(calcPrev.detalles).map(x=>`<div>* ${esc(x)}</div>`).join('')}
+  <p><strong>Detalle de materiales :</strong>${calcPrev.materiales?'<br>'+esc(calcPrev.materiales):''}</p>
+  <p><strong>Formas de pago:</strong><br>${li(calcPrev.pagos).map(esc).join('<br>')}</p>
+  <p><strong>Plazo de entrega estimado :</strong> ${calcPrev.plazo} días</p>
+  <p>Esperamos con interés trabajar con usted.<br>Le saluda atentamente :</p>
+  <p>${esc(getPerfil().nombre||'Metalúrgica Remeco')} - Metalúrgica Remeco.</p>
+  <div style="font-size:.7rem;color:#889;margin-top:18px">Presupuesto del ${hoy}${calc.loc?' · '+esc(calc.loc):''}</div>
+  ${hojasFoto}
+  <script>setTimeout(function(){window.print();},400)<\/script>
   </body></html>`);
   w.document.close();
 }
 // Pasa el presupuesto al formulario de venta con todo cargado
 function calcAVenta(){
-  const c=calcCuentas();if(!c)return;
+  if(!calcPrev)return;
+  calcCerrarPrev();
   abrirNueva();
+  const cli=document.getElementById('f-cliente');
+  if(cli&&calc.cliente)cli.value=calc.cliente;
   const loc=document.getElementById('f-localidad');
   if(loc&&calc.loc)loc.value=calc.loc;
   if(calc.lat!=null){
     modalLat=calc.lat;modalLng=calc.lng;
     if(mapModal&&modalMarker){const p={lat:calc.lat,lng:calc.lng};mapModal.setCenter(p);mapModal.setZoom(11);modalMarker.setPosition(p);modalMarker.setVisible(true);}
   }
-  prodItems=[{prod:calcProdNombre(),modelo:calcModeloStr(),cono:String(calc.cono),
-    fibra:calcFibraAplica()&&calc.fibra,libre:'',cantidad:c.cant,
-    precio:String(Math.round(c.pu.ars)),costoP:'',
-    costoF:String(Math.round(c.flete/(c.cant||1))),open:true}];
+  const n=calcPrev.filas.length||1,fleteUnit=Math.round((parseFloat(calcPrev.flete)||0)/n);
+  prodItems=calcPrev.filas.map((f,i)=>({prod:calcProdNombre(f.silo),modelo:calcModeloStr(f.silo),
+    cono:String(f.silo.cono),fibra:calcFibraAplica(f.silo)&&f.silo.fibra,libre:'',cantidad:1,
+    precio:String(Math.round(f.importe)),costoP:'',costoF:String(fleteUnit),open:i===0}));
   renderProdItems();
-  toast('Completá el cliente y guardá la venta');
+  toast('Revisá los datos del cliente y guardá la venta');
 }
 
 // ── EVENTOS ───────────────────────────────────────────────────
