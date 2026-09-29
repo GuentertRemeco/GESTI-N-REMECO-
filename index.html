@@ -682,7 +682,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v48</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v49</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -1100,10 +1100,34 @@ function renderHistorialCfg(){
   </div>`;}).join('');
 }
 function setRankMetrica(m){rankMetrica=m;document.querySelectorAll('#cfg-rank-metricas .opt-btn').forEach(b=>b.classList.toggle('on',b.dataset.m===m));cargarRanking();}
+// Ranking cruzado entre las dos empresas. Lo resuelve una función de la base que
+// devuelve SOLO conteos: la facturación y la ganancia de la otra empresa nunca
+// salen de ahí. Si la función todavía no existe devuelve false, y el ranking
+// sigue por el camino de siempre (solo mi empresa).
+async function rankingPorCantidad(per,el){
+  const now=new Date();
+  const desde=per==='mes'?new Date(now.getFullYear(),now.getMonth(),1).toISOString()
+             :per==='anio'?new Date(now.getFullYear(),0,1).toISOString():null;
+  let data=null,error=null;
+  try{const r=await sb.rpc('ranking_ventas',{desde});data=r.data;error=r.error;}catch(e){error=e;}
+  if(error||!Array.isArray(data)||!data.length)return false;
+  const medalla=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="color:var(--text3);font-weight:700">${i+1}</span>`;
+  el.innerHTML=data.map((f,i)=>{
+    const n=parseInt(f.ventas)||0;
+    return`<div style="display:flex;align-items:center;gap:11px;padding:10px 11px;border:1px solid ${i===0?'var(--gold)':f.soy_yo?'var(--border2)':'var(--border)'};border-radius:10px;margin-bottom:6px;background:${i===0?'#1a2c40':'var(--bg3)'};opacity:${n?1:.55}">
+      <div style="width:26px;text-align:center;font-size:1.1rem">${medalla(i)}</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:.86rem">${esc(f.vendedor)||'—'}${f.soy_yo?'<span style="color:var(--gold);font-size:.66rem;font-weight:800;margin-left:5px">· VOS</span>':''}</div><div style="font-size:.66rem;color:var(--text3)">${esc(f.empresa)||'sin empresa'}</div></div>
+      <div style="text-align:right;font-weight:900;color:var(--gold);font-size:.95rem">${n}</div>
+    </div>`;}).join('')
+  +'<div style="font-size:.63rem;color:var(--text3);margin-top:8px;line-height:1.5">Cuenta las ventas de <b>las dos empresas</b>. Solo la cantidad: la facturación y la ganancia de la otra empresa no se ven desde acá.</div>';
+  return true;
+}
 async function cargarRanking(){
   const el=document.getElementById('cfg-rank-lista');if(!el)return;
   el.innerHTML='<div class="sp"></div>';
   const per=document.getElementById('cfg-rank-periodo').value;
+  // Por cantidad el ranking cruza las dos empresas; por plata, solo la mía.
+  if(rankMetrica==='cant'&&await rankingPorCantidad(per,el))return;
   const{data:vs,error}=await sb.from('ventas').select('user_id,precio,costo_producto,costo_flete,created_at');
   if(error){el.innerHTML='<div style="color:var(--red);font-size:.78rem">No se pudo leer: '+esc(error.message)+'</div>';return;}
   let nombreDe={};
