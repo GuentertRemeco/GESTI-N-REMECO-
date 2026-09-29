@@ -641,6 +641,11 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <h2 style="font-size:.88rem;color:var(--gold);margin-bottom:12px">Mi perfil</h2>
     <div class="fg"><label>Nombre</label><input id="p-nombre" placeholder="Tu nombre"/></div>
     <div class="fg"><label>Email</label><input id="p-email" type="email" placeholder="tu@email.com"/></div>
+    <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px">
+      <div class="fg" style="margin-bottom:6px"><label>Cambiar contraseña</label><input id="p-pass" type="password" placeholder="Nueva contraseña (mínimo 6)"/></div>
+      <button class="bd" onclick="cambiarPass()" style="width:100%;padding:9px;font-size:.78rem">Guardar contraseña</button>
+      <p class="mmhint" style="margin:7px 0 0">Si entraste con un enlace del mail, poné acá una contraseña para no depender del mail cada vez.</p>
+    </div>
     <div class="mact">
       <button class="bd" onclick="cerrarPerfilEditar()">Cancelar</button>
       <button class="bg" onclick="guardarPerfil()">Guardar</button>
@@ -683,7 +688,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v52</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v53</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -762,7 +767,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
               <div class="fg"><label>Email</label><input id="inv-email" type="email" placeholder="vendedor@mail.com"/></div>
             </div>
             <button class="bg" onclick="invitarVendedor()" style="width:100%;padding:11px;font-weight:800">Invitar</button>
-            <p class="mmhint" style="margin:9px 0 0">Decile que entre a la app y se registre con <b>ese mismo mail</b>. Queda enganchado a tu empresa solo, sin que toques nada.</p>
+            <p class="mmhint" style="margin:9px 0 0">Le llega un mail con un enlace para entrar. Al tocarlo queda dentro de tu empresa solo, sin que toques nada. Después puede ponerse una contraseña desde su perfil.</p>
           </div>
         </div>
       </div>
@@ -854,6 +859,13 @@ function abrirPerfilEditar(){
   document.getElementById('overlayPerfil').classList.add('on');
 }
 function cerrarPerfilEditar(){document.getElementById('overlayPerfil').classList.remove('on');}
+async function cambiarPass(){
+  const el=document.getElementById('p-pass'),v=el.value;
+  if(!v||v.length<6){toast('La contraseña tiene que tener al menos 6 caracteres');return;}
+  const{error}=await sb.auth.updateUser({password:v});
+  if(error){toast('Error: '+error.message);return;}
+  el.value='';toast('🔒 Contraseña guardada. Ya podés entrar con mail y contraseña.',6000);
+}
 function guardarPerfil(){
   const nombre=document.getElementById('p-nombre').value.trim();
   const email=document.getElementById('p-email').value.trim();
@@ -1207,10 +1219,18 @@ async function invitarVendedor(){
   if(!n){toast('Poné el nombre');return;}
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)){toast('Ese email no parece válido');return;}
   const{error}=await sb.from('invitaciones').insert([{email:m,nombre:n,empresa_id:miEmpresa,rol:'vendedor'}]);
-  if(error){toast(/duplicate|unique/i.test(error.message)?'Ese mail ya está invitado':'Error: '+error.message);return;}
+  if(error&&!/duplicate|unique/i.test(error.message)){toast('Error: '+error.message);return;}
+  // El mail con el enlace lo manda Supabase. Si falla (suele ser el límite de
+  // envíos), la invitación igual queda guardada y puede registrarse a mano.
+  let mailOk=false,mailErr='';
+  try{
+    const r=await sb.auth.signInWithOtp({email:m,options:{shouldCreateUser:true,emailRedirectTo:location.origin+location.pathname}});
+    if(r.error)mailErr=r.error.message;else mailOk=true;
+  }catch(e){mailErr=String(e&&e.message||e);}
   document.getElementById('inv-nombre').value='';
   document.getElementById('inv-email').value='';
-  toast('✅ Invitado. Decile que se registre con ese mail.',6000);
+  if(mailOk)toast('📧 Le mandamos el mail a '+m+' con el enlace para entrar',7000);
+  else toast('Invitación guardada, pero el mail no salió ('+mailErr+'). Decile que entre a la app y se registre con ese mismo mail.',9000);
   cargarMiEquipo();
 }
 async function cancelarInvitacion(id){
