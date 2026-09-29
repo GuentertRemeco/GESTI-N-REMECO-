@@ -554,10 +554,10 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <p class="mmhint" id="roHint" style="display:none;color:var(--gold);font-weight:700">🔒 Solo lectura — para modificar, andá a la pestaña Ventas</p>
     <div class="frow">
       <div class="fg"><label>Cliente *</label><input id="f-cliente" placeholder="Nombre completo"/></div>
-      <div class="fg"><label>Teléfono</label><input id="f-telefono" placeholder="3584123456" type="tel"/></div>
+      <div class="fg"><label>Teléfono</label><input oninput="autocompletarCliente()" id="f-telefono" placeholder="3584123456" type="tel"/></div>
     </div>
     <div class="frow">
-      <div class="fg"><label>CUIT</label><input id="f-cuit" placeholder="20-12345678-9"/></div>
+      <div class="fg"><label>CUIT</label><input oninput="autocompletarCliente()" id="f-cuit" placeholder="20-12345678-9"/></div>
       <div class="fg"><label>Estado</label><select id="f-estado"><option>Confirmado</option><option>En producción</option><option>Listo para entregar</option><option>En camino</option><option>Entregado</option></select></div>
     </div>
     <div class="fg">
@@ -641,6 +641,11 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <h2 style="font-size:.88rem;color:var(--gold);margin-bottom:12px">Mi perfil</h2>
     <div class="fg"><label>Nombre</label><input id="p-nombre" placeholder="Tu nombre"/></div>
     <div class="fg"><label>Email</label><input id="p-email" type="email" placeholder="tu@email.com"/></div>
+    <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px">
+      <div class="fg" style="margin-bottom:6px"><label>Cambiar contraseña</label><input id="p-pass" type="password" placeholder="Nueva contraseña (mínimo 6)"/></div>
+      <button class="bd" onclick="cambiarPass()" style="width:100%;padding:9px;font-size:.78rem">Guardar contraseña</button>
+      <p class="mmhint" style="margin:7px 0 0">Si entraste con un enlace del mail, poné acá una contraseña para no depender del mail cada vez.</p>
+    </div>
     <div class="mact">
       <button class="bd" onclick="cerrarPerfilEditar()">Cancelar</button>
       <button class="bg" onclick="guardarPerfil()">Guardar</button>
@@ -683,7 +688,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v51</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v53</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -762,7 +767,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
               <div class="fg"><label>Email</label><input id="inv-email" type="email" placeholder="vendedor@mail.com"/></div>
             </div>
             <button class="bg" onclick="invitarVendedor()" style="width:100%;padding:11px;font-weight:800">Invitar</button>
-            <p class="mmhint" style="margin:9px 0 0">Decile que entre a la app y se registre con <b>ese mismo mail</b>. Queda enganchado a tu empresa solo, sin que toques nada.</p>
+            <p class="mmhint" style="margin:9px 0 0">Le llega un mail con un enlace para entrar. Al tocarlo queda dentro de tu empresa solo, sin que toques nada. Después puede ponerse una contraseña desde su perfil.</p>
           </div>
         </div>
       </div>
@@ -854,6 +859,13 @@ function abrirPerfilEditar(){
   document.getElementById('overlayPerfil').classList.add('on');
 }
 function cerrarPerfilEditar(){document.getElementById('overlayPerfil').classList.remove('on');}
+async function cambiarPass(){
+  const el=document.getElementById('p-pass'),v=el.value;
+  if(!v||v.length<6){toast('La contraseña tiene que tener al menos 6 caracteres');return;}
+  const{error}=await sb.auth.updateUser({password:v});
+  if(error){toast('Error: '+error.message);return;}
+  el.value='';toast('🔒 Contraseña guardada. Ya podés entrar con mail y contraseña.',6000);
+}
 function guardarPerfil(){
   const nombre=document.getElementById('p-nombre').value.trim();
   const email=document.getElementById('p-email').value.trim();
@@ -1207,10 +1219,18 @@ async function invitarVendedor(){
   if(!n){toast('Poné el nombre');return;}
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)){toast('Ese email no parece válido');return;}
   const{error}=await sb.from('invitaciones').insert([{email:m,nombre:n,empresa_id:miEmpresa,rol:'vendedor'}]);
-  if(error){toast(/duplicate|unique/i.test(error.message)?'Ese mail ya está invitado':'Error: '+error.message);return;}
+  if(error&&!/duplicate|unique/i.test(error.message)){toast('Error: '+error.message);return;}
+  // El mail con el enlace lo manda Supabase. Si falla (suele ser el límite de
+  // envíos), la invitación igual queda guardada y puede registrarse a mano.
+  let mailOk=false,mailErr='';
+  try{
+    const r=await sb.auth.signInWithOtp({email:m,options:{shouldCreateUser:true,emailRedirectTo:location.origin+location.pathname}});
+    if(r.error)mailErr=r.error.message;else mailOk=true;
+  }catch(e){mailErr=String(e&&e.message||e);}
   document.getElementById('inv-nombre').value='';
   document.getElementById('inv-email').value='';
-  toast('✅ Invitado. Decile que se registre con ese mail.',6000);
+  if(mailOk)toast('📧 Le mandamos el mail a '+m+' con el enlace para entrar',7000);
+  else toast('Invitación guardada, pero el mail no salió ('+mailErr+'). Decile que entre a la app y se registre con ese mismo mail.',9000);
   cargarMiEquipo();
 }
 async function cancelarInvitacion(id){
@@ -2351,10 +2371,74 @@ function abrirNuevoViaje(){document.getElementById('overlayViaje').classList.add
 function cerrarNuevoViaje(){document.getElementById('overlayViaje').classList.remove('on');}
 
 // ── CLIENTES ─────────────────────────────────────────────────
+// ── IDENTIDAD DEL CLIENTE ────────────────────────────────────
+// El nombre lo escribe una persona distinta cada vez, así que no sirve como
+// identificador. El CUIT y el teléfono sí, comparando solo los dígitos.
+function soloDigitos(s){return String(s==null?'':s).replace(/\D/g,'');}
+function claveCuit(s){const d=soloDigitos(s);return d.length>=8?d:'';}
+// Últimos 8 dígitos: así el 0, el 15 y el +54 no rompen el enganche.
+function claveTel(s){const d=soloDigitos(s);return d.length>=8?d.slice(-8):'';}
+function claveNom(s){const t=sinTildes(s).replace(/[^a-z0-9]/g,'');return t?'n:'+t:'';}
+
+// Agrupa ventas en clientes: dos ventas son del mismo si comparten CUIT,
+// teléfono o nombre. Va en cadena: si A y B comparten CUIT, y B y C el
+// teléfono, los tres son el mismo cliente.
+function agruparClientes(lista){
+  const padre=lista.map((_,i)=>i);
+  const find=i=>{while(padre[i]!==i){padre[i]=padre[padre[i]];i=padre[i];}return i;};
+  const unir=(a,b)=>{a=find(a);b=find(b);if(a!==b)padre[b]=a;};
+  const idx={};
+  lista.forEach((v,i)=>{
+    [claveCuit(v.cuit),claveTel(v.telefono),claveNom(v.cliente)].filter(Boolean).forEach(k=>{
+      if(idx[k]!==undefined)unir(idx[k],i);else idx[k]=i;
+    });
+  });
+  const grupos={};
+  lista.forEach((v,i)=>{const r=find(i);(grupos[r]=grupos[r]||[]).push(v);});
+  return Object.values(grupos).map(vs=>{
+    // Los datos del cliente salen de su venta más reciente
+    const ord=[...vs].sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
+    // Gana la forma del nombre que más veces escribió; si empatan, la más reciente
+    const cuenta={};
+    ord.forEach(v=>{const n=(v.cliente||'').trim();if(n)cuenta[n]=(cuenta[n]||0)+1;});
+    const nombre=Object.keys(cuenta).sort((x,y)=>cuenta[y]-cuenta[x])[0]
+      ||((ord.find(v=>v.cliente)||{}).cliente)||'—';
+    return{nombre,
+           telefono:(ord.find(v=>v.telefono)||{}).telefono||'',
+           cuit:(ord.find(v=>v.cuit)||{}).cuit||'',
+           ventas:ord};
+  }).sort((a,b)=>b.ventas.length-a.ventas.length);
+}
+
+// Si el CUIT o el teléfono ya existen, completa los datos que estén vacíos.
+// Nunca pisa lo que la persona escribió.
+function autocompletarCliente(){
+  if(modalReadOnly||editId)return;
+  const cu=claveCuit(document.getElementById('f-cuit').value);
+  const te=claveTel(document.getElementById('f-telefono').value);
+  if(!cu&&!te)return;
+  // Buscamos el cliente entero, no una venta suelta: si el CUIT lo cargó en una
+  // compra vieja y el teléfono en otra, igual los recuperamos a los dos.
+  const cli=agruparClientes(ventas).find(c=>c.ventas.some(x=>(cu&&claveCuit(x.cuit)===cu)||(te&&claveTel(x.telefono)===te)));
+  if(!cli)return;
+  const ord=cli.ventas; // ya vienen de la más nueva a la más vieja
+  const dato=campo=>{const x=ord.find(y=>y[campo]);return x?x[campo]:'';};
+  let puso=false;
+  const set=(id,val)=>{const e=document.getElementById(id);if(e&&!e.value.trim()&&val){e.value=val;puso=true;}};
+  set('f-cliente',cli.nombre);
+  set('f-telefono',dato('telefono'));
+  set('f-cuit',dato('cuit'));
+  set('f-localidad',dato('localidad'));
+  const v=ord.find(x=>x.lat&&x.lng);
+  if(modalLat==null&&v){
+    modalLat=parseFloat(v.lat);modalLng=parseFloat(v.lng);
+    if(mapModal&&modalMarker){const pos={lat:modalLat,lng:modalLng};mapModal.setCenter(pos);mapModal.setZoom(11);modalMarker.setPosition(pos);modalMarker.setVisible(true);}
+    puso=true;
+  }
+  if(puso&&cli.nombre)toast('👤 '+cli.nombre+' — ya era cliente tuyo, completé sus datos',5000);
+}
 function renderClientes(){
-  const map={};
-  ventas.forEach(v=>{if(!v.cliente)return;if(!map[v.cliente])map[v.cliente]={nombre:v.cliente,telefono:v.telefono,cuit:v.cuit,ventas:[]};map[v.cliente].ventas.push(v);});
-  const lista=Object.values(map).sort((a,b)=>b.ventas.length-a.ventas.length);
+  const lista=agruparClientes(ventas.filter(v=>v.cliente||v.cuit||v.telefono));
   window._cliLista=lista;
   document.getElementById('cliList').innerHTML=lista.length?lista.map((c,i)=>`<div class="cli-item" onclick="verCliente(${i})" id="cli-${i}"><div class="cli-name">${esc(c.nombre)}</div>${c.telefono?`<div class="cli-tel">📞 ${esc(c.telefono)}</div>`:''}<div class="cli-cnt">${c.ventas.length} venta${c.ventas.length!==1?'s':''}</div></div>`).join(''):'<div style="color:var(--text3);font-size:.78rem;padding:12px">Sin clientes</div>';
   if(lista.length)verCliente(0);
