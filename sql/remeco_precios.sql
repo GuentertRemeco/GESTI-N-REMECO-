@@ -74,23 +74,23 @@ on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded
 insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('aereo','200tn',0,18,'{}'::jsonb,null)
 on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
 
--- ---------- Comederos / Autoconsumo (faltan descripciones y fotos) ----------
-insert into precios (tipo,modelo,usd,orden) values ('comedero','2tn 12 bocas',1787,1)
-on conflict (tipo,modelo) do update set usd=excluded.usd, orden=excluded.orden;
-insert into precios (tipo,modelo,usd,orden) values ('comedero','2tn 18 bocas',1798,2)
-on conflict (tipo,modelo) do update set usd=excluded.usd, orden=excluded.orden;
-insert into precios (tipo,modelo,usd,orden) values ('comedero','4tn',2090,3)
-on conflict (tipo,modelo) do update set usd=excluded.usd, orden=excluded.orden;
-insert into precios (tipo,modelo,usd,orden) values ('comedero','7tn',3013,4)
-on conflict (tipo,modelo) do update set usd=excluded.usd, orden=excluded.orden;
-insert into precios (tipo,modelo,usd,orden) values ('comedero','7tn con Alero al medio',3242,5)
-on conflict (tipo,modelo) do update set usd=excluded.usd, orden=excluded.orden;
-insert into precios (tipo,modelo,usd,orden) values ('comedero','12tn',3710,6)
-on conflict (tipo,modelo) do update set usd=excluded.usd, orden=excluded.orden;
-insert into precios (tipo,modelo,usd,orden) values ('comedero','12tn con Alero al medio',4007,7)
-on conflict (tipo,modelo) do update set usd=excluded.usd, orden=excluded.orden;
-insert into precios (tipo,modelo,usd,orden) values ('comedero','18tn con Alero al medio',4128,8)
-on conflict (tipo,modelo) do update set usd=excluded.usd, orden=excluded.orden;
+-- ---------- Comederos / Autoconsumo ----------
+insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('comedero','2tn 12 bocas',1787,1,'{"35": "Silo comedero autoconsumo 2tn, 12 bocas, cilindro 1.52mts de diámetro, base 2.16mts diámetro, techo 2.45mts diámetro, altura 2,70mts, vuelo alero 0,50mts"}'::jsonb,'img/silos/comedero-2tn-12bocas.jpg')
+on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
+insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('comedero','2tn 18 bocas',1798,2,'{"35": "Silo comedero autoconsumo 2tn, 18 bocas, cilindro 1.52mts de diámetro, base 2.16mts diámetro, techo 2.45mts diámetro, altura 2,70mts, vuelo alero 0,50mts"}'::jsonb,'img/silos/comedero-2tn-18bocas.jpg')
+on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
+insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('comedero','4tn',2090,3,'{"35": "Silo comedero autoconsumo 4tn, 12 bocas, cilindro 1.52mts de diámetro, base 2.16mts diámetro, techo 2.45mts diámetro, altura 3,70mts, vuelo alero 0,50mts"}'::jsonb,'img/silos/comedero-4tn.jpg')
+on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
+insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('comedero','7tn',3013,4,'{"35": "Silo comedero autoconsumo 7tn, 12 bocas, cilindro 2.26mts de diámetro, base 3.6mts diámetro, techo 3.20mts diámetro, altura 3,70mts, vuelo alero 0,60mts"}'::jsonb,'img/silos/comedero-7tn.jpg')
+on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
+insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('comedero','7tn con Alero al medio',3242,5,'{"35": "Silo comedero autoconsumo 7tn con alero al medio, 12 bocas, cilindro 2.26mts de diámetro, base 3.6mts diámetro, techo 3.7mts diámetro, altura 3,70mts, vuelo alero 0,76mts"}'::jsonb,'img/silos/comedero-7tn-alero.jpg')
+on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
+insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('comedero','12tn',3710,6,'{"35": "Silo comedero autoconsumo 12tn, 20 bocas, cilindro 3.15mts de diámetro, base 3.95mts diámetro, techo 4.40mts diámetro, altura 3,70mts, diámetro alero 5,50mts, vuelo alero 1,20mts"}'::jsonb,'img/silos/comedero-12tn.jpg')
+on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
+insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('comedero','12tn con Alero al medio',4007,7,'{"35": "Silo comedero autoconsumo 12tn con alero al medio, 20 bocas, cilindro 3.15mts de diámetro, base 3.95mts diámetro, techo 3.35mts diámetro, altura 3,70mts, diámetro alero 4mts, vuelo alero 0,76mts"}'::jsonb,'img/silos/comedero-12tn-alero.jpg')
+on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
+insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('comedero','18tn con Alero al medio',4128,8,'{"35": "Silo comedero autoconsumo 18tn, 20 bocas, cilindro 3.15mts de diámetro, base 3.95mts diámetro, techo 3.45mts diámetro, altura 4,70mts, diámetro alero 4,55mts, vuelo alero 0,76mts"}'::jsonb,'img/silos/comedero-18tn-alero.jpg')
+on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
 
 select tipo, count(*) as modelos, count(descripciones) as con_descripcion, count(imagen) as con_foto
 from precios group by tipo;
