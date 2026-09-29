@@ -410,6 +410,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div class="ic-sm"><div class="ic-label">Pedidos pendientes</div><div class="ic-num" id="ic-pend">0</div><div class="ic-sub2" id="ic-pend-sub"></div></div>
       <div class="ic-sm"><div class="ic-label">Viajes activos</div><div class="ic-num" id="ic-viajes">0</div><div class="ic-sub2" id="ic-viajes-sub"></div></div>
     </div>
+    <div id="rankInicio"></div>
     <div class="inicio-stitle">Acciones rápidas</div>
     <div class="qa-row">
       <button class="qa-btn primary" onclick="abrirNueva()"><span class="ic">＋</span><span class="tx">Nueva venta</span></button>
@@ -682,7 +683,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v49</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v50</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -940,6 +941,7 @@ function ir(pg){
   if(fab)fab.style.display=(pg==='inicio'&&window.innerWidth<=768)?'block':'none';
   if(pg==='mapa'&&typeof google!=='undefined')initMapaMapa();
   if(pg==='clientes'&&cliVistaActual==='mapa'&&typeof google!=='undefined')setTimeout(initMapaClientes,60);
+  if(pg==='inicio')renderRankingInicio();
   if(pg==='asistente'){asIniciar();setTimeout(()=>{const i=document.getElementById('asInput');if(i&&window.innerWidth>768)i.focus();},80);}
   if(pg==='flete'&&typeof google!=='undefined'){initMapaFlete();setFletePlaceholder(!viajeAbierto);if(viajeAbierto)setTimeout(()=>mostrarRutaViaje(viajeAbierto),400);}
   if(pg==='simular'&&typeof google!=='undefined')initMapaSim();
@@ -1121,6 +1123,43 @@ async function rankingPorCantidad(per,el){
     </div>`;}).join('')
   +'<div style="font-size:.63rem;color:var(--text3);margin-top:8px;line-height:1.5">Cuenta las ventas de <b>las dos empresas</b>. Solo la cantidad: la facturación y la ganancia de la otra empresa no se ven desde acá.</div>';
   return true;
+}
+// El ranking en Inicio: lo primero que ve un vendedor al abrir la app.
+// Solo cantidades, de las dos empresas, del mes en curso.
+async function renderRankingInicio(){
+  const el=document.getElementById('rankInicio');if(!el)return;
+  const now=new Date();
+  let data=null;
+  try{const r=await sb.rpc('ranking_ventas',{desde:new Date(now.getFullYear(),now.getMonth(),1).toISOString()});if(!r.error)data=r.data;}catch(e){}
+  if(!Array.isArray(data)||!data.length){el.innerHTML='';return;}
+  const yoIdx=data.findIndex(f=>f.soy_yo);
+  const lider=parseInt(data[0]&&data[0].ventas)||0;
+  const mias=yoIdx>=0?(parseInt(data[yoIdx].ventas)||0):0;
+  const faltan=lider-mias;
+  // Con muchos vendedores mostramos el podio y tu fila, para que no ocupe media pantalla
+  const filas=(data.length>6&&yoIdx>4)?data.slice(0,5).concat([data[yoIdx]]):data.slice(0,6);
+  const medalla=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="color:var(--text3);font-weight:800;font-size:.8rem">${i+1}</span>`;
+  const mensaje=yoIdx<0?''
+    :yoIdx===0?'<div style="font-size:.74rem;color:var(--green);font-weight:800;margin-top:9px">🔥 Vas primero este mes. No te dejes alcanzar.</div>'
+    :faltan<=0?''
+    :`<div style="font-size:.74rem;color:var(--gold);font-weight:700;margin-top:9px">Te ${faltan===1?'falta':'faltan'} <b>${faltan}</b> venta${faltan!==1?'s':''} para llegar al primer puesto.</div>`;
+  el.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:20px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px">
+      <div class="inicio-stitle" style="margin:0">🏆 Ranking de ventas · este mes</div>
+      <span style="font-size:.62rem;color:var(--text3);flex-shrink:0">por cantidad</span>
+    </div>
+    ${filas.map(f=>{
+      const i=data.indexOf(f),n=parseInt(f.ventas)||0;
+      return`<div style="display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:9px;margin-bottom:4px;background:${f.soy_yo?'#2a2410':'transparent'};border:1px solid ${f.soy_yo?'var(--gold)':'transparent'}">
+        <div style="width:22px;text-align:center;font-size:1rem;flex-shrink:0">${medalla(i)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:800;font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(f.vendedor)||'—'}${f.soy_yo?'<span style="color:var(--gold);font-size:.64rem;margin-left:5px">· VOS</span>':''}</div>
+          <div style="font-size:.62rem;color:var(--text3)">${esc(f.empresa)||'sin empresa'}</div>
+        </div>
+        <div style="font-weight:900;font-size:1rem;color:${n?'var(--gold)':'var(--text3)'};flex-shrink:0">${n}</div>
+      </div>`;}).join('')}
+    ${mensaje}
+  </div>`;
 }
 async function cargarRanking(){
   const el=document.getElementById('cfg-rank-lista');if(!el)return;
@@ -1316,7 +1355,7 @@ async function cargarDatos(){
   // Nombres de vendedores: se precargan para mostrar quién publicó cada flete sin esperar
   try{if(!_vendCache){const{data:vend}=await sb.from('vendedores').select('user_id,nombre');_vendCache={};(vend||[]).forEach(x=>{_vendCache[x.user_id]=x.nombre;});}}catch(e){}
   // renderViajes() de nuevo: la sección "tus clientes en viajes de otros" necesita fletesPublicos
-  renderViajes();renderFpDisponibles();
+  renderViajes();renderFpDisponibles();renderRankingInicio();
   if(mapMapa)actMarkersMapa();
   if(mapClientes&&cliVistaActual==='mapa')initMapaClientes();
 }
