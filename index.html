@@ -222,7 +222,9 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .hoja .emp{text-align:right;font-size:.8rem;color:#445}
 .hoja table{width:100%;border-collapse:collapse;margin:14px 0}
 .hoja th{background:#eef1f5;border:1px solid #b9c2cd;padding:7px;font-size:.84rem}
-.hoja td{border:1px solid #b9c2cd;padding:8px;vertical-align:middle}
+.hoja td{border:1px solid #b9c2cd;padding:8px;vertical-align:middle;background:#fff}
+.hoja tr:hover td{background:#fff}
+.hoja tr:hover th{background:#eef1f5}
 .hoja textarea,.hoja input{width:100%;border:1.5px solid #e8710a;border-radius:5px;padding:7px;font-family:inherit;font-size:.85rem;color:#11202e;background:#fff;box-sizing:border-box}
 .hoja textarea{resize:vertical}
 .hoja .imp{width:100%;text-align:right}
@@ -489,6 +491,15 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <div id="calc-resumen" class="calc-resumen"></div>
     <button class="calc-btn naranja grande" onclick="calcVistaPrevia()">Crear Vista Previa</button>
     <button class="calc-btn roja" onclick="calcResetear()">Resetear formulario</button>
+
+    <div id="calc-prev-box" style="display:none;margin-top:22px">
+      <div class="calc-lb" style="font-size:.63rem;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:var(--gold)">Vista previa · se puede editar</div>
+      <div class="hoja" id="calc-hoja"></div>
+      <div style="display:flex;gap:7px;margin-top:12px;flex-wrap:wrap">
+        <button class="bg" style="flex:1;min-width:150px;padding:13px;font-weight:800" onclick="calcPDF()">📄 Generar PDF</button>
+        <button class="bv" style="flex:1;min-width:150px;padding:13px;font-weight:800" onclick="calcAVenta()">✅ Convertir en venta</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -782,26 +793,11 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 </div>
 
 <!-- PANTALLA CONFIGURACIÓN (pantalla completa) -->
-<!-- VISTA PREVIA DEL PRESUPUESTO -->
-<div id="calcPrevScreen" style="display:none;position:fixed;inset:0;background:#2b3138;z-index:7000;flex-direction:column">
-  <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--bg4);border-bottom:1px solid var(--border);flex-shrink:0">
-    <button class="bd" onclick="calcCerrarPrev()" style="padding:8px 13px">← Volver</button>
-    <div style="font-weight:900;color:var(--gold);font-size:.9rem;letter-spacing:1.4px">VISTA PREVIA</div>
-  </div>
-  <div style="flex:1;overflow-y:auto;padding:14px">
-    <div class="hoja" id="calc-hoja"></div>
-  </div>
-  <div style="padding:11px 14px;background:var(--bg4);border-top:1px solid var(--border);display:flex;gap:7px;flex-shrink:0">
-    <button class="bg" style="flex:1;padding:12px;font-weight:800" onclick="calcPDF()">📄 Generar PDF</button>
-    <button class="bv" style="flex:1;padding:12px;font-weight:800" onclick="calcAVenta()">✅ Convertir en venta</button>
-  </div>
-</div>
-
 <div id="configScreen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:7000;flex-direction:column">
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v57</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v58</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -3102,7 +3098,11 @@ function calcPrecioLinea(s){
   if(!pu)return null;
   const iva=cfgNum('iva',10.5);
   const ars=calc.iva?pu.ars:Math.round(pu.ars/(1+iva/100));
-  return{...pu,ars,silo:s};
+  // La descripcion sale de la lista de precios; la base de fibra se agrega
+  // aparte porque no viene en el texto del modelo.
+  let desc=pu.descripcion;
+  if(calcFibraAplica(s)&&s.fibra)desc+=', con base de fibra';
+  return{...pu,ars,descripcion:desc,silo:s};
 }
 function calcSilosCargados(){return calcSilos.filter(s=>s.id);}
 function calcFleteTotal(){
@@ -3177,9 +3177,11 @@ function calcVistaPrevia(){
     plazo:cfgNum('entrega_dias',15)
   };
   calcPintarHoja();
-  document.getElementById('calcPrevScreen').style.display='flex';
+  const box=document.getElementById('calc-prev-box');
+  box.style.display='block';
+  setTimeout(()=>box.scrollIntoView({behavior:'smooth',block:'start'}),60);
 }
-function calcCerrarPrev(){document.getElementById('calcPrevScreen').style.display='none';}
+function calcCerrarPrev(){const b=document.getElementById('calc-prev-box');if(b)b.style.display='none';}
 function calcPrevSet(campo,v){calcPrev[campo]=v;}
 function calcPrevFila(i,campo,v){calcPrev.filas[i][campo]=campo==='importe'?(parseFloat(v)||0):v;if(campo==='importe')calcPintarTotalHoja();}
 function calcTotalHoja(){
