@@ -193,6 +193,29 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .bd{background:var(--border);color:var(--text);border:1px solid var(--border2)}
 .bv{background:#1a5230;color:#9fe;border:1px solid #2a8c50}
 .bp{background:#0d2e18;color:var(--green);border:1px solid #2a8c50}
+.calc-wrap{flex:1;overflow-y:auto;padding:16px 18px 30px;max-width:1080px;width:100%;margin:0 auto}
+.calc-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.calc-h1{font-size:1.5rem;font-weight:900;color:var(--gold);letter-spacing:.5px}
+.calc-h2{font-size:.78rem;color:var(--text3);margin-top:2px}
+.calc-gest{margin-left:auto;padding:9px 15px;font-size:.78rem;white-space:nowrap}
+.calc-cols{display:flex;gap:18px;align-items:flex-start}
+.calc-col{flex:1;min-width:0}
+.calc-col:last-child{flex:0 0 340px;position:sticky;top:0}
+.calc-step{margin-bottom:15px}
+.calc-label{font-size:.63rem;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:var(--gold);margin-bottom:7px}
+.calc-chips{display:flex;flex-wrap:wrap;gap:6px}
+.calc-chip{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:9px;padding:11px 14px;font-size:.86rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .12s;min-width:46px}
+.calc-chip.big{flex:1;padding:14px 12px;font-size:.95rem}
+.calc-chip.on{background:var(--gold);color:#111820;border-color:var(--gold)}
+.calc-chip:active{transform:scale(.97)}
+.calc-cant{display:flex;align-items:center;gap:12px;font-size:1.15rem;font-weight:900}
+.calc-cant .calc-chip{width:48px;text-align:center;font-size:1.2rem}
+.calc-total{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:14px}
+.calc-foto{width:100%;height:150px;object-fit:cover;border-radius:9px;margin-bottom:10px;background:var(--bg)}
+.calc-row{display:flex;justify-content:space-between;gap:10px;font-size:.84rem;padding:5px 0;border-bottom:1px solid var(--border)}
+.calc-row:last-of-type{border-bottom:none}
+.calc-big{font-size:1.45rem;font-weight:900;color:var(--gold);text-align:right;margin-top:8px}
+@media (max-width:900px){.calc-cols{flex-direction:column}.calc-col:last-child{flex:1 1 auto;width:100%;position:static}}
 .opt-btn{background:var(--bg);border:1px solid var(--border2);color:var(--text2);border-radius:7px;padding:5px 10px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
 .opt-btn.on{background:var(--gold);color:#111820;border-color:var(--gold)}
 .prod-item{background:var(--bg3);border:1px solid #1e3a55;border-radius:9px;margin-bottom:7px;overflow:hidden}
@@ -234,6 +257,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .simular-wrap{flex:1;display:flex;overflow:hidden}
 @media(max-width:768px){
   .topnav{display:none}.bnav{display:flex!important}
+  .calc-wrap{padding:14px 14px 28px}.calc-h1{font-size:1.25rem}.calc-gest{padding:8px 12px;font-size:.72rem}
   body{padding-bottom:var(--bnav-h)}
   .vtable-wrap{display:none}.vcards-wrap{display:flex;flex-direction:column;padding-bottom:calc(var(--bnav-h) + 20px)}
   .flete-wrap,.simular-wrap{flex-direction:column-reverse}
@@ -372,11 +396,12 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 
 <nav class="topnav">
   <div class="nav-logo">Remeco <span>Gestión</span></div>
-  <button class="ntab on" onclick="ir('inicio')">🏠 Inicio</button>
+  <button class="ntab on" onclick="ir('calc')">🧮 Presupuesto</button>
+  <button class="ntab" onclick="ir('inicio')">🏠 Inicio</button>
   <button class="ntab" onclick="ir('ventas')">📋 Ventas</button>
   <button class="ntab" onclick="ir('mapa')">🗺️ Mapa</button>
   <button class="ntab" onclick="ir('flete')">🚛 Flete</button>
-  <button class="ntab" onclick="ir('simular')">🧮 Simular</button>
+  <button class="ntab" onclick="ir('simular')">🚚 Simular flete</button>
   <button class="ntab" onclick="ir('clientes')">👤 Clientes</button>
   <button class="ntab" onclick="ir('asistente')">🤖 Asistente</button>
   <div class="nav-right">
@@ -387,15 +412,68 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 </nav>
 
 <nav class="bnav" id="bnav">
-  <button class="bnav-item on" id="bn-inicio" onclick="ir('inicio')"><span class="bnav-icon">🏠</span><span class="bnav-label">Inicio</span></button>
+  <button class="bnav-item on" id="bn-calc" onclick="ir('calc')"><span class="bnav-icon">🧮</span><span class="bnav-label">Presupuesto</span></button>
+  <button class="bnav-item" id="bn-inicio" onclick="ir('inicio')"><span class="bnav-icon">🏠</span><span class="bnav-label">Inicio</span></button>
   <button class="bnav-item" id="bn-ventas" onclick="ir('ventas')"><span class="bnav-icon">📋</span><span class="bnav-label">Ventas</span></button>
   <button class="bnav-item" id="bn-flete" onclick="ir('flete')"><span class="bnav-icon">🚛</span><span class="bnav-label">Flete</span></button>
   <button class="bnav-item" id="bn-clientes" onclick="ir('clientes')"><span class="bnav-icon">👤</span><span class="bnav-label">Clientes</span></button>
-  <button class="bnav-item" id="bn-mas" onclick="ir('simular')"><span class="bnav-icon">🧮</span><span class="bnav-label">Simular</span></button>
 </nav>
 
+<!-- PRESUPUESTO (pantalla de entrada) -->
+<div class="page on" id="page-calc">
+  <div class="calc-wrap">
+    <div class="calc-head">
+      <div>
+        <div class="calc-h1">Presupuesto</div>
+        <div class="calc-h2">Elegí el silo y la localidad. El precio sale solo.</div>
+      </div>
+      <button class="bg calc-gest" onclick="ir('inicio')">Ir a la gestión →</button>
+    </div>
+
+    <div class="calc-cols">
+      <div class="calc-col">
+        <div class="calc-step">
+          <div class="calc-label">1 · Qué silo</div>
+          <div class="calc-chips">
+            <button class="calc-chip big" id="calc-t-aereo" onclick="calcSetTipo('aereo')">Base aérea</button>
+            <button class="calc-chip big" id="calc-t-comedero" onclick="calcSetTipo('comedero')">Autoconsumo</button>
+          </div>
+        </div>
+        <div class="calc-step">
+          <div class="calc-label">2 · Capacidad</div>
+          <div class="calc-chips" id="calc-modelos"></div>
+        </div>
+        <div class="calc-step" id="calc-step-extras">
+          <div class="calc-label" id="calc-extras-label">3 · Opciones</div>
+          <div class="calc-chips" id="calc-extras"></div>
+        </div>
+        <div class="calc-step">
+          <div class="calc-label">Cantidad</div>
+          <div class="calc-cant">
+            <button class="calc-chip" onclick="calcSetCant(-1)">−</button>
+            <span id="calc-cant">1</span>
+            <button class="calc-chip" onclick="calcSetCant(1)">+</button>
+          </div>
+        </div>
+        <div class="calc-step">
+          <div class="calc-label">Localidad de entrega <span style="color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0">· para el flete</span></div>
+          <div style="display:flex;gap:6px">
+            <input id="calc-loc" placeholder="Escribí la localidad y elegila de la lista" style="flex:1;min-width:0;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:9px;padding:12px;font-size:.92rem;font-family:inherit" onkeydown="if(event.key==='Enter'){event.preventDefault();calcBuscarLoc();}"/>
+            <button class="bv" id="calc-btn-loc" onclick="calcBuscarLoc()" style="padding:0 15px;font-size:1rem">🔍</button>
+          </div>
+          <div id="calc-km" style="font-size:.76rem;color:var(--text3);margin-top:6px"></div>
+        </div>
+      </div>
+
+      <div class="calc-col">
+        <div class="calc-total" id="calc-total"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- INICIO -->
-<div class="page on" id="page-inicio">
+<div class="page" id="page-inicio">
   <div class="inicio-wrap">
     <div class="ini-top">
       <div><div class="ini-fecha" id="inicioFecha"></div><div class="ini-saludo" id="inicioBienvenida">Remeco</div></div>
@@ -688,7 +766,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v53</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v56</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -751,6 +829,14 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
           </div>
           <div id="cfg-rank-lista"></div>
         </div>
+      </div>
+
+      <div id="cfg-precios-card" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:12px">
+        <div onclick="toggleCfg('precios')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+          <div class="inicio-stitle" style="margin:0">💲 Lista de precios</div>
+          <span id="cfg-arr-precios" style="color:var(--gold);font-size:.8rem">▶</span>
+        </div>
+        <div id="cfg-body-precios" style="display:none;margin-top:14px"><div id="cfg-precios-lista"></div></div>
       </div>
 
       <div id="cfg-equipo-card" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:12px">
@@ -817,7 +903,7 @@ let fleteMarkers=[],simMarkers=[];
 let simParadas=[],viajeAbierto=null,simKm=0,simTramos=[],ajenosExpandidos={};
 let agregarViajeId=null,agregarVentasSeleccionadas=new Set(),agregarVentasDisponibles=[];
 let prodItems=[];
-const BNAV={inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:'bn-mas',clientes:'bn-clientes',asistente:null};
+const BNAV={calc:'bn-calc',inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:null,clientes:'bn-clientes',asistente:null};
 const ESTADOS=['Confirmado','En producción','Listo para entregar','En camino','Entregado'];
 const COL={'Confirmado':'#ffffff','En producción':'#ffc040','Listo para entregar':'#c0a0ff','En camino':'#5ab8ff','Entregado':'#3ddc84'};
 
@@ -884,7 +970,8 @@ async function cerrarSesion(){
 
 // ── AUTENTICACIÓN (Supabase Auth) ────────────────────────────
 let authMode='login',authedUser=null,authedEmail=null;
-let miEmpresa=null,miRol=null; // de la tabla vendedores: a qué empresa pertenezco y si soy dueño
+let miEmpresa=null,miRol=null;
+let PRECIOS=[],CFG={}; // lista de precios en dólares y parámetros, desde Supabase // de la tabla vendedores: a qué empresa pertenezco y si soy dueño
 const MAIN_EMAIL='guentergerherd@gmail.com';
 let rankMetrica='fact';
 function mostrarGate(){document.getElementById('authGate').classList.add('on');}
@@ -965,7 +1052,7 @@ function ir(pg){
     const tx=t.textContent.toLowerCase();
     if((pg==='inicio'&&tx.includes('inicio'))||(pg==='ventas'&&tx.includes('venta'))||
        (pg==='mapa'&&tx.includes('mapa'))||(pg==='flete'&&tx.includes('flete'))||
-       (pg==='simular'&&tx.includes('simul'))||(pg==='clientes'&&tx.includes('cliente'))||(pg==='asistente'&&tx.includes('asistente')))
+       (pg==='calc'&&tx.includes('presupuesto'))||(pg==='simular'&&tx.includes('simul'))||(pg==='clientes'&&tx.includes('cliente'))||(pg==='asistente'&&tx.includes('asistente')))
       t.classList.add('on');
   });
   const bid=BNAV[pg];if(bid)document.getElementById(bid)?.classList.add('on');
@@ -974,6 +1061,7 @@ function ir(pg){
   if(pg==='mapa'&&typeof google!=='undefined')initMapaMapa();
   if(pg==='clientes'&&cliVistaActual==='mapa'&&typeof google!=='undefined')setTimeout(initMapaClientes,60);
   if(pg==='inicio')renderRankingInicio();
+  if(pg==='calc')calcRender();
   if(pg==='asistente'){asIniciar();setTimeout(()=>{const i=document.getElementById('asInput');if(i&&window.innerWidth>768)i.focus();},80);}
   if(pg==='flete'&&typeof google!=='undefined'){initMapaFlete();setFletePlaceholder(!viajeAbierto);if(viajeAbierto)setTimeout(()=>mostrarRutaViaje(viajeAbierto),400);}
   if(pg==='simular'&&typeof google!=='undefined')initMapaSim();
@@ -1110,8 +1198,9 @@ function abrirConfig(){
   if(bGan)bGan.style.display=esPrincipal?'':'none';
   if(!esPrincipal&&rankMetrica==='gan')setRankMetrica('fact');
   const ec=document.getElementById('cfg-equipo-card');if(ec)ec.style.display=(miRol==='admin')?'block':'none';
+  const pc=document.getElementById('cfg-precios-card');if(pc)pc.style.display=(miRol==='admin')?'block':'none';
   // Arrancan todas cerradas
-  ['flete','busc','aviso','rank','equipo','hist'].forEach(k=>{const b=document.getElementById('cfg-body-'+k),a=document.getElementById('cfg-arr-'+k);if(b)b.style.display='none';if(a)a.textContent='▶';});
+  ['flete','busc','aviso','rank','precios','equipo','hist'].forEach(k=>{const b=document.getElementById('cfg-body-'+k),a=document.getElementById('cfg-arr-'+k);if(b)b.style.display='none';if(a)a.textContent='▶';});
   document.getElementById('configScreen').style.display='flex';
 }
 function toggleCfg(k){
@@ -1119,6 +1208,7 @@ function toggleCfg(k){
   if(!b)return;const open=b.style.display!=='none';
   b.style.display=open?'none':'block';if(a)a.textContent=open?'▶':'▼';
   if(!open&&k==='rank')cargarRanking();
+  if(!open&&k==='precios')cargarListaPrecios();
   if(!open&&k==='equipo')cargarMiEquipo();
   if(!open&&k==='hist')renderHistorialCfg();
 }
@@ -1195,6 +1285,77 @@ async function renderRankingInicio(){
     ${mensaje}
   </div>`;
 }
+// ── LISTA DE PRECIOS ─────────────────────────────────────────
+// Los precios viven en dólares; la cotización los pasa a pesos. Así una sola
+// cifra actualiza toda la lista cuando se mueve el dólar.
+async function cargarPrecios(){
+  try{const r=await sb.from('precios').select('*').order('tipo').order('orden');if(!r.error)PRECIOS=r.data||[];}catch(e){}
+  try{const r=await sb.from('config').select('*');if(!r.error)(r.data||[]).forEach(x=>{CFG[x.clave]=parseFloat(x.valor);});}catch(e){}
+}
+function cfgNum(k,porDefecto){const v=CFG[k];return (v==null||isNaN(v))?porDefecto:v;}
+// Precio en pesos de un modelo. Verificado contra los presupuestos en PDF:
+// precio = USD x recargo de cono x cotizacion. El IVA YA VIENE ADENTRO del
+// precio en dolares, por eso no se multiplica de nuevo.
+function precioSilo(modeloId,{cono=35,fibra=false,margen=0}={}){
+  const p=PRECIOS.find(x=>String(x.id)===String(modeloId));
+  if(!p)return null;
+  let usd=parseFloat(p.usd)||0;
+  if(cono===45)usd*=1+cfgNum('cono45',20)/100;
+  else if(cono===55)usd*=1+cfgNum('cono55',30)/100;
+  if(fibra)usd+=cfgNum('base_fibra',1077);
+  if(margen)usd*=1+margen/100;
+  return{usd,ars:Math.round(usd*cfgNum('dolar',1485)),ref:p,
+         descripcion:descripcionSilo(p,cono)};
+}
+// Conos disponibles para un modelo: los grandes (mas de 60tn) van solo estandar
+function conosDe(p){
+  const d=p&&p.descripciones;
+  const ks=d?Object.keys(d).map(Number).filter(n=>n).sort((a,b)=>a-b):[];
+  return ks.length?ks:[35];
+}
+function descripcionSilo(p,cono){
+  const d=p&&p.descripciones;
+  return (d&&(d[String(cono)]||d['35']))||`${p.tipo==='aereo'?'Silo base aérea':'Comedero'} ${p.modelo}`;
+}
+
+// ── EDITOR DE LA LISTA (solo dueños) ─────────────────────────
+async function cargarListaPrecios(){
+  const el=document.getElementById('cfg-precios-lista');if(!el)return;
+  el.innerHTML='<div class="sp"></div>';
+  await cargarPrecios();
+  const campo=(k,lbl,def,paso)=>`<div class="fg" style="margin-bottom:8px"><label>${lbl}</label><input id="cfgp-${k}" type="number" step="${paso||'any'}" value="${cfgNum(k,def)}"/></div>`;
+  const grupo=(tipo,titulo)=>{
+    const filas=PRECIOS.filter(x=>x.tipo===tipo);
+    return`<div class="inicio-stitle" style="margin:14px 0 8px">${titulo} <span style="color:var(--text3);text-transform:none;letter-spacing:0">· precios en USD</span></div>`
+      +(filas.length?filas.map(x=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+          <span style="flex:1;min-width:0;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.modelo)}</span>
+          <input id="pr-${x.id}" type="number" value="${x.usd}" style="width:110px;flex-shrink:0;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:7px 9px;font-size:.82rem;font-family:inherit;text-align:right"/>
+        </div>`).join('')
+        :'<div style="font-size:.76rem;color:var(--text3)">Sin modelos cargados.</div>');
+  };
+  el.innerHTML=`<div class="frow">${campo('dolar','Cotización del dólar',1485)}${campo('iva','IVA (%)',10.5,'0.1')}</div>
+    <div class="frow">${campo('cono45','Cono 45° (% extra)',20,'0.1')}${campo('cono55','Cono 55° (% extra)',30,'0.1')}</div>
+    <div class="frow">${campo('base_fibra','Base de fibra (USD)',1077)}${campo('comision','Comisión del vendedor (%)',0,'0.1')}</div>
+    <p class="mmhint">Cuando se mueve el dólar, cambiás un solo número y se actualiza toda la lista.</p>
+    ${grupo('aereo','Silos Base Aérea')}
+    ${grupo('comedero','Comederos / Autoconsumo')}
+    <button class="bg" onclick="guardarPrecios()" style="width:100%;padding:12px;font-weight:800;margin-top:14px">Guardar lista de precios</button>`;
+}
+async function guardarPrecios(){
+  const cambios=[];
+  ['dolar','iva','cono45','cono55','base_fibra','comision'].forEach(k=>{
+    const e=document.getElementById('cfgp-'+k);
+    if(e&&e.value!=='')cambios.push({clave:k,valor:String(parseFloat(e.value))});
+  });
+  const filas=PRECIOS.map(x=>{const e=document.getElementById('pr-'+x.id);return e?{id:x.id,usd:parseFloat(e.value)||0}:null;}).filter(Boolean);
+  try{
+    if(cambios.length){const r=await sb.from('config').upsert(cambios,{onConflict:'clave'});if(r.error)throw r.error;}
+    for(const f of filas){const r=await sb.from('precios').update({usd:f.usd}).eq('id',f.id);if(r.error)throw r.error;}
+  }catch(e){toast('Error: '+(e.message||e));return;}
+  await cargarPrecios();
+  toast('💲 Lista de precios guardada',5000);
+}
+
 // ── MI EQUIPO E INVITACIONES ─────────────────────────────────
 async function cargarMiEquipo(){
   const el=document.getElementById('cfg-equipo-lista');if(!el)return;
@@ -1422,6 +1583,8 @@ function cargarProdItems(v){
 // ── DATOS ────────────────────────────────────────────────────
 async function cargarDatos(){
   try{const{data:mv}=await sb.from('vendedores').select('empresa_id,rol').eq('user_id',authedUser).maybeSingle();if(mv){miEmpresa=mv.empresa_id;miRol=mv.rol;}}catch(e){}
+  await cargarPrecios();
+  calcRender();
   const{data:v,error:ve}=await sb.from('ventas').select('*').eq('user_id',authedUser).order('created_at',{ascending:false});
   if(ve){toast('⚠️ Error Supabase: '+ve.message);console.error(ve);}
   else{ventas=v||[];renderVentas();renderStats();renderPendientes();renderClientes();}
@@ -2525,6 +2688,14 @@ function initMaps(){
       });
     }
   }
+  const cl=document.getElementById('calc-loc');
+  if(cl){
+    const acC=new google.maps.places.Autocomplete(cl,{componentRestrictions:{country:'ar'}});
+    acC.addListener('place_changed',()=>{
+      const pl=acC.getPlace();
+      if(pl&&pl.geometry)calcFijarDestino((pl.formatted_address||pl.name||cl.value).replace(/,\s*Argentina\s*$/i,''),pl.geometry.location.lat(),pl.geometry.location.lng());
+    });
+  }
   if(document.getElementById('page-mapa').classList.contains('on'))initMapaMapa();
   if(document.getElementById('page-flete').classList.contains('on'))initMapaFlete();
   if(document.getElementById('page-simular').classList.contains('on'))initMapaSim();
@@ -2824,6 +2995,173 @@ function renderSimParadas(){
 }
 function eliminarParadaSim(i){simParadas.splice(i,1);renderSimParadas();clearOpcionesSim();}
 function limpiarSim(){simParadas=[];renderSimParadas();clearOpcionesSim();const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';}
+
+// ── CALCULADORA DE PRESUPUESTO (pantalla de entrada) ─────────
+// Es la primera pantalla: elegís silo, capacidad y localidad, y sale el precio.
+// El flete usa la misma tarifa por km que el resto de la app, así un presupuesto
+// nunca contradice lo que después se cobra en el viaje.
+let calc={tipo:'aereo',id:null,cono:35,fibra:false,cant:1,loc:'',lat:null,lng:null,km:null,margen:0};
+function calcModelos(){return PRECIOS.filter(p=>p.tipo===calc.tipo&&p.activo!==false);}
+function calcRef(){return PRECIOS.find(p=>String(p.id)===String(calc.id))||null;}
+// Nombre del producto tal como lo usa la gestión, para que el flete y la venta coincidan
+function calcProdNombre(){return calc.tipo==='aereo'?'Silo Aéreo':'Autoconsumo';}
+function calcModeloStr(){const r=calcRef();return r?String(r.modelo).toUpperCase():'';}
+function calcSetTipo(t){
+  if(calc.tipo!==t){calc.tipo=t;calc.id=null;calc.cono=35;calc.fibra=false;}
+  calcRender();
+}
+function calcSetModelo(id){
+  calc.id=id;
+  const conos=conosDe(calcRef());
+  if(!conos.includes(calc.cono))calc.cono=conos[0];
+  calcRender();
+}
+function calcSetCono(c){calc.cono=c;calcRender();}
+function calcToggleFibra(){calc.fibra=!calc.fibra;calcRender();}
+function calcSetCant(d){calc.cant=Math.max(1,(calc.cant||1)+d);calcRender();}
+function calcSetMargen(v){calc.margen=parseFloat(v)||0;calcPintarTotal();}
+function calcFibraAplica(){const m=calcModeloStr();return calc.tipo==='comedero'&&(m.startsWith('12')||m.startsWith('18'));}
+function calcRender(){
+  const ms=calcModelos();
+  document.getElementById('calc-t-aereo').classList.toggle('on',calc.tipo==='aereo');
+  document.getElementById('calc-t-comedero').classList.toggle('on',calc.tipo==='comedero');
+  const cm=document.getElementById('calc-modelos');
+  cm.innerHTML=ms.length?ms.map(p=>`<button class="calc-chip${String(p.id)===String(calc.id)?' on':''}" onclick="calcSetModelo('${p.id}')">${esc(p.modelo)}</button>`).join('')
+    :'<div style="font-size:.78rem;color:var(--text3)">Todavía no hay precios cargados de este tipo. Se cargan en ⚙️ Configuración → Lista de precios.</div>';
+  const ex=document.getElementById('calc-extras'),lbl=document.getElementById('calc-extras-label'),paso=document.getElementById('calc-step-extras');
+  let html='';
+  if(calc.id&&calc.tipo==='aereo'){
+    const conos=conosDe(calcRef());
+    lbl.textContent='3 · Cono';
+    html=conos.map(c=>`<button class="calc-chip${calc.cono===c?' on':''}" onclick="calcSetCono(${c})">${c}°</button>`).join('');
+  }else if(calcFibraAplica()){
+    lbl.textContent='3 · Opciones';
+    html=`<button class="calc-chip${calc.fibra?' on':''}" onclick="calcToggleFibra()">${calc.fibra?'✓ ':''}Base de fibra</button>`;
+  }
+  paso.style.display=html?'block':'none';
+  ex.innerHTML=html;
+  document.getElementById('calc-cant').textContent=calc.cant||1;
+  calcPintarTotal();
+}
+// Flete de un solo silo hasta la localidad: tarifa del modelo × km de ida
+function calcFlete(){
+  if(calc.km==null||!calc.id)return 0;
+  const item={productos:[{producto:calcProdNombre(),modelo:calcModeloStr(),cantidad:calc.cant||1}]};
+  return Math.round(tarifaItem(item)*calc.km);
+}
+function calcCuentas(){
+  if(!calc.id)return null;
+  const pu=precioSilo(calc.id,{cono:calc.cono,fibra:calcFibraAplica()&&calc.fibra,margen:calc.margen});
+  if(!pu)return null;
+  const cant=calc.cant||1,sub=pu.ars*cant,flete=calcFlete();
+  return{pu,cant,sub,flete,total:sub+flete};
+}
+function calcPintarTotal(){
+  const el=document.getElementById('calc-total');if(!el)return;
+  const c=calcCuentas();
+  if(!c){el.innerHTML='<div style="text-align:center;padding:26px 14px;color:var(--text3);font-size:.82rem">Elegí una capacidad y aparece el precio.</div>';return;}
+  const r=c.pu.ref,foto=r.imagen?`<img class="calc-foto" src="${esc(r.imagen)}" alt="${esc(r.modelo)}" onerror="this.style.display='none'"/>`:'';
+  const nom=`${calcProdNombre()} ${esc(r.modelo)}${calc.tipo==='aereo'?' · cono '+calc.cono+'°':''}${(calcFibraAplica()&&calc.fibra)?' · base de fibra':''}`;
+  el.innerHTML=`${foto}
+    <div style="font-weight:800;font-size:.95rem;margin-bottom:8px">${nom}</div>
+    <div class="calc-row"><span>Precio unitario</span><span>${fPesos(c.pu.ars)}</span></div>
+    ${c.cant>1?`<div class="calc-row"><span>Cantidad</span><span>×${c.cant} = ${fPesos(c.sub)}</span></div>`:''}
+    <div class="calc-row"><span>Flete${calc.km!=null?' ('+calc.km+' km)':''}</span><span>${calc.km==null?'<span style="color:var(--text3)">falta la localidad</span>':fPesos(c.flete)}</span></div>
+    <div class="calc-row" style="font-weight:800"><span>Total</span><span style="color:var(--gold)">${fPesos(c.total)}</span></div>
+    <div class="calc-big">${fPesos(c.total)}</div>
+    <div style="font-size:.66rem;color:var(--text3);text-align:right;margin-bottom:10px">IVA incluido · USD ${Math.round(c.pu.usd).toLocaleString('es-AR')} c/u a $${cfgNum('dolar',1485)}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <span style="font-size:.74rem;color:var(--text2)">Ajuste del precio</span>
+      <input type="number" step="0.5" value="${calc.margen}" oninput="calcSetMargen(this.value)" style="width:72px;background:var(--bg);border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:7px;font-size:.82rem;font-family:inherit;text-align:right"/>
+      <span style="font-size:.78rem;color:var(--text3)">%</span>
+    </div>
+    <button class="bg" style="width:100%;padding:12px;font-weight:800;margin-bottom:7px" onclick="calcPDF()">📄 Ver presupuesto para enviar</button>
+    <button class="bv" style="width:100%;padding:12px;font-weight:800" onclick="calcAVenta()">✅ Convertir en venta</button>`;
+}
+function calcBuscarLoc(){
+  const inp=document.getElementById('calc-loc'),txt=(inp.value||'').trim();
+  if(!txt){toast('Escribí la localidad primero');return;}
+  if(typeof google==='undefined'||!google.maps||!google.maps.Geocoder){toast('El mapa todavía no cargó, esperá unos segundos');return;}
+  new google.maps.Geocoder().geocode({address:txt,componentRestrictions:{country:'AR'}},(res,status)=>{
+    if(status!=='OK'||!res||!res.length){toast(status==='ZERO_RESULTS'?`No encontré "${txt}". Probá agregando la provincia.`:'Google no pudo responder ('+status+')',6000);return;}
+    const r=res[0],l=r.geometry.location;
+    inp.value=(r.formatted_address||txt).replace(/,\s*Argentina\s*$/i,'');
+    calcFijarDestino(inp.value,l.lat(),l.lng());
+  });
+}
+function calcFijarDestino(nombre,lat,lng){
+  calc.loc=nombre;calc.lat=lat;calc.lng=lng;calc.km=null;
+  const km=document.getElementById('calc-km');
+  km.textContent='Calculando los km...';
+  calcPintarTotal();
+  routeDir({lat:FAB_LAT,lng:FAB_LNG},{lat,lng},[]).then(res=>{
+    calc.km=Math.round(res.routes[0].legs.reduce((a,l)=>a+l.distance.value,0)/1000);
+    km.textContent=`📍 ${calc.km} km desde la fábrica`;
+    calcPintarTotal();
+  }).catch(()=>{
+    // Sin ruta usamos la distancia en línea recta con un 20% por los caminos
+    calc.km=Math.round(distKm(FAB_LAT,FAB_LNG,lat,lng)*1.2);
+    km.textContent=`📍 ~${calc.km} km (estimado, Google no dio la ruta)`;
+    calcPintarTotal();
+  });
+}
+// El presupuesto sale en una ventana lista para imprimir o guardar como PDF
+function calcPDF(){
+  const c=calcCuentas();if(!c)return;
+  const r=c.pu.ref,hoy=new Date().toLocaleDateString('es-AR');
+  const dias=cfgNum('entrega_dias',15);
+  const img=r.imagen?new URL(r.imagen,location.href).href:'';
+  const nom=`${calcProdNombre()} ${r.modelo}${calc.tipo==='aereo'?' · cono '+calc.cono+'°':''}${(calcFibraAplica()&&calc.fibra)?' · base de fibra':''}`;
+  const fila=(a,b)=>`<tr><td>${a}</td><td class="r">${b}</td></tr>`;
+  const w=window.open('','_blank');
+  if(!w){toast('El navegador bloqueó la ventana del presupuesto');return;}
+  w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Presupuesto Remeco ${esc(r.modelo)}</title><style>
+  body{font-family:system-ui,Arial,sans-serif;color:#11202e;margin:0;padding:26px;max-width:760px}
+  h1{color:#8a6d1f;font-size:1.3rem;margin:0}
+  .sub{color:#667;font-size:.8rem;margin:3px 0 18px}
+  img{width:100%;max-width:330px;border-radius:8px;float:right;margin:0 0 12px 16px}
+  table{width:100%;border-collapse:collapse;margin:14px 0;clear:both}
+  td{padding:8px 4px;border-bottom:1px solid #e3e8ee;font-size:.9rem}
+  .r{text-align:right}
+  .tot{font-size:1.25rem;font-weight:800;color:#8a6d1f;text-align:right;margin-top:6px}
+  .desc{font-size:.85rem;line-height:1.5;background:#f5f7fa;border-radius:8px;padding:12px}
+  .pie{font-size:.72rem;color:#778;margin-top:20px;line-height:1.6}
+  @media print{body{padding:10px}}
+  </style></head><body>
+  <h1>Metalúrgica Remeco</h1><div class="sub">Presupuesto del ${hoy}${calc.loc?' · '+esc(calc.loc):''}</div>
+  ${img?`<img src="${img}" alt="">`:''}
+  <div class="desc"><strong>${esc(nom)}</strong><br>${esc(c.pu.descripcion)}</div>
+  <table>
+    ${fila('Precio unitario','$'+Math.round(c.pu.ars).toLocaleString('es-AR'))}
+    ${c.cant>1?fila('Cantidad','×'+c.cant):''}
+    ${c.cant>1?fila('Subtotal','$'+c.sub.toLocaleString('es-AR')):''}
+    ${fila('Flete'+(calc.km!=null?' ('+calc.km+' km)':''),calc.km==null?'a confirmar':'$'+c.flete.toLocaleString('es-AR'))}
+    ${fila('<strong>Total</strong>','<strong>$'+c.total.toLocaleString('es-AR')+'</strong>')}
+  </table>
+  <div class="tot">$${c.total.toLocaleString('es-AR')}</div>
+  <div class="pie">Precios con IVA incluido.<br>Entrega estimada: ${dias} días desde la confirmación.<br>Presupuesto válido por 7 días — los valores se ajustan con la cotización del dólar.<br>Metalúrgica Remeco · Colonia Menonita, La Pampa</div>
+  <script>setTimeout(function(){window.print();},350)<\/script>
+  </body></html>`);
+  w.document.close();
+}
+// Pasa el presupuesto al formulario de venta con todo cargado
+function calcAVenta(){
+  const c=calcCuentas();if(!c)return;
+  abrirNueva();
+  const loc=document.getElementById('f-localidad');
+  if(loc&&calc.loc)loc.value=calc.loc;
+  if(calc.lat!=null){
+    modalLat=calc.lat;modalLng=calc.lng;
+    if(mapModal&&modalMarker){const p={lat:calc.lat,lng:calc.lng};mapModal.setCenter(p);mapModal.setZoom(11);modalMarker.setPosition(p);modalMarker.setVisible(true);}
+  }
+  prodItems=[{prod:calcProdNombre(),modelo:calcModeloStr(),cono:String(calc.cono),
+    fibra:calcFibraAplica()&&calc.fibra,libre:'',cantidad:c.cant,
+    precio:String(Math.round(c.pu.ars)),costoP:'',
+    costoF:String(Math.round(c.flete/(c.cant||1))),open:true}];
+  renderProdItems();
+  toast('Completá el cliente y guardá la venta');
+}
 
 // ── EVENTOS ───────────────────────────────────────────────────
 document.getElementById('buscar').addEventListener('input',()=>renderVentas());
