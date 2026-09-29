@@ -683,7 +683,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v50</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v51</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -745,6 +745,25 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
             <button class="opt-btn" data-m="gan" onclick="setRankMetrica('gan')">Ganancia</button>
           </div>
           <div id="cfg-rank-lista"></div>
+        </div>
+      </div>
+
+      <div id="cfg-equipo-card" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:12px">
+        <div onclick="toggleCfg('equipo')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+          <div class="inicio-stitle" style="margin:0">👥 Mis vendedores</div>
+          <span id="cfg-arr-equipo" style="color:var(--gold);font-size:.8rem">▶</span>
+        </div>
+        <div id="cfg-body-equipo" style="display:none;margin-top:14px">
+          <div id="cfg-equipo-lista"></div>
+          <div style="border-top:1px solid var(--border);margin-top:13px;padding-top:13px">
+            <div class="inicio-stitle" style="margin-bottom:9px">Invitar a alguien nuevo</div>
+            <div class="frow">
+              <div class="fg"><label>Nombre</label><input id="inv-nombre" placeholder="Nombre y apellido"/></div>
+              <div class="fg"><label>Email</label><input id="inv-email" type="email" placeholder="vendedor@mail.com"/></div>
+            </div>
+            <button class="bg" onclick="invitarVendedor()" style="width:100%;padding:11px;font-weight:800">Invitar</button>
+            <p class="mmhint" style="margin:9px 0 0">Decile que entre a la app y se registre con <b>ese mismo mail</b>. Queda enganchado a tu empresa solo, sin que toques nada.</p>
+          </div>
         </div>
       </div>
 
@@ -853,6 +872,7 @@ async function cerrarSesion(){
 
 // ── AUTENTICACIÓN (Supabase Auth) ────────────────────────────
 let authMode='login',authedUser=null,authedEmail=null;
+let miEmpresa=null,miRol=null; // de la tabla vendedores: a qué empresa pertenezco y si soy dueño
 const MAIN_EMAIL='guentergerherd@gmail.com';
 let rankMetrica='fact';
 function mostrarGate(){document.getElementById('authGate').classList.add('on');}
@@ -1077,8 +1097,9 @@ function abrirConfig(){
   const bGan=document.querySelector('#cfg-rank-metricas .opt-btn[data-m="gan"]');
   if(bGan)bGan.style.display=esPrincipal?'':'none';
   if(!esPrincipal&&rankMetrica==='gan')setRankMetrica('fact');
+  const ec=document.getElementById('cfg-equipo-card');if(ec)ec.style.display=(miRol==='admin')?'block':'none';
   // Arrancan todas cerradas
-  ['flete','busc','aviso','rank','hist'].forEach(k=>{const b=document.getElementById('cfg-body-'+k),a=document.getElementById('cfg-arr-'+k);if(b)b.style.display='none';if(a)a.textContent='▶';});
+  ['flete','busc','aviso','rank','equipo','hist'].forEach(k=>{const b=document.getElementById('cfg-body-'+k),a=document.getElementById('cfg-arr-'+k);if(b)b.style.display='none';if(a)a.textContent='▶';});
   document.getElementById('configScreen').style.display='flex';
 }
 function toggleCfg(k){
@@ -1086,6 +1107,7 @@ function toggleCfg(k){
   if(!b)return;const open=b.style.display!=='none';
   b.style.display=open?'none':'block';if(a)a.textContent=open?'▶':'▼';
   if(!open&&k==='rank')cargarRanking();
+  if(!open&&k==='equipo')cargarMiEquipo();
   if(!open&&k==='hist')renderHistorialCfg();
 }
 function renderHistorialCfg(){
@@ -1160,6 +1182,42 @@ async function renderRankingInicio(){
       </div>`;}).join('')}
     ${mensaje}
   </div>`;
+}
+// ── MI EQUIPO E INVITACIONES ─────────────────────────────────
+async function cargarMiEquipo(){
+  const el=document.getElementById('cfg-equipo-lista');if(!el)return;
+  el.innerHTML='<div class="sp"></div>';
+  let eq=[],inv=[];
+  try{const r=await sb.from('vendedores').select('user_id,nombre,rol').eq('empresa_id',miEmpresa);eq=r.data||[];}catch(e){}
+  try{const r=await sb.from('invitaciones').select('id,email,nombre,usada_el').eq('empresa_id',miEmpresa).order('created_at',{ascending:false});inv=(r.data||[]).filter(x=>!x.usada_el);}catch(e){}
+  eq.sort((a,b)=>(a.rol===b.rol?0:a.rol==='admin'?-1:1)||String(a.nombre||'').localeCompare(String(b.nombre||'')));
+  const fila=(txt,sub,color,extra)=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;margin-bottom:6px">
+    <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.84rem">${txt}</div><div style="font-size:.66rem;color:${color||'var(--text3)'}">${sub}</div></div>${extra||''}</div>`;
+  el.innerHTML=`<div class="inicio-stitle" style="margin-bottom:8px">En tu equipo</div>`
+    +(eq.length?eq.map(v=>fila(esc(v.nombre)||'—'+(v.user_id===authedUser?' · VOS':''),v.rol==='admin'?'Dueño · ve todo':'Vendedor · ve solo lo suyo',v.rol==='admin'?'var(--gold)':'var(--text3)')).join('')
+      :'<div style="font-size:.78rem;color:var(--text3);padding:6px 0">Todavía estás solo.</div>')
+    +(inv.length?`<div class="inicio-stitle" style="margin:13px 0 8px">Invitaciones sin usar</div>`
+      +inv.map(i=>fila('✉️ '+esc(i.nombre||i.email),esc(i.email)+' · esperando que se registre','var(--yellow)',
+        `<button class="vbtn del" title="Cancelar" onclick="cancelarInvitacion('${i.id}')">✕</button>`)).join(''):'');
+}
+async function invitarVendedor(){
+  if(!miEmpresa){toast('Tu usuario todavía no tiene empresa asignada');return;}
+  const n=document.getElementById('inv-nombre').value.trim();
+  const m=document.getElementById('inv-email').value.trim().toLowerCase();
+  if(!n){toast('Poné el nombre');return;}
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)){toast('Ese email no parece válido');return;}
+  const{error}=await sb.from('invitaciones').insert([{email:m,nombre:n,empresa_id:miEmpresa,rol:'vendedor'}]);
+  if(error){toast(/duplicate|unique/i.test(error.message)?'Ese mail ya está invitado':'Error: '+error.message);return;}
+  document.getElementById('inv-nombre').value='';
+  document.getElementById('inv-email').value='';
+  toast('✅ Invitado. Decile que se registre con ese mail.',6000);
+  cargarMiEquipo();
+}
+async function cancelarInvitacion(id){
+  if(!confirm('¿Cancelar esta invitación?'))return;
+  const{error}=await sb.from('invitaciones').delete().eq('id',id);
+  if(error){toast('Error: '+error.message);return;}
+  toast('Invitación cancelada');cargarMiEquipo();
 }
 async function cargarRanking(){
   const el=document.getElementById('cfg-rank-lista');if(!el)return;
@@ -1343,6 +1401,7 @@ function cargarProdItems(v){
 
 // ── DATOS ────────────────────────────────────────────────────
 async function cargarDatos(){
+  try{const{data:mv}=await sb.from('vendedores').select('empresa_id,rol').eq('user_id',authedUser).maybeSingle();if(mv){miEmpresa=mv.empresa_id;miRol=mv.rol;}}catch(e){}
   const{data:v,error:ve}=await sb.from('ventas').select('*').eq('user_id',authedUser).order('created_at',{ascending:false});
   if(ve){toast('⚠️ Error Supabase: '+ve.message);console.error(ve);}
   else{ventas=v||[];renderVentas();renderStats();renderPendientes();renderClientes();}
