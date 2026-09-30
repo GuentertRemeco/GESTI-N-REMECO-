@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Remeco – Gestión</title>
+<!-- La app es un solo archivo: sin esto el celular puede quedarse con una version vieja -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -797,7 +801,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v61</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)" id="cfgVersion"></div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -912,6 +916,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
+const VERSION='v62';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -960,6 +965,7 @@ function abrirPerfilMenu(ev){
     <div style="padding:10px 11px;border-bottom:1px solid var(--border)">
       <div style="font-weight:800;font-size:.86rem">${esc(p.nombre)||'Sin configurar'}</div>
       <div style="font-size:.72rem;color:var(--text3);margin-top:2px">${esc(p.email)||'Agregá tu email'}</div>
+      <div style="font-size:.66rem;color:var(--text3);margin-top:5px">${soyVendedor()?'Vendedor':'Dueño'} · ${VERSION}</div>
     </div>
     <div class="em-item" onclick="abrirPerfilEditar()">👤 Ver / editar perfil</div>
     <div class="em-item" onclick="cerrarSesion()" style="color:var(--red)">🚪 Cerrar sesión</div>`;
@@ -1217,6 +1223,7 @@ function nombreProd(a){const tipo=(a.producto==='Silo Aéreo'||a.producto==='Aut
 // ── COBRO DE FLETE (método por tramos: taxi compartido) ──────
 function setPrecioKm(v){const n=parseFloat(v);if(!isNaN(n)&&n>0){PRECIO_KM=n;localStorage.setItem('remeco_precio_km',n);renderViajes();renderProxFletes();}}
 function abrirConfig(){
+  const ve=document.getElementById('cfgVersion');if(ve)ve.textContent=VERSION;
   const pm=document.getElementById('perfilMenu');if(pm)pm.style.display='none';
   document.getElementById('cfg-precio-km').value=PRECIO_KM;
   document.getElementById('cfg-piso').value=Math.round(PISO_CARGA*100);
@@ -3076,7 +3083,7 @@ function limpiarSim(){simParadas=[];renderSimParadas();clearOpcionesSim();const 
 // ventas, sus clientes, el ranking y su comision. Los costos, la ganancia y
 // el armado de los viajes son del dueno. La base ya le tapa las ventas de
 // los demas; esto le saca de la pantalla lo que no le toca.
-function soyVendedor(){return miRol==='vendedor';}
+function soyVendedor(){return miRol!=='admin';}
 function comisionPct(){return cfgNum('comision',0);}
 // La comision se calcula sobre el silo, sin el flete: la columna precio es
 // justamente lo que se cobro por los productos.
