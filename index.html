@@ -921,7 +921,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v66';
+const VERSION='v67';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -1634,7 +1634,12 @@ async function cargarDatos(){
   await cargarPrecios();
   aplicarRol();
   calcRender();
-  const{data:v,error:ve}=await sb.from('ventas').select('*').eq('user_id',authedUser).order('created_at',{ascending:false});
+  // El dueno ve todas las ventas de su empresa, incluidas las de sus
+  // vendedores. El vendedor, solo las suyas.
+  const verTodaLaEmpresa=(miRol==='admin')&&miEmpresa;
+  const q=sb.from('ventas').select('*');
+  try{if(!_vendCache){const{data:vend}=await sb.from('vendedores').select('user_id,nombre');_vendCache={};(vend||[]).forEach(x=>{_vendCache[x.user_id]=x.nombre;});}}catch(e){}
+  const{data:v,error:ve}=await (verTodaLaEmpresa?q.eq('empresa_id',miEmpresa):q.eq('user_id',authedUser)).order('created_at',{ascending:false});
   if(ve){toast('⚠️ Error Supabase: '+ve.message);console.error(ve);}
   else{ventas=v||[];renderVentas();renderStats();renderPendientes();renderClientes();}
   const{data:vj,error:vje}=await sb.from('viajes').select('*').eq('user_id',authedUser).order('fecha');
@@ -1830,6 +1835,13 @@ function vdResumenCarga(paradas){
   const m={};
   paradas.forEach(x=>productosDe(x).forEach(a=>{const k=vdBaseProd(a);m[k]=(m[k]||0)+(a.cantidad||1);}));
   return Object.entries(m).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
+}
+// Etiqueta con quien cargo la venta. Solo aparece si la venta es de otro:
+// en las propias seria ruido.
+function selloVendedor(v,estilo){
+  if(!v||!v.user_id||v.user_id===authedUser)return'';
+  const n=vdNombreVend(v.user_id);
+  return`<span style="${estilo||''}">👤 ${esc(n)}</span>`;
 }
 function vdNombreVend(uid){
   if(!uid)return'—';
@@ -2079,13 +2091,14 @@ function renderVentas(){
   else l.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
   document.getElementById('vCount').textContent=`${l.length} venta${l.length!==1?'s':''}`;
   const em='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">Sin resultados</div></div>';
-  document.getElementById('vtbody').innerHTML=l.length?l.map(v=>`<tr onclick="verVenta('${v.id}')" style="cursor:pointer"><td><strong>${esc(v.cliente)||'—'}</strong><br><span style="font-size:.68rem;color:var(--text3)">${esc(v.cuit)}</span></td><td>${productosTexto(v)}</td><td>${esc(v.localidad)||'—'}</td><td style="font-size:.74rem;color:var(--text2)">${v.costo_flete?'$'+fNum(v.costo_flete):'—'}</td><td style="color:var(--gold);font-weight:700">${v.precio?'$'+fNum(v.precio):'—'}</td><td><span onclick="menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></td><td style="font-size:.72rem">${fFecha(v.fecha_entrega)}</td><td><div class="act-btns"><button class="ab" onclick="event.stopPropagation();abrirEditar('${v.id}')">✏️</button><button class="ab del" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div></td></tr>`).join(''):`<tr><td colspan="8">${em}</td></tr>`;
+  document.getElementById('vtbody').innerHTML=l.length?l.map(v=>`<tr onclick="verVenta('${v.id}')" style="cursor:pointer"><td><strong>${esc(v.cliente)||'—'}</strong><br><span style="font-size:.68rem;color:var(--text3)">${esc(v.cuit)}</span>${selloVendedor(v,'font-size:.66rem;color:var(--gold);display:block;margin-top:2px')}</td><td>${productosTexto(v)}</td><td>${esc(v.localidad)||'—'}</td><td style="font-size:.74rem;color:var(--text2)">${v.costo_flete?'$'+fNum(v.costo_flete):'—'}</td><td style="color:var(--gold);font-weight:700">${v.precio?'$'+fNum(v.precio):'—'}</td><td><span onclick="menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></td><td style="font-size:.72rem">${fFecha(v.fecha_entrega)}</td><td><div class="act-btns"><button class="ab" onclick="event.stopPropagation();abrirEditar('${v.id}')">✏️</button><button class="ab del" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div></td></tr>`).join(''):`<tr><td colspan="8">${em}</td></tr>`;
   document.getElementById('vcards').innerHTML=l.length?l.map(v=>`<div class="vcard" onclick="verVenta('${v.id}')">
     <div class="vcard-header">
       <div class="vcard-main">
         <div class="vcard-name">${esc(v.cliente)||'—'}</div>
         <div style="font-size:.76rem;color:var(--text2);margin:4px 0">${productosTexto(v)}</div>
         <div class="vcard-loc">📍 ${esc(v.localidad)||'—'}</div>
+        ${selloVendedor(v,'font-size:.68rem;color:var(--gold);display:inline-block;margin-top:4px')}
       </div>
       <div class="vcard-right">
         <div class="vcard-price">${v.precio?'$'+fNum(v.precio):'—'}</div>
@@ -2594,6 +2607,7 @@ function verVenta(id){
       <span>${eTag(v.estado)}</span>
     </div>
     <div style="font-size:.72rem;color:var(--text3);margin-bottom:15px">${[v.cuit?'CUIT: '+esc(v.cuit):'',v.telefono?'📞 '+esc(v.telefono):''].filter(Boolean).join(' · ')||'Sin datos fiscales'}</div>
+    ${selloVendedor(v,'font-size:.74rem;color:var(--gold);display:block;margin:-10px 0 14px')?'<div style="margin:-10px 0 14px;font-size:.74rem;color:var(--gold)">Cargada por '+esc(vdNombreVend(v.user_id))+'</div>':''}
     <div class="inicio-stitle" style="margin-bottom:5px">📍 De dónde es</div>
     <div style="font-size:.88rem;margin-bottom:15px">${esc(v.localidad)||'—'}</div>
     <div class="inicio-stitle" style="margin-bottom:6px">📦 Qué compró</div>
