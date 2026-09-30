@@ -415,8 +415,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <button class="ntab" onclick="ir('inicio')">🏠 Inicio</button>
   <button class="ntab" onclick="ir('ventas')">📋 Ventas</button>
   <button class="ntab" onclick="ir('mapa')">🗺️ Mapa</button>
-  <button class="ntab" onclick="ir('flete')">🚛 Flete</button>
-  <button class="ntab" onclick="ir('simular')">🚚 Simular flete</button>
+  <button class="ntab" id="nt-flete" onclick="ir('flete')">🚛 Flete</button>
+  <button class="ntab" id="nt-sim" onclick="ir('simular')">🚚 Simular flete</button>
   <button class="ntab" onclick="ir('clientes')">👤 Clientes</button>
   <button class="ntab" onclick="ir('asistente')">🤖 Asistente</button>
   <div class="nav-right">
@@ -512,8 +512,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     </div>
     <div id="recordatoriosBox"></div>
     <div class="ini-cards-big">
-      <div class="ic-big"><div class="ic-label">Facturado · <span id="ic-mes"></span></div><div class="ic-val" id="ic-fact">$0</div><div class="ic-sub" id="ic-fact-sub"></div></div>
-      <div class="ic-big"><div class="ic-label">Rentabilidad</div><div class="ic-val" style="color:var(--green)" id="ic-rent">$0</div><div class="ic-sub" id="ic-rent-sub" style="color:var(--text3)"></div></div>
+      <div class="ic-big"><div class="ic-label" id="ic-lbl-fact">Facturado · <span id="ic-mes"></span></div><div class="ic-val" id="ic-fact">$0</div><div class="ic-sub" id="ic-fact-sub"></div></div>
+      <div class="ic-big"><div class="ic-label" id="ic-lbl-rent">Rentabilidad</div><div class="ic-val" style="color:var(--green)" id="ic-rent">$0</div><div class="ic-sub" id="ic-rent-sub" style="color:var(--text3)"></div></div>
     </div>
     <div class="ini-cards-sm">
       <div class="ic-sm"><div class="ic-label">Pedidos pendientes</div><div class="ic-num" id="ic-pend">0</div><div class="ic-sub2" id="ic-pend-sub"></div></div>
@@ -523,8 +523,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <div class="inicio-stitle">Acciones rápidas</div>
     <div class="qa-row">
       <button class="qa-btn primary" onclick="abrirNueva()"><span class="ic">＋</span><span class="tx">Nueva venta</span></button>
-      <button class="qa-btn" onclick="abrirNuevoViaje()"><span class="ic">🚚</span><span class="tx">Nuevo flete</span></button>
-      <button class="qa-btn" onclick="ir('simular')"><span class="ic">📍</span><span class="tx">Simular ruta</span></button>
+      <button class="qa-btn" id="qa-flete" onclick="abrirNuevoViaje()"><span class="ic">🚚</span><span class="tx">Nuevo flete</span></button>
+      <button class="qa-btn" id="qa-sim" onclick="ir('simular')"><span class="ic">📍</span><span class="tx">Simular ruta</span></button>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin:6px 0 9px">
       <div class="inicio-stitle" style="margin:0">Pedidos pendientes</div>
@@ -667,7 +667,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     </div>
     <div class="frow">
       <div class="fg"><label>CUIT</label><input oninput="autocompletarCliente()" id="f-cuit" placeholder="20-12345678-9"/></div>
-      <div class="fg"><label>Estado</label><select id="f-estado"><option>Confirmado</option><option>En producción</option><option>Listo para entregar</option><option>En camino</option><option>Entregado</option></select></div>
+      <div class="fg"><label>Estado</label><p class="mmhint" id="estadoHint" style="display:none;margin:0 0 5px">Lo mueve la fábrica a medida que avanza el pedido.</p><select id="f-estado"><option>Confirmado</option><option>En producción</option><option>Listo para entregar</option><option>En camino</option><option>Entregado</option></select></div>
     </div>
     <div class="fg">
       <label>Productos</label>
@@ -677,9 +677,9 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <div class="fg">
       <div class="tot-box">
         <div><span>Total venta</span><strong id="tot-precio">$0</strong></div>
-        <div><span>Costo producto</span><strong id="tot-costo">$0</strong></div>
-        <div><span>Costo flete</span><strong id="tot-flete">$0</strong></div>
-        <div><span>Ganancia</span><strong id="tot-gan" style="color:var(--green)">$0</strong></div>
+        <div id="tot-row-costo"><span>Costo producto</span><strong id="tot-costo">$0</strong></div>
+        <div id="tot-row-flete"><span>Costo flete</span><strong id="tot-flete">$0</strong></div>
+        <div id="tot-row-gan"><span>Ganancia</span><strong id="tot-gan" style="color:var(--green)">$0</strong></div>
       </div>
     </div>
     <div class="fg"><label>Fecha de entrega</label><input id="f-fecha-entrega" type="date"/></div>
@@ -797,7 +797,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v60</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v61</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -1076,7 +1076,10 @@ function initAuth(){
 }
 
 // ── NAVEGACIÓN ───────────────────────────────────────────────
+let paginaActual="calc";
 function ir(pg){
+  if(soyVendedor()&&["flete","simular"].includes(pg))pg="calc";
+  paginaActual=pg;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.ntab,.bnav-item').forEach(t=>t.classList.remove('on'));
   document.getElementById('page-'+pg).classList.add('on');
@@ -1560,8 +1563,8 @@ function renderProdItems(){
       <div class="prod-grid">
         <div><label class="pl">Cantidad</label><input type="number" min="1" value="${it.cantidad||1}" oninput="prodSetCant(${idx},this.value)"/></div>
         <div><label class="pl">Precio venta c/u</label><input type="number" placeholder="0" value="${it.precio??''}" oninput="prodSetNum(${idx},'precio',this.value)"/></div>
-        <div><label class="pl">Costo producto c/u</label><input type="number" placeholder="0" value="${it.costoP??''}" oninput="prodSetNum(${idx},'costoP',this.value)"/></div>
-        <div><label class="pl">Costo flete c/u</label><input type="number" placeholder="0" value="${it.costoF??''}" oninput="prodSetNum(${idx},'costoF',this.value)"/></div>
+        ${soyVendedor()?'':`<div><label class="pl">Costo producto c/u</label><input type="number" placeholder="0" value="${it.costoP??''}" oninput="prodSetNum(${idx},'costoP',this.value)"/></div>
+        <div><label class="pl">Costo flete c/u</label><input type="number" placeholder="0" value="${it.costoF??''}" oninput="prodSetNum(${idx},'costoF',this.value)"/></div>`}
       </div>
     </div>`;
     return`<div class="prod-item">${header}${body}</div>`;
@@ -1616,6 +1619,7 @@ function cargarProdItems(v){
 async function cargarDatos(){
   try{const{data:mv}=await sb.from('vendedores').select('empresa_id,rol').eq('user_id',authedUser).maybeSingle();if(mv){miEmpresa=mv.empresa_id;miRol=mv.rol;}}catch(e){}
   await cargarPrecios();
+  aplicarRol();
   calcRender();
   const{data:v,error:ve}=await sb.from('ventas').select('*').eq('user_id',authedUser).order('created_at',{ascending:false});
   if(ve){toast('⚠️ Error Supabase: '+ve.message);console.error(ve);}
@@ -1636,8 +1640,37 @@ async function cargarDatos(){
 function buscarViaje(id){return viajesData.find(v=>v.id===id)||fletesPublicos.find(v=>v.id===id);}
 
 // ── INICIO ───────────────────────────────────────────────────
+// El vendedor no ve facturacion ni rentabilidad: ve sus ventas y su comision.
+function renderStatsVendedor(ahora){
+  document.getElementById('ic-mes').textContent=ahora.toLocaleDateString('es-AR',{month:'long'});
+  const delMes=v=>{const d=new Date(v.created_at);return d.getMonth()===ahora.getMonth()&&d.getFullYear()===ahora.getFullYear();};
+  const eM=ventas.filter(delMes);
+  const ent=eM.filter(v=>v.estado==='Entregado');
+  document.getElementById('ic-lbl-fact').innerHTML='Mis ventas · <span id="ic-mes">'+ahora.toLocaleDateString('es-AR',{month:'long'})+'</span>';
+  document.getElementById('ic-fact').textContent=eM.length;
+  document.getElementById('ic-fact-sub').textContent=ent.length?ent.length+' entregada'+(ent.length>1?'s':''):'';
+  document.getElementById('ic-fact-sub').style.color='var(--text3)';
+  const pct=comisionPct();
+  const cobrada=ent.reduce((a,v)=>a+comisionDe(v),0);
+  const enCamino=eM.filter(v=>v.estado!=='Entregado').reduce((a,v)=>a+comisionDe(v),0);
+  document.getElementById('ic-lbl-rent').textContent=pct?`Mi comisión (${pct}%)`:'Mi comisión';
+  document.getElementById('ic-rent').textContent=pct?fPesos(cobrada):'—';
+  document.getElementById('ic-rent-sub').textContent=!pct?'La define la fábrica'
+    :enCamino?fPesos(enCamino)+' más cuando se entreguen':'de lo entregado este mes';
+  const pend=ventas.filter(v=>v.estado!=='Entregado').length;
+  document.getElementById('ic-pend').textContent=pend;
+  document.getElementById('ic-pend-sub').textContent='de todos mis pedidos';
+  // Donde el dueno ve los viajes, el vendedor ve cuantos clientes tiene
+  const clientes=new Set(ventas.map(v=>(v.cliente||'').trim().toLowerCase()).filter(Boolean));
+  document.getElementById('ic-viajes').textContent=clientes.size;
+  const tarjeta=document.getElementById('ic-viajes').parentElement;
+  const lbl=tarjeta&&tarjeta.querySelector('.ic-label');
+  if(lbl)lbl.textContent='Mis clientes';
+  document.getElementById('ic-viajes-sub').textContent='';
+}
 function renderStats(){
   const ahora=new Date();
+  if(soyVendedor())return renderStatsVendedor(ahora);
   document.getElementById('ic-mes').textContent=ahora.toLocaleDateString('es-AR',{month:'long'});
   const eM=ventas.filter(v=>{const d=new Date(v.created_at);return d.getMonth()===ahora.getMonth()&&d.getFullYear()===ahora.getFullYear();});
   const fact=eM.reduce((s,v)=>s+(parseFloat(v.precio)||0),0);
@@ -2498,6 +2531,11 @@ function setModalRO(ro){
   document.getElementById('btnGuardarVenta').style.display=ro?'none':'inline-block';
   document.getElementById('btnCancelarVenta').textContent=ro?'Cerrar':'Cancelar';
   document.getElementById('roHint').style.display=ro?'block':'none';
+  // El estado del pedido lo mueve la fabrica, no el vendedor
+  if(soyVendedor()){
+    document.getElementById('f-estado').disabled=true;
+    const h=document.getElementById('estadoHint');if(h)h.style.display=ro?'none':'block';
+  }
 }
 function abrirNueva(){
   editId=null;modalLat=null;modalLng=null;
@@ -2525,13 +2563,18 @@ function verVenta(id){
     <div style="font-size:.88rem;margin-bottom:15px">${esc(v.localidad)||'—'}</div>
     <div class="inicio-stitle" style="margin-bottom:6px">📦 Qué compró</div>
     <div style="margin-bottom:15px">${prods.length?prods.map(a=>`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:9px 11px;margin-bottom:5px;font-size:.84rem;font-weight:600">${esc(nombreProd(a))}</div>`).join(''):'<div style="color:var(--text3)">—</div>'}</div>
-    <div class="rent-card">
+    ${soyVendedor()?`<div class="rent-card">
+      <div class="rent-title">💵 Números</div>
+      <div class="rent-row"><span>Se lo vendí</span><span style="color:var(--gold);font-weight:800">${fPesos(precio)}</span></div>
+      <div class="rent-row"><span>Flete cobrado</span><span>${fPesos(cf)}</span></div>
+      ${comisionPct()?`<div class="rent-row"><span>Mi comisión (${comisionPct()}%)</span><span style="color:var(--green)">${fPesos(comisionDe(v))}</span></div>`:''}
+    </div>`:`<div class="rent-card">
       <div class="rent-title">💵 Números</div>
       <div class="rent-row"><span>Se lo vendí</span><span style="color:var(--gold);font-weight:800">${fPesos(precio)}</span></div>
       <div class="rent-row"><span>Me costó (producto)</span><span style="color:var(--red)">- ${fPesos(cp)}</span></div>
       <div class="rent-row"><span>Flete</span><span style="color:var(--red)">- ${fPesos(cf)}</span></div>
       <div class="rent-row"><span>Ganancia</span><span style="color:var(--green)">${fPesos(gan)} (${margen}%)</span></div>
-    </div>
+    </div>`}
     <div style="font-size:.8rem;color:var(--text3);margin-top:12px">📅 Entrega: ${fFecha(v.fecha_entrega)}</div>
     ${v.notas?`<div style="font-size:.8rem;color:var(--text2);margin-top:8px">📝 ${esc(v.notas)}</div>`:''}
     <div class="mact">
@@ -2652,7 +2695,7 @@ function verCliente(i){
     <div style="font-size:1.15rem;font-weight:900;color:var(--gold)">${esc(c.nombre)}</div>
     <div style="margin-top:5px;margin-bottom:12px">${c.telefono?`<div style="color:var(--blue);font-size:.83rem">📞 ${esc(c.telefono)}</div>`:''}${c.cuit?`<div style="color:var(--text2);font-size:.76rem;margin-top:3px">CUIT: ${esc(c.cuit)}</div>`:''}</div>
     <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">${[{v:cv.length,l:'ventas'},{v:ent,l:'entregadas'},{v:'$'+fNum(fact),l:'facturado'}].map(x=>`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:9px 13px;min-width:80px"><div style="font-size:1rem;font-weight:900;color:var(--gold)">${x.v}</div><div style="font-size:.65rem;color:var(--text3);margin-top:1px">${x.l}</div></div>`).join('')}</div>
-    <div class="rent-card"><div class="rent-title">📊 Rentabilidad</div><div class="rent-row"><span>Precio de venta</span><span>$${fNum(fact)}</span></div><div class="rent-row"><span>Costo producto</span><span style="color:var(--red)">- $${fNum(cp)}</span></div><div class="rent-row"><span>Costo flete</span><span style="color:var(--red)">- $${fNum(cf)}</span></div><div class="rent-row"><span>Ganancia neta</span><span style="color:var(--green)">$${fNum(gan)} (${rp}%)</span></div></div>
+    ${soyVendedor()?'':`<div class="rent-card"><div class="rent-title">📊 Rentabilidad</div><div class="rent-row"><span>Precio de venta</span><span>$${fNum(fact)}</span></div><div class="rent-row"><span>Costo producto</span><span style="color:var(--red)">- $${fNum(cp)}</span></div><div class="rent-row"><span>Costo flete</span><span style="color:var(--red)">- $${fNum(cf)}</span></div><div class="rent-row"><span>Ganancia neta</span><span style="color:var(--green)">$${fNum(gan)} (${rp}%)</span></div></div>`}
     <div class="inicio-stitle" style="margin-bottom:8px;margin-top:4px">Historial (solo lectura)</div>
     ${cv.map(v=>`<div class="pend-row" onclick="verVenta('${v.id}')"><div class="pc-info"><div class="pc-cli">${paradaTexto(v)}</div><div class="pc-sub">${esc(v.localidad)} · ${fFecha(v.fecha_entrega)}</div></div><div style="text-align:right">${eTag(v.estado)}<div style="font-size:.78rem;font-weight:700;color:var(--gold);margin-top:4px">${v.precio?'$'+fNum(v.precio):''}</div></div></div>`).join('')}`;
 }
@@ -3027,6 +3070,33 @@ function renderSimParadas(){
 }
 function eliminarParadaSim(i){simParadas.splice(i,1);renderSimParadas();clearOpcionesSim();}
 function limpiarSim(){simParadas=[];renderSimParadas();clearOpcionesSim();const si=document.getElementById('sim-ruta-info');if(si)si.style.display='none';}
+
+// ── QUE VE CADA UNO ──────────────────────────────────────────
+// El vendedor ve lo suyo y lo que necesita para vender: el presupuesto, sus
+// ventas, sus clientes, el ranking y su comision. Los costos, la ganancia y
+// el armado de los viajes son del dueno. La base ya le tapa las ventas de
+// los demas; esto le saca de la pantalla lo que no le toca.
+function soyVendedor(){return miRol==='vendedor';}
+function comisionPct(){return cfgNum('comision',0);}
+// La comision se calcula sobre el silo, sin el flete: la columna precio es
+// justamente lo que se cobro por los productos.
+function comisionDe(v){return (parseFloat(v.precio)||0)*comisionPct()/100;}
+function aplicarRol(){
+  const v=soyVendedor();
+  const ocultar=(id)=>{const e=document.getElementById(id);if(e)e.style.display=v?'none':'';};
+  ['nt-flete','nt-sim','qa-flete','qa-sim','bn-flete'].forEach(ocultar);
+  // Si queda una sola accion rapida, que ocupe el ancho en vez de un cuadradito
+  const qa=document.querySelector('.qa-btn.primary');if(qa)qa.style.flex=v?'1':'';
+  // Configuracion es del dueno: dolar, lista de precios, tarifas, equipo
+  document.querySelectorAll('[title="Configuración"]').forEach(e=>{e.style.display=v?'none':'';});
+  // Los costos y la ganancia no se muestran
+  ['tot-row-costo','tot-row-flete','tot-row-gan'].forEach(ocultar);
+  const est=document.getElementById('f-estado');
+  if(est)est.disabled=v;
+  const hint=document.getElementById('estadoHint');
+  if(hint)hint.style.display=v?'block':'none';
+  if(v&&['flete','simular'].includes(paginaActual))ir('calc');
+}
 
 // ── CALCULADORA DE PRESUPUESTO (pantalla de entrada) ─────────
 // Sigue el mismo camino que la calculadora vieja: Cliente → Agregar Silo →
