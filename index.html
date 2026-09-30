@@ -797,7 +797,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
     <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
-    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v59</div>
+    <div style="margin-left:auto;font-size:.68rem;color:var(--text3)">v60</div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
@@ -906,6 +906,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 <div id="ptr" style="position:fixed;top:8px;left:50%;transform:translateX(-50%) translateY(-60px);opacity:0;z-index:8000;background:#15202e;border:1px solid var(--gold);border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--gold);transition:transform .15s,opacity .15s;pointer-events:none">↻</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js"></script>
 <script>
 const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
@@ -3222,54 +3223,106 @@ function calcPintarHoja(){
   <div class="lbl">Plazo de entrega estimado (días)</div>
   <input type="number" value="${calcPrev.plazo}" oninput="calcPrevSet('plazo',parseFloat(this.value)||0)" style="width:110px"/>`;
 }
-// El PDF sale igual que el que mandabas: hoja 1 el presupuesto, después una
-// hoja por silo con la foto.
-function calcPDF(){
+// El PDF se arma como archivo PDF de verdad (jsPDF). Antes se abria una
+// pestana nueva y se imprimia desde el navegador: en el celular no se podia
+// volver atras y Safari le metia la direccion de la pagina al pie.
+function calcImagenDataURL(src){
+  return new Promise(resolve=>{
+    const im=new Image();
+    im.onload=()=>{
+      try{
+        const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;
+        const cx=c.getContext('2d');
+        // Fondo blanco: el JPEG no tiene transparencia y el logo saldria en negro
+        cx.fillStyle='#fff';cx.fillRect(0,0,c.width,c.height);
+        cx.drawImage(im,0,0);
+        resolve({url:c.toDataURL('image/jpeg',0.82),w:im.naturalWidth,h:im.naturalHeight});
+      }catch(e){resolve(null);}
+    };
+    im.onerror=()=>resolve(null);
+    im.src=src;
+  });
+}
+async function calcPDF(){
   if(!calcPrev)return;
-  const hoy=new Date().toLocaleDateString('es-AR');
-  const li=t=>String(t||'').split(';').map(x=>x.trim()).filter(Boolean);
+  const J=window.jspdf&&window.jspdf.jsPDF;
+  if(!J){toast('No se pudo cargar el generador de PDF. Probá recargando la página.',6000);return;}
+  toast('Armando el PDF...');
+  const d=new J({unit:'mm',format:'a4'});
+  const M=18,ANCHO=210,UTIL=ANCHO-M*2;
   const pesos=n=>'$'+Math.round(parseFloat(n)||0).toLocaleString('es-AR');
-  const filas=calcPrev.filas.map(f=>`<tr><td>${esc(f.desc)}</td><td class="r">${pesos(f.importe)}</td></tr>`).join('')
-    +(calcPrev.extraDesc?`<tr><td>${esc(calcPrev.extraDesc)}</td><td class="r">${pesos(calcPrev.extraImporte)}</td></tr>`:'')
-    +(parseFloat(calcPrev.flete)?`<tr><td>Flete</td><td class="r">${pesos(calcPrev.flete)}</td></tr>`:'')
-    +`<tr><td><strong>Total</strong></td><td class="r"><strong>${pesos(calcTotalHoja())}</strong></td></tr>`;
-  const hojasFoto=calcPrev.filas.filter(f=>f.ref&&f.ref.imagen).map(f=>`<div class="pag">
-      <h2>${f.silo.tipo==='aereo'?'Silo Base Aérea':'Comedero'} ${esc(f.ref.modelo)}</h2>
-      <img src="${new URL(f.ref.imagen,location.href).href}" alt="">
-    </div>`).join('');
-  const w=window.open('','_blank');
-  if(!w){toast('El navegador bloqueó la ventana del presupuesto');return;}
-  w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Presupuesto Remeco${calc.cliente?' - '+esc(calc.cliente):''}</title><style>
-  body{font-family:system-ui,Arial,sans-serif;color:#11202e;margin:0;padding:26px;max-width:760px;font-size:.88rem;line-height:1.5}
-  .cab{display:flex;gap:14px;align-items:flex-start}
-  .mr{width:170px;height:auto;flex-shrink:0}
-  .emp{text-align:right;font-size:.8rem;color:#445;flex:1}
-  .emp strong{font-size:.95rem;color:#11202e}
-  table{width:100%;border-collapse:collapse;margin:16px 0}
-  th{background:#eef1f5;border:1px solid #b9c2cd;padding:7px;font-size:.85rem}
-  td{border:1px solid #b9c2cd;padding:8px}
-  .r{text-align:right;white-space:nowrap}
-  ul{margin:6px 0;padding-left:18px}
-  .pag{page-break-before:always;padding-top:20px}
-  .pag h2{font-size:1.15rem;margin:0 0 12px}
-  .pag img{width:100%;border-radius:6px}
-  @media print{body{padding:12px}}
-  </style></head><body>
-  <div class="cab"><img class="mr" src="${new URL('img/logo-remeco.png',location.href).href}" alt="Metalúrgica Remeco"><div class="emp"><strong>Metalúrgica Remeco.</strong><br>Colonia Menonita<br>Tel: 2954201051<br>metalurgicaremeco4@gmail.com</div></div>
-  <p><strong>Estimado ${esc(calc.cliente)}:</strong><br>Le agradecemos su consulta y hacemos la siguiente oferta según nuestra comunicación previa.</p>
-  <table>${filas}</table>
-  ${li(calcPrev.detalles).map(x=>`<div>* ${esc(x)}</div>`).join('')}
-  <p><strong>Detalle de materiales :</strong>${calcPrev.materiales?'<br>'+esc(calcPrev.materiales):''}</p>
-  <p><strong>Formas de pago:</strong><br>${li(calcPrev.pagos).map(esc).join('<br>')}</p>
-  <p><strong>Plazo de entrega estimado :</strong> ${calcPrev.plazo} días</p>
-  <p>Esperamos con interés trabajar con usted.<br>Le saluda atentamente :</p>
-  <p>${esc(getPerfil().nombre||'Metalúrgica Remeco')} - Metalúrgica Remeco.</p>
-  <div style="font-size:.7rem;color:#889;margin-top:18px">Presupuesto del ${hoy}${calc.loc?' · '+esc(calc.loc):''}</div>
-  ${hojasFoto}
-  <script>setTimeout(function(){window.print();},400)<\/script>
-  </body></html>`);
-  w.document.close();
+  const li=t=>String(t||'').split(';').map(x=>x.trim()).filter(Boolean);
+  let y=14;
+  const logo=await calcImagenDataURL('img/logo-remeco.png');
+  if(logo){const w=42,h=w*logo.h/logo.w;d.addImage(logo.url,'JPEG',M,y,w,h);}
+  d.setFont('helvetica','bold').setFontSize(11).text('Metalúrgica Remeco.',ANCHO-M,y+4,{align:'right'});
+  d.setFont('helvetica','normal').setFontSize(9).setTextColor(70,80,95);
+  ['Colonia Menonita','Tel: 2954201051','metalurgicaremeco4@gmail.com',
+   'Presupuesto del '+new Date().toLocaleDateString('es-AR')]
+    .forEach((t,i)=>d.text(t,ANCHO-M,y+10+i*4.6,{align:'right'}));
+  d.setTextColor(17,32,46);
+  y=44;
+  d.setFont('helvetica','bold').setFontSize(10).text(`Estimado ${calc.cliente||''}:`,M,y);
+  y+=5;
+  d.setFont('helvetica','normal');
+  d.splitTextToSize('Le agradecemos su consulta y hacemos la siguiente oferta según nuestra comunicación previa.',UTIL)
+    .forEach(l=>{d.text(l,M,y);y+=4.6;});
+  y+=4;
+  // Tabla: la fila crece con lo que ocupa la descripcion
+  const COL2=38,COL1=UTIL-COL2;
+  const filaTabla=(txt,importe,negrita)=>{
+    d.setFont('helvetica',negrita?'bold':'normal').setFontSize(9);
+    const lineas=d.splitTextToSize(String(txt),COL1-6);
+    const alto=Math.max(lineas.length*4.4+6,12);
+    if(y+alto>272){d.addPage();y=M;}
+    d.setDrawColor(150,160,175);
+    d.rect(M,y,COL1,alto);d.rect(M+COL1,y,COL2,alto);
+    lineas.forEach((l,i)=>d.text(l,M+3,y+6.5+i*4.4));
+    d.text(String(importe),M+COL1+COL2-3,y+alto/2+1.5,{align:'right'});
+    y+=alto;
+  };
+  d.setFillColor(238,241,245);d.rect(M,y,COL1,9,'F');d.rect(M+COL1,y,COL2,9,'F');
+  d.setDrawColor(150,160,175);d.rect(M,y,COL1,9);d.rect(M+COL1,y,COL2,9);
+  d.setFont('helvetica','bold').setFontSize(9);
+  d.text('Descripción',M+3,y+6);d.text('Importe',M+COL1+COL2-3,y+6,{align:'right'});
+  y+=9;
+  calcPrev.filas.forEach(f=>filaTabla(f.desc,pesos(f.importe)));
+  if(calcPrev.extraDesc)filaTabla(calcPrev.extraDesc,pesos(calcPrev.extraImporte));
+  if(parseFloat(calcPrev.flete))filaTabla('Flete',pesos(calcPrev.flete));
+  filaTabla('Total',pesos(calcTotalHoja()),true);
+  y+=7;
+  const parrafo=(txt,negrita)=>{
+    d.setFont('helvetica',negrita?'bold':'normal').setFontSize(9.5);
+    d.splitTextToSize(String(txt),UTIL).forEach(l=>{if(y>278){d.addPage();y=M;}d.text(l,M,y);y+=4.8;});
+  };
+  li(calcPrev.detalles).forEach(t=>parrafo('* '+t));
+  y+=3;parrafo('Detalle de materiales :',true);
+  if(calcPrev.materiales)parrafo(calcPrev.materiales);
+  y+=3;parrafo('Formas de pago:',true);
+  li(calcPrev.pagos).forEach(t=>parrafo(t));
+  y+=3;
+  d.setFont('helvetica','bold').setFontSize(9.5);
+  const et='Plazo de entrega estimado :';
+  d.text(et,M,y);
+  const anchoEt=d.getTextWidth(et);
+  d.setFont('helvetica','normal').text(calcPrev.plazo+' días',M+anchoEt+2,y);
+  y+=9;
+  parrafo('Esperamos con interés trabajar con usted.');
+  parrafo('Le saluda atentamente :');
+  y+=4;parrafo(`${getPerfil().nombre||'Metalúrgica Remeco'} - Metalúrgica Remeco.`);
+  // Una hoja por silo con su foto
+  for(const f of calcPrev.filas){
+    if(!f.ref||!f.ref.imagen)continue;
+    const foto=await calcImagenDataURL(f.ref.imagen);
+    if(!foto)continue;
+    d.addPage();
+    d.setFont('helvetica','bold').setFontSize(13)
+      .text(`${f.silo.tipo==='aereo'?'Silo Base Aérea':'Comedero'} ${f.ref.modelo}`,M,M+4);
+    const w=UTIL,h=w*foto.h/foto.w;
+    d.addImage(foto.url,'JPEG',M,M+10,w,Math.min(h,240));
+  }
+  const nombre=`Presupuesto Remeco${calc.cliente?' - '+calc.cliente:''}.pdf`;
+  d.save(nombre);
 }
 // Pasa el presupuesto al formulario de venta con todo cargado
 function calcAVenta(){
