@@ -413,6 +413,10 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   </div>
 </div>
 
+<div id="sinEmpresaBar" style="display:none;background:#3a2410;border-bottom:1px solid var(--yellow);color:var(--yellow);padding:10px 14px;font-size:.78rem;font-weight:700;text-align:center;line-height:1.4">
+  ⚠️ Tu cuenta no está asignada a ninguna empresa, por eso no vas a poder guardar ventas.<br>
+  <span style="font-weight:400" id="sinEmpresaMail"></span>
+</div>
 <nav class="topnav">
   <div class="nav-logo">Remeco <span>Gestión</span></div>
   <button class="ntab on" onclick="ir('calc')">🧮 Presupuesto</button>
@@ -916,7 +920,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v64';
+const VERSION='v65';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -3190,6 +3194,14 @@ function comisionPct(){return cfgNum('comision',0);}
 function comisionDe(v){return (parseFloat(v.precio)||0)*comisionPct()/100;}
 function aplicarRol(){
   const v=soyVendedor();
+  // Pasa cuando alguien se registra con el mail mal escrito: la cuenta queda
+  // suelta, sin empresa, y no puede guardar nada. Mejor avisarlo de entrada.
+  const bar=document.getElementById('sinEmpresaBar');
+  if(bar){
+    bar.style.display=(authedUser&&!miEmpresa)?'block':'none';
+    const m=document.getElementById('sinEmpresaMail');
+    if(m)m.textContent=authedEmail?('Entraste como '+authedEmail+' · revisá que el mail esté bien escrito, o pedile al dueño que te dé de alta.'):'';
+  }
   const ocultar=(id)=>{const e=document.getElementById(id);if(e)e.style.display=v?'none':'';};
   ['nt-flete','nt-sim','qa-flete','qa-sim','bn-flete'].forEach(ocultar);
   // Si queda una sola accion rapida, que ocupe el ancho en vez de un cuadradito
