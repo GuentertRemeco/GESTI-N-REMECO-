@@ -701,6 +701,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <p class="mmhint">📍 Escribí la localidad y tocá 🔍 (o Enter). Después podés tocar el mapa para afinar el punto exacto.</p>
     <div id="mmap-div" style="height:180px;border-radius:8px;overflow:hidden;border:1px solid #1e3a55;margin-bottom:4px"></div>
     <div class="mact">
+      <div id="ventaErr" style="display:none;width:100%;background:#2a1010;border:1px solid var(--red);border-radius:9px;padding:11px 13px;margin-bottom:10px;font-size:.78rem;color:#ffb0b0;line-height:1.45;white-space:pre-wrap;word-break:break-word"></div>
       <button class="bd" id="btnCancelarVenta" onclick="cerrarModal()">Cancelar</button>
       <button class="bg" id="btnGuardarVenta" onclick="guardarVenta()">Guardar</button>
     </div>
@@ -920,7 +921,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v65';
+const VERSION='v66';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -2479,6 +2480,9 @@ async function agregarSugerido(ventaId,vjId){
 // ── CRUD VENTAS ──────────────────────────────────────────────
 async function guardarVenta(){
   if(modalReadOnly){cerrarModal();return;}
+  const errBox=document.getElementById('ventaErr');
+  const mostrarErr=t=>{if(errBox){errBox.textContent=t;errBox.style.display='block';errBox.scrollIntoView({block:'nearest'});}toast(t,9000);};
+  if(errBox)errBox.style.display='none';
   const productos=prodItems.map(it=>({producto:it.prod,modelo:itemModeloStr(it),cantidad:it.cantidad||1,precio:parseFloat(it.precio)||0,costo_producto:parseFloat(it.costoP)||0,costo_flete:parseFloat(it.costoF)||0})).filter(p=>p.modelo);
   const tot=(f)=>productos.reduce((s,p)=>s+(p[f]||0)*(p.cantidad||1),0);
   const data={
@@ -2498,10 +2502,10 @@ async function guardarVenta(){
     lat:modalLat,lng:modalLng,
     user_id:authedUser
   };
-  if(!data.cliente){toast('El cliente es requerido');return;}
-  if(!productos.length){toast('Agregá al menos un producto');return;}
-  if(data.telefono&&!/^[0-9 +()\-]{6,}$/.test(data.telefono)){toast('Teléfono inválido');return;}
-  if(data.fecha_entrega&&isNaN(Date.parse(data.fecha_entrega))){toast('Fecha de entrega inválida');return;}
+  if(!data.cliente){mostrarErr('Falta el nombre del cliente.');return;}
+  if(!productos.length){mostrarErr('Falta elegir el modelo del silo.');return;}
+  if(data.telefono&&!/^[0-9 +()\-]{6,}$/.test(data.telefono)){mostrarErr('El teléfono tiene caracteres que no van.');return;}
+  if(data.fecha_entrega&&isNaN(Date.parse(data.fecha_entrega))){mostrarErr('La fecha de entrega no es válida.');return;}
   // La venta tiene que quedar guardada con la empresa: sin eso la base la
   // rechaza. Si todavia no la sabemos, la volvemos a pedir antes de guardar.
   if(!miEmpresa&&authedUser){
@@ -2519,7 +2523,7 @@ async function guardarVenta(){
                   :'Tu usuario todavía no está asignado a una empresa, por eso la base no deja guardar. Avisale al dueño.')
       : /column .* does not exist/i.test(m) ? 'Falta una columna en la base: '+m
       : 'No se pudo guardar: '+m;
-    toast(txt,9000);
+    mostrarErr(txt+'\n\n('+m+')');
     return;
   }
   toast(editId?'Venta actualizada ✓':'Venta guardada ✓');
@@ -2568,7 +2572,8 @@ function setModalRO(ro){
   }
 }
 function abrirNueva(){
-  editId=null;modalLat=null;modalLng=null;
+  editId=null;
+  const eb=document.getElementById('ventaErr');if(eb)eb.style.display='none';modalLat=null;modalLng=null;
   document.getElementById('modalTitle').textContent='Nueva venta';
   ['f-cliente','f-telefono','f-cuit','f-fecha-entrega','f-localidad','f-notas'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-estado').value='Confirmado';
