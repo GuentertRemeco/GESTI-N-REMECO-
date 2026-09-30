@@ -28,6 +28,13 @@ drop policy if exists ventas_borrar on ventas;
 create policy ventas_borrar on ventas for delete to authenticated
   using (empresa_id = mi_empresa() and (user_id = auth.uid() or mi_rol() = 'admin'));
 
+
+-- Leer: cada uno lo suyo. El dueno ve todas las ventas de SU empresa,
+-- incluidas las que cargaron sus vendedores.
+drop policy if exists ventas_leer_empresa on ventas;
+create policy ventas_leer_empresa on ventas for select to authenticated
+  using (empresa_id = mi_empresa() and (user_id = auth.uid() or mi_rol() = 'admin'));
+
 -- Que quedo: una fila por politica
 select polname as politica,
        case polcmd when 'r' then 'leer' when 'a' then 'cargar'
