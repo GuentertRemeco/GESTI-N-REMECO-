@@ -916,7 +916,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v62';
+const VERSION='v63';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -2497,8 +2497,26 @@ async function guardarVenta(){
   if(!productos.length){toast('Agregá al menos un producto');return;}
   if(data.telefono&&!/^[0-9 +()\-]{6,}$/.test(data.telefono)){toast('Teléfono inválido');return;}
   if(data.fecha_entrega&&isNaN(Date.parse(data.fecha_entrega))){toast('Fecha de entrega inválida');return;}
+  // La venta tiene que quedar guardada con la empresa: sin eso la base la
+  // rechaza. Si todavia no la sabemos, la volvemos a pedir antes de guardar.
+  if(!miEmpresa&&authedUser){
+    try{const{data:mv}=await sb.from('vendedores').select('empresa_id,rol').eq('user_id',authedUser).maybeSingle();
+      if(mv){miEmpresa=mv.empresa_id;miRol=mv.rol;aplicarRol();}}catch(e){}
+  }
+  if(miEmpresa)data.empresa_id=miEmpresa;
   const{error}=editId?await sb.from('ventas').update(data).eq('id',editId):await sb.from('ventas').insert([data]);
-  if(error){toast('Error: '+error.message);return;}
+  if(error){
+    console.error('[Remeco] No se pudo guardar la venta:',error);
+    const m=String(error.message||'');
+    // El error de la base viene en ingles: lo traducimos al problema real
+    const txt=/row-level security|policy/i.test(m)
+      ? (miEmpresa?'La base rechazó la venta: tu usuario no tiene permiso para cargar ventas en esta empresa.'
+                  :'Tu usuario todavía no está asignado a una empresa, por eso la base no deja guardar. Avisale al dueño.')
+      : /column .* does not exist/i.test(m) ? 'Falta una columna en la base: '+m
+      : 'No se pudo guardar: '+m;
+    toast(txt,9000);
+    return;
+  }
   toast(editId?'Venta actualizada ✓':'Venta guardada ✓');
   cerrarModal();await cargarDatos();
 }
