@@ -818,6 +818,14 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
         <div id="cfg-body-flete" style="display:none;margin-top:14px">
           <div class="fg"><label>Precio del flete por km ($)</label><input id="cfg-precio-km" type="number" min="1" placeholder="3500"/></div>
           <div class="fg"><label>Carga mínima facturable (%)</label><input id="cfg-piso" type="number" min="1" max="100" placeholder="60"/></div>
+          <div class="frow">
+            <div class="fg"><label>Camioneta + tráiler ($/km)</label><input id="cfg-km-camioneta" type="number" min="0" placeholder="0"/></div>
+            <div class="fg"><label>Camión ($/km)</label><input id="cfg-km-camion" type="number" min="0" placeholder="4500"/></div>
+          </div>
+          <div class="fg"><label>Cargas de camioneta que entran en un camión</label><input id="cfg-cargas-camion" type="number" min="0" step="0.1" placeholder="2.5"/></div>
+          <div class="inicio-stitle" style="margin:14px 0 8px">Cuántos entran, por ancho de silo</div>
+          <div id="cfg-capacidades"></div>
+          <p class="mmhint">Con estos tres números el flete del viaje deja de salir de la suma de los silos y pasa a ser lo que cobra el fletero: primero se busca llenar la camioneta, y si la carga la pasa, se compara con el camión y gana el que salga más barato.</p>
           <p class="mmhint" style="margin-bottom:0">El precio por km se usa en todos los viajes y el simulador. La carga mínima define cuánto se cobra un flete que va poco lleno: aunque un silo ocupe poco, el camión se factura como mínimo a ese % (ej: 60%).</p>
         </div>
       </div>
@@ -929,7 +937,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v70';
+const VERSION='v75';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -1193,14 +1201,58 @@ function esAutoconsumo(producto,modelo){
   if(/auto|alero|boca|cambio/.test(t))return true;
   return false;
 }
-function getMaxPorCamion(producto,modelo){
+// ── CUÁNTOS ENTRAN, POR EL ANCHO DEL SILO ────────────────────
+// Lo que limita una carga es el piso que ocupa cada silo, no las toneladas:
+// un 16tn y un 28tn miden los dos 3.15 de diámetro y entran los mismos. El
+// ancho sale de la descripcion de la lista de precios, que vino de los
+// presupuestos en PDF.
+let CAP_GRUPOS={};
+function anchoDeModelo(producto,modelo){
+  const base=String(modelo||'').split(' · ')[0].trim().toLowerCase();
+  const p=PRECIOS.find(x=>String(x.modelo).trim().toLowerCase()===base);
+  const d=p&&p.descripciones;
+  const txt=d?(d['35']||Object.values(d)[0]||''):'';
+  const m=String(txt).match(/base\s+([\d.,]+)\s*mts/i)||String(txt).match(/cilindro\s+([\d.,]+)\s*mts/i)
+        ||String(txt).match(/di[áa]metro\s+([\d.,]+)\s*mts/i);
+  if(!m)return null;
+  const n=parseFloat(String(m[1]).replace(',','.'));
+  return n>0?n.toFixed(2):null;
+}
+// Cuantos entran de ese modelo en ese vehiculo
+function getMaxPorCamion(producto,modelo,veh){
+  veh=veh||'camioneta';
+  const ancho=anchoDeModelo(producto,modelo);
+  const g=ancho&&CAP_GRUPOS[ancho];
+  if(g&&g[veh]>0)return g[veh];
+  // Sin la tabla cargada, la cuenta de siempre: por toneladas
   const esAuto=esAutoconsumo(producto,modelo);
   const tabla=esAuto?CAP_AUTO:CAP_AEREO;
   const num=parseFloat((modelo||'').match(/\d+(?:\.\d+)?/)?.[0]||0);
-  if(!num)return esAuto?20:8;
-  let best=null,bestDiff=Infinity;
-  for(const k of Object.keys(tabla)){const diff=Math.abs(parseFloat(k)-num);if(diff<bestDiff){bestDiff=diff;best=tabla[k];}}
-  return best||(esAuto?20:6);
+  let base;
+  if(!num)base=esAuto?20:8;
+  else{
+    let best=null,bestDiff=Infinity;
+    for(const k of Object.keys(tabla)){const diff=Math.abs(parseFloat(k)-num);if(diff<bestDiff){bestDiff=diff;best=tabla[k];}}
+    base=best||(esAuto?20:6);
+  }
+  if(veh==='camion'){
+    const f=cfgNum('cargas_por_camion',0);
+    return f>0?base*f:base;
+  }
+  return base;
+}
+function ocupacionItem(obj,veh){return productosDe(obj).reduce((s,a)=>s+(a.cantidad||1)/getMaxPorCamion(a.producto,a.modelo,veh),0);}
+function calcOcupacion(paradas,veh){return paradas.reduce((s,p)=>s+ocupacionItem(p,veh),0);}
+// Los anchos que aparecen en la lista de precios, para armar la tabla
+function gruposDeAncho(){
+  const g={};
+  (PRECIOS||[]).forEach(p=>{
+    const prod=p.tipo==='aereo'?'Silo Aéreo':'Autoconsumo';
+    const a=anchoDeModelo(prod,p.modelo);
+    if(!a)return;
+    (g[a]=g[a]||[]).push(p.modelo);
+  });
+  return Object.keys(g).sort((x,y)=>parseFloat(x)-parseFloat(y)).map(a=>({ancho:a,modelos:g[a]}));
 }
 // Tarifa $/km por unidad, según cuántas entran en un camión completo
 let TARIFA_KM={'1':3500,'2':2500,'3':1850,'5':1120,'6':930,'8':810,'20':800};
@@ -1271,13 +1323,17 @@ function productosDe(obj){
   if(!arr.length&&obj)arr=[{producto:obj.producto,modelo:obj.modelo,cantidad:1}];
   return arr.filter(a=>a&&(a.producto||a.modelo));
 }
-function ocupacionItem(obj){return productosDe(obj).reduce((s,a)=>s+(a.cantidad||1)/getMaxPorCamion(a.producto,a.modelo),0);}
-function calcOcupacion(paradas){return paradas.reduce((s,p)=>s+ocupacionItem(p),0);}
 function barraCapacidad(paradas){
   if(!paradas.length)return'';
-  const oc=calcOcupacion(paradas),pct=Math.min(oc*100,100),camiones=Math.ceil(oc);
-  const color=oc>=1?'var(--red)':oc>=0.75?'var(--yellow)':'var(--green)';
-  const label=oc>=1?`${camiones} ${camiones>1?'camiones':'camión'} lleno${camiones>1?'s':''}`:`${Math.round(oc*100)}% cargado`;
+  const oc=calcOcupacion(paradas);
+  const plan=planVehiculo(paradas);
+  // Con los vehiculos cargados, la barra muestra como va lo que se eligio
+  // mandar. Sin ellos, queda la cuenta vieja en camionetas.
+  const llen=plan?plan.llenado:oc;
+  const pct=Math.min(llen*100,100),camiones=Math.ceil(oc);
+  const color=llen>=0.99?'var(--green)':llen>=0.75?'var(--yellow)':'var(--text3)';
+  const label=plan?textoVehiculo(plan)
+    :(oc>=1?`${camiones} ${camiones>1?'camionetas llenas':'camioneta llena'}`:`${Math.round(oc*100)}% cargado`);
   return`<div class="cap-bar-wrap"><div class="cap-bar-label"><span>Capacidad</span><span style="color:${color};font-weight:700">${label}</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>`;
 }
 function nombreProd(a){const tipo=(a.producto==='Silo Aéreo'||a.producto==='Autoconsumo')?a.producto+' ':'';const cant=(a.cantidad&&a.cantidad>1)?` ×${a.cantidad}`:'';return`${tipo}${esc(a.modelo)}${cant}`;}
@@ -1292,6 +1348,10 @@ function abrirConfig(){
   document.getElementById('cfg-adelante').value=RADIO_ADELANTE;
   document.getElementById('cfg-desvio').value=DESVIO_MAX;
   document.getElementById('cfg-dias-aviso').value=DIAS_AVISO;
+  document.getElementById('cfg-km-camioneta').value=cfgNum('km_camioneta',0)||'';
+  document.getElementById('cfg-km-camion').value=cfgNum('km_camion',0)||'';
+  document.getElementById('cfg-cargas-camion').value=cfgNum('cargas_por_camion',0)||'';
+  renderCapacidades();
   const rc=document.getElementById('cfg-ranking-card');
   const esPrincipal=authedEmail===MAIN_EMAIL;
   // El ranking lo ven todos los vendedores: si no lo ven, no hay con quién competir.
@@ -1552,7 +1612,108 @@ function guardarConfig(){
   if(de>0){DESVIO_MAX=de;localStorage.setItem('remeco_desvio',de);}
   const da=parseFloat(document.getElementById('cfg-dias-aviso').value);
   if(da>0){DIAS_AVISO=da;localStorage.setItem('remeco_dias_aviso',da);}
+  guardarVehiculos();guardarCapacidades();
   renderViajes();renderProxFletes();if(simParadas.length)renderSimParadas();cerrarConfig();toast('Configuración guardada ✓');
+}
+// ── EL FLETE SALE DEL VEHÍCULO, NO DE CADA SILO ──────────────
+// Primero se busca completar una carga de la camioneta con tráiler. Cuando la
+// carga la pasa, se mira el camión: si el viaje sale más barato en camión, va
+// en camión. El total es lo que cobra el fletero, y después se reparte entre
+// las paradas segun cuanto ocupa cada una y hasta donde viaja.
+// Las tarifas de los vehiculos viven en la base: las usan todos, no solo
+// este navegador.
+async function guardarVehiculos(){
+  const campos=[['cfg-km-camioneta','km_camioneta'],['cfg-km-camion','km_camion'],['cfg-cargas-camion','cargas_por_camion']];
+  const filas=[];
+  campos.forEach(([id,clave])=>{
+    const e=document.getElementById(id);if(!e)return;
+    const n=parseFloat(e.value)||0;
+    CFG[clave]=n;filas.push({clave,valor:String(n)});
+  });
+  if(!filas.length)return;
+  try{const r=await sb.from('config').upsert(filas,{onConflict:'clave'});if(r.error)throw r.error;}
+  catch(e){toast('No se pudieron guardar las tarifas de los vehículos: '+(e.message||e),7000);}
+}
+// Tabla de cuantos entran, agrupada por el ancho del silo: los que miden lo
+// mismo ocupan lo mismo, asi se cargan 8 numeros y no 52.
+function renderCapacidades(){
+  const el=document.getElementById('cfg-capacidades');if(!el)return;
+  const g=gruposDeAncho();
+  if(!g.length){el.innerHTML='<p class="mmhint" style="margin:0">Se arma sola cuando la lista de precios tenga las medidas de cada silo.</p>';return;}
+  el.innerHTML=`<div style="display:flex;gap:6px;font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">
+      <span style="flex:1">Ancho del silo</span><span style="width:62px;text-align:center">Camioneta</span><span style="width:62px;text-align:center">Camión</span>
+    </div>`
+    +g.map(x=>{
+      const c=CAP_GRUPOS[x.ancho]||{};
+      // La columna de la camioneta viene cargada con los numeros que ya usaba
+      // la app, que son los del dueno. Solo hay que completar la del camion.
+      const ref=(PRECIOS||[]).find(z=>z.modelo===x.modelos[0]);
+      const prod=(ref&&ref.tipo==='comedero')?'Autoconsumo':'Silo Aéreo';
+      const porDefecto=c.camioneta||getMaxPorCamion(prod,x.modelos[0],'camioneta');
+      const inp=(veh,val)=>`<input type="number" min="0" step="1" value="${val||''}" data-ancho="${x.ancho}" data-veh="${veh}" class="cap-inp" style="width:62px;background:var(--bg);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:7px;font-size:.8rem;font-family:inherit;text-align:center"/>`;
+      return`<div style="display:flex;gap:6px;align-items:center;margin-bottom:5px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.8rem;font-weight:700">${x.ancho} mts</div>
+          <div style="font-size:.62rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.modelos.join(' · '))}</div>
+        </div>${inp('camioneta',porDefecto)}${inp('camion',c.camion)}</div>`;
+    }).join('')
+    +`<p class="mmhint" style="margin:8px 0 0">Cuántos silos de ese ancho entran en cada vehículo. La columna de la camioneta ya viene con los números que usás hoy; falta la del camión. Lo que dejes vacío sigue con la cuenta de siempre.</p>`;
+}
+async function guardarCapacidades(){
+  const nuevo={};
+  document.querySelectorAll('.cap-inp').forEach(e=>{
+    const n=parseInt(e.value)||0;if(n<=0)return;
+    const a=e.dataset.ancho;(nuevo[a]=nuevo[a]||{})[e.dataset.veh]=n;
+  });
+  CAP_GRUPOS=nuevo;
+  try{const r=await sb.from('config').upsert([{clave:'capacidad_anchos',valor:JSON.stringify(nuevo)}],{onConflict:'clave'});if(r.error)throw r.error;
+    if(CFG_RAW)CFG_RAW['capacidad_anchos']=JSON.stringify(nuevo);
+  }catch(e){toast('No se pudo guardar la tabla de carga: '+(e.message||e),7000);}
+}
+function hayTablaCamion(){return Object.values(CAP_GRUPOS).some(g=>g&&g.camion>0);}
+function planVehiculo(paradas){
+  const kmCamioneta=cfgNum('km_camioneta',0),kmCamion=cfgNum('km_camion',0);
+  const ops=[];
+  if(kmCamioneta>0){
+    const oc=calcOcupacion(paradas,'camioneta');
+    if(oc>0)ops.push({veh:'camioneta',nombre:'camioneta + tráiler',oc,unidades:Math.max(1,Math.ceil(oc-1e-9)),porKm:kmCamioneta});
+  }
+  if(kmCamion>0&&(hayTablaCamion()||cfgNum('cargas_por_camion',0)>0)){
+    const oc=calcOcupacion(paradas,'camion');
+    if(oc>0)ops.push({veh:'camion',nombre:'camión',oc,unidades:Math.max(1,Math.ceil(oc-1e-9)),porKm:kmCamion});
+  }
+  if(!ops.length)return null;
+  ops.forEach(o=>{o.porKmTotal=o.unidades*o.porKm;o.llenado=o.oc/o.unidades;});
+  // Primero se busca llenar la camioneta; cuando la carga la pasa se compara
+  // con el camion y gana el que salga mas barato por viaje.
+  ops.sort((a,b)=>a.porKmTotal-b.porKmTotal||a.unidades-b.unidades);
+  const elegido=ops[0];
+  elegido.faltaPct=Math.max(0,Math.round((1-elegido.llenado)*100));
+  return elegido;
+}
+// Cuanto falta para completar la carga, dicho en silos y no en porcentaje:
+// es lo que sirve para saber si se puede meter una venta mas antes de salir.
+function faltaEnCarga(paradas,plan){
+  if(!plan)return'';
+  const resto=plan.unidades-plan.oc;
+  if(resto<=0.02)return'';
+  const vistos=[];
+  paradas.forEach(p=>productosDe(p).forEach(a=>{
+    const nom=`${(a.producto==='Autoconsumo'||a.producto==='Silo Aéreo')?a.producto+' ':''}${String(a.modelo||'').split(' · ')[0]}`;
+    const esp=1/getMaxPorCamion(a.producto,a.modelo,plan.veh);
+    if(nom.trim()&&!vistos.some(v=>v.nom===nom))vistos.push({nom,esp});
+  }));
+  const ops=vistos.map(v=>({...v,n:Math.floor((resto+1e-9)/v.esp)})).filter(v=>v.n>0)
+    .sort((a,b)=>a.n-b.n).slice(0,2);
+  if(!ops.length)return`queda ${Math.round(resto*100)}% de la carga libre`;
+  const txt=o=>`${o.n} ${o.nom}`;
+  const dos='entran '+ops.map(txt).join(' o ')+' más';
+  return dos.length<=60?dos:('entran '+txt(ops[0])+' más');
+}
+function textoVehiculo(p){
+  if(!p)return'';
+  const u=p.unidades>1?`${p.unidades} ${p.veh==='camion'?'camiones':'camionetas'}`:(p.veh==='camion'?'1 camión':'1 camioneta + tráiler');
+  return`${u} · ${Math.round(p.llenado*100)}% cargado`;
 }
 function calcularFlete(vj){
   // paradas_snap viene en orden de ruta (cercana → lejana = orden de bajada)
@@ -1565,9 +1726,21 @@ function calcularFlete(vj){
   let kmTotal=0;for(let i=0;i<n;i++)kmTotal+=tramos[i];
   const cobros=cobrosPorTarifa(loc.map(x=>tarifaItem(x.parada)),tramos);
   loc.forEach((x,idx)=>x.cobro=Math.round(cobros[idx]||0));
-  const total=loc.reduce((s,x)=>s+x.cobro,0);
+  let total=loc.reduce((s,x)=>s+x.cobro,0);
+  const oc=calcOcupacion(paradas);
+  // Si estan cargadas las tarifas de los vehiculos, el total es lo que cobra
+  // el fletero y los cobros de arriba quedan solo como reparto entre paradas.
+  const plan=planVehiculo(paradas),km=Math.round(kmTotal);
+  if(plan&&km>0&&total>0){
+    const real=Math.round(plan.porKmTotal*km),escala=real/total;
+    loc.forEach(x=>x.cobro=Math.round(x.cobro*escala));
+    // Los redondeos no pueden hacer que la suma de las partes no de el total
+    const dif=real-loc.reduce((s2,x)=>s2+x.cobro,0);
+    if(dif&&loc.length)loc[loc.length-1].cobro+=dif;
+    total=real;
+  }
   items.forEach(x=>x.pct=total>0?x.cobro/total:0);
-  return{total,items,kmReal:Math.round(kmTotal),ocupacion:calcOcupacion(paradas),listo:n>0};
+  return{total,items,kmReal:km,ocupacion:oc,plan,listo:n>0};
 }
 function productosTexto(v){
   const arr=productosDe(v);
@@ -2274,8 +2447,9 @@ function renderViajes(){
         ${barraCapacidad(p)}
         ${p.length?`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:.72rem">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="color:var(--text3)">Flete total</span><span style="color:var(--gold);font-weight:900;font-size:.9rem">${flete.listo?fPesos(flete.total):'—'}</span></div>
-          ${flete.listo?`<div style="color:var(--text3);font-size:.63rem;margin-bottom:6px">${flete.kmReal} km · tarifa por producto × km hasta su parada</div>`:'<div style="color:var(--text3);font-size:.63rem;margin-bottom:4px">Abrí el viaje para calcular la ruta y ver el flete</div>'}
-          ${flete.ocupacion>1?`<div style="color:var(--red);font-weight:700;font-size:.66rem">⚠️ No entra en un camión (${Math.round(flete.ocupacion*100)}%) — hace falta otro flete</div>`:`<div style="color:var(--text3);font-size:.63rem">Camión ocupado: ${Math.round(flete.ocupacion*100)}%</div>`}
+          ${flete.listo?`<div style="color:var(--text3);font-size:.63rem;margin-bottom:6px">${flete.kmReal} km · ${flete.plan?esc(textoVehiculo(flete.plan))+' × $'+flete.plan.porKm.toLocaleString('es-AR')+'/km':'tarifa por producto × km hasta su parada'}</div>`:'<div style="color:var(--text3);font-size:.63rem;margin-bottom:4px">Abrí el viaje para calcular la ruta y ver el flete</div>'}
+          ${flete.plan?`<div style="color:${flete.plan.llenado>=.99?'var(--green)':'var(--gold)'};font-size:.66rem;font-weight:700">🚚 Va en ${esc(flete.plan.nombre)} · ${Math.round(flete.plan.llenado*100)}% cargado</div>${flete.plan.faltaPct>0?`<div style="color:var(--text3);font-size:.63rem;margin-top:2px">Todavía ${esc(faltaEnCarga(p,flete.plan))||'falta un '+flete.plan.faltaPct+'%'}</div>`:''}`
+            :(flete.ocupacion>1?`<div style="color:var(--yellow);font-weight:700;font-size:.66rem">${Math.round(flete.ocupacion*100)}% de una camioneta — cargá las tarifas en Configuración para saber si conviene camión</div>`:`<div style="color:var(--text3);font-size:.63rem">Camioneta ocupada: ${Math.round(flete.ocupacion*100)}%</div>`)}
         </div>`:''}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px">
           <button class="bg" style="font-size:.7rem;padding:7px;grid-column:span 2;font-weight:800" onclick="abrirViajeDetalle('${vj.id}')">👁️ Ver detalle completo</button>
@@ -2372,7 +2546,8 @@ function exportarViaje(id){
   if(vj.km_real)t+=`📍 Total ida: ${vj.km_real} km\n`;
   if(flete.listo)t+=`💰 Flete total: ${fPesos(flete.total)} (${flete.kmReal} km × ${fPesos(PRECIO_KM)}/km)\n`;
   t+=`📦 Capacidad: ${Math.round(oc*100)}% (${Math.ceil(oc)>1?Math.ceil(oc)+' camiones':'1 camión'})`;
-  if(oc>1)t+=`\n⚠️ No entra en un camión — hace falta otro flete`;
+  if(flete&&flete.plan)t+=`\n🚚 Va en ${flete.plan.nombre} · ${Math.round(flete.plan.llenado*100)}% cargado`;
+  else if(oc>1)t+=`\n⚠️ Más de una camioneta`;
   navigator.clipboard.writeText(t).then(()=>toast('Copiado para WhatsApp ✓')).catch(()=>alert(t));
 }
 function exportarTodos(){if(viajeAbierto)exportarViaje(viajeAbierto);else if(viajesData.length)exportarViaje(viajesData[0].id);else toast('Sin viajes');}
@@ -3278,6 +3453,7 @@ async function abrirDiag(){
 // cambio lo aplica el dueno a mano.
 const MIN_ENTREGAS=5;
 function tarifasDeConfig(){
+  try{const c=CFG_RAW&&CFG_RAW['capacidad_anchos'];if(c){const o=JSON.parse(c);if(o&&typeof o==='object')CAP_GRUPOS=o;}}catch(e){}
   try{const f=CFG_RAW&&CFG_RAW['tarifas_finas'];if(f){const o=JSON.parse(f);if(o&&typeof o==='object')TARIFAS_FINAS=o;}}catch(e){}
   const raw=CFG_RAW&&CFG_RAW['tarifa_km'];
   if(!raw)return;
