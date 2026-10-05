@@ -937,7 +937,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v75';
+const VERSION='v76';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -1365,6 +1365,14 @@ function abrirConfig(){
   // Arrancan todas cerradas
   ['flete','tarifas','busc','aviso','rank','precios','equipo','hist'].forEach(k=>{const b=document.getElementById('cfg-body-'+k),a=document.getElementById('cfg-arr-'+k);if(b)b.style.display='none';if(a)a.textContent='▶';});
   document.getElementById('configScreen').style.display='flex';
+}
+// Entra directo a la parte de Flete de Configuracion, ya abierta
+function abrirConfigFlete(){
+  abrirConfig();
+  setTimeout(()=>{
+    toggleCfg('flete');
+    document.getElementById('cfg-km-camioneta')?.scrollIntoView({behavior:'smooth',block:'center'});
+  },80);
 }
 function toggleCfg(k){
   const b=document.getElementById('cfg-body-'+k),a=document.getElementById('cfg-arr-'+k);
@@ -2449,7 +2457,7 @@ function renderViajes(){
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="color:var(--text3)">Flete total</span><span style="color:var(--gold);font-weight:900;font-size:.9rem">${flete.listo?fPesos(flete.total):'—'}</span></div>
           ${flete.listo?`<div style="color:var(--text3);font-size:.63rem;margin-bottom:6px">${flete.kmReal} km · ${flete.plan?esc(textoVehiculo(flete.plan))+' × $'+flete.plan.porKm.toLocaleString('es-AR')+'/km':'tarifa por producto × km hasta su parada'}</div>`:'<div style="color:var(--text3);font-size:.63rem;margin-bottom:4px">Abrí el viaje para calcular la ruta y ver el flete</div>'}
           ${flete.plan?`<div style="color:${flete.plan.llenado>=.99?'var(--green)':'var(--gold)'};font-size:.66rem;font-weight:700">🚚 Va en ${esc(flete.plan.nombre)} · ${Math.round(flete.plan.llenado*100)}% cargado</div>${flete.plan.faltaPct>0?`<div style="color:var(--text3);font-size:.63rem;margin-top:2px">Todavía ${esc(faltaEnCarga(p,flete.plan))||'falta un '+flete.plan.faltaPct+'%'}</div>`:''}`
-            :(flete.ocupacion>1?`<div style="color:var(--yellow);font-weight:700;font-size:.66rem">${Math.round(flete.ocupacion*100)}% de una camioneta — cargá las tarifas en Configuración para saber si conviene camión</div>`:`<div style="color:var(--text3);font-size:.63rem">Camioneta ocupada: ${Math.round(flete.ocupacion*100)}%</div>`)}
+            :(flete.ocupacion>1?`<div style="color:var(--yellow);font-weight:700;font-size:.66rem">${Math.round(flete.ocupacion*100)}% de una camioneta · el flete es la suma de los silos<br><span onclick="event.stopPropagation();abrirConfigFlete()" style="color:var(--gold);text-decoration:underline;cursor:pointer">Cargá las tarifas y se calcula por vehículo →</span></div>`:`<div style="color:var(--text3);font-size:.63rem">Camioneta ocupada: ${Math.round(flete.ocupacion*100)}%</div>`)}
         </div>`:''}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px">
           <button class="bg" style="font-size:.7rem;padding:7px;grid-column:span 2;font-weight:800" onclick="abrirViajeDetalle('${vj.id}')">👁️ Ver detalle completo</button>
