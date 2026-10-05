@@ -822,6 +822,14 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
         </div>
       </div>
 
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px" id="cfg-tarifas-card">
+        <div onclick="toggleCfg('tarifas')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+          <div class="inicio-stitle" style="margin:0">📈 Tarifas de flete · lo que dice tu historia</div>
+          <span id="cfg-arr-tarifas" style="color:var(--gold);font-size:.8rem">▶</span>
+        </div>
+        <div id="cfg-body-tarifas" style="display:none;margin-top:14px"></div>
+      </div>
+
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px">
         <div onclick="toggleCfg('busc')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
           <div class="inicio-stitle" style="margin:0">🔎 Buscador de combinaciones</div>
@@ -921,7 +929,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v68';
+const VERSION='v69';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -943,6 +951,7 @@ let mapMapa=null,mapFlete=null,mapModal=null,simMap=null,locAutocomplete=null;
 let markersArr=[],modalMarker=null,directionsRenderer=null,simDirRenderer=null,simDirRenderer2=null;
 let fleteMarkers=[],simMarkers=[];
 let simParadas=[],viajeAbierto=null,simKm=0,simTramos=[],ajenosExpandidos={};
+let ventaKm=null;
 let agregarViajeId=null,agregarVentasSeleccionadas=new Set(),agregarVentasDisponibles=[];
 let prodItems=[];
 const BNAV={calc:'bn-calc',inicio:'bn-inicio',ventas:'bn-ventas',mapa:null,flete:'bn-flete',simular:null,clientes:'bn-clientes',asistente:null};
@@ -1015,7 +1024,7 @@ async function cerrarSesion(){
 // ── AUTENTICACIÓN (Supabase Auth) ────────────────────────────
 let authMode='login',authedUser=null,authedEmail=null;
 let miEmpresa=null,miRol=null;
-let PRECIOS=[],CFG={}; // lista de precios en dólares y parámetros, desde Supabase // de la tabla vendedores: a qué empresa pertenezco y si soy dueño
+let PRECIOS=[],CFG={},CFG_RAW={}; // lista de precios en dólares y parámetros, desde Supabase // de la tabla vendedores: a qué empresa pertenezco y si soy dueño
 const MAIN_EMAIL='guentergerherd@gmail.com';
 let rankMetrica='fact';
 function mostrarGate(){document.getElementById('authGate').classList.add('on');}
@@ -1194,7 +1203,7 @@ function getMaxPorCamion(producto,modelo){
   return best||(esAuto?20:6);
 }
 // Tarifa $/km por unidad, según cuántas entran en un camión completo
-const TARIFA_KM={'1':3500,'2':2500,'3':1850,'5':1120,'6':930,'8':810,'20':800};
+let TARIFA_KM={'1':3500,'2':2500,'3':1850,'5':1120,'6':930,'8':810,'20':800};
 function tarifaUnidad(producto,modelo){
   const cap=getMaxPorCamion(producto,modelo);
   if(TARIFA_KM[cap])return TARIFA_KM[cap];
@@ -1248,13 +1257,14 @@ function abrirConfig(){
   const ec=document.getElementById('cfg-equipo-card');if(ec)ec.style.display=(miRol==='admin')?'block':'none';
   const pc=document.getElementById('cfg-precios-card');if(pc)pc.style.display=(miRol==='admin')?'block':'none';
   // Arrancan todas cerradas
-  ['flete','busc','aviso','rank','precios','equipo','hist'].forEach(k=>{const b=document.getElementById('cfg-body-'+k),a=document.getElementById('cfg-arr-'+k);if(b)b.style.display='none';if(a)a.textContent='▶';});
+  ['flete','tarifas','busc','aviso','rank','precios','equipo','hist'].forEach(k=>{const b=document.getElementById('cfg-body-'+k),a=document.getElementById('cfg-arr-'+k);if(b)b.style.display='none';if(a)a.textContent='▶';});
   document.getElementById('configScreen').style.display='flex';
 }
 function toggleCfg(k){
   const b=document.getElementById('cfg-body-'+k),a=document.getElementById('cfg-arr-'+k);
   if(!b)return;const open=b.style.display!=='none';
   b.style.display=open?'none':'block';if(a)a.textContent=open?'▶':'▼';
+  if(!open&&k==='tarifas')renderTarifas();
   if(!open&&k==='rank')cargarRanking();
   if(!open&&k==='precios')cargarListaPrecios();
   if(!open&&k==='equipo')cargarMiEquipo();
@@ -1338,7 +1348,8 @@ async function renderRankingInicio(){
 // cifra actualiza toda la lista cuando se mueve el dólar.
 async function cargarPrecios(){
   try{const r=await sb.from('precios').select('*').order('tipo').order('orden');if(!r.error)PRECIOS=r.data||[];}catch(e){}
-  try{const r=await sb.from('config').select('*');if(!r.error)(r.data||[]).forEach(x=>{CFG[x.clave]=parseFloat(x.valor);});}catch(e){}
+  try{const r=await sb.from('config').select('*');if(!r.error)(r.data||[]).forEach(x=>{CFG[x.clave]=parseFloat(x.valor);CFG_RAW[x.clave]=x.valor;});}catch(e){}
+  tarifasDeConfig();
 }
 function cfgNum(k,porDefecto){const v=CFG[k];return (v==null||isNaN(v))?porDefecto:v;}
 // Precio en pesos de un modelo. Verificado contra los presupuestos en PDF:
@@ -1653,6 +1664,7 @@ async function cargarDatos(){
   // renderViajes() de nuevo: la sección "tus clientes en viajes de otros" necesita fletesPublicos
   renderViajes();renderFpDisponibles();renderRankingInicio();
   if(mapMapa)actMarkersMapa();
+  setTimeout(()=>{completarKmFaltantes();},2500);
   if(mapClientes&&cliVistaActual==='mapa')initMapaClientes();
 }
 function buscarViaje(id){return viajesData.find(v=>v.id===id)||fletesPublicos.find(v=>v.id===id);}
@@ -2523,6 +2535,7 @@ async function guardarVenta(){
     localidad:document.getElementById('f-localidad').value.trim(),
     notas:document.getElementById('f-notas').value.trim(),
     lat:modalLat,lng:modalLng,
+    km:ventaKm,
     user_id:authedUser
   };
   if(!data.cliente){mostrarErr('Falta el nombre del cliente.');return;}
@@ -2595,7 +2608,7 @@ function setModalRO(ro){
   }
 }
 function abrirNueva(){
-  editId=null;
+  editId=null;ventaKm=null;
   const eb=document.getElementById('ventaErr');if(eb)eb.style.display='none';modalLat=null;modalLng=null;
   document.getElementById('modalTitle').textContent='Nueva venta';
   ['f-cliente','f-telefono','f-cuit','f-fecha-entrega','f-localidad','f-notas'].forEach(id=>document.getElementById(id).value='');
@@ -2648,6 +2661,7 @@ function abrirEditar(id,ro){
   ro=!!ro;
   const v=ventas.find(x=>x.id===id);if(!v)return;
   editId=id;modalLat=v.lat;modalLng=v.lng;
+  ventaKm=parseFloat(v.km)||null;
   document.getElementById('modalTitle').textContent=ro?'Venta — Solo lectura':'Editar venta';
   document.getElementById('f-cliente').value=v.cliente||'';document.getElementById('f-telefono').value=v.telefono||'';
   document.getElementById('f-cuit').value=v.cuit||'';
@@ -3211,6 +3225,132 @@ async function abrirDiag(){
         Todo en orden: desde esta cuenta se pueden guardar ventas.</div>`);
 }
 
+// ── LA TARIFA DE FLETE APRENDE DE LAS ENTREGAS ───────────────
+// Cada venta entregada guarda lo que el flete costo de verdad (costo_flete) y
+// los km hasta el cliente. Con eso se mide el costo real por km de cada tipo
+// de camion y se compara con lo que se esta cobrando. La app sugiere; el
+// cambio lo aplica el dueno a mano.
+const MIN_ENTREGAS=5;
+function tarifasDeConfig(){
+  const raw=CFG_RAW&&CFG_RAW['tarifa_km'];
+  if(!raw)return;
+  try{const o=JSON.parse(raw);if(o&&typeof o==='object')Object.keys(o).forEach(k=>{const n=parseFloat(o[k]);if(n>0)TARIFA_KM[k]=n;});}catch(e){}
+}
+// Los km de una venta: los guardados, o la distancia en linea recta mas un
+// 20% por los caminos, que es lo mismo que usa la calculadora si Google falla.
+function kmDeVenta(v){
+  const g=parseFloat(v.km);
+  if(g>0)return{km:g,exacto:true};
+  const la=parseFloat(v.lat),ln=parseFloat(v.lng);
+  if(!la||!ln)return null;
+  return{km:Math.round(distKm(FAB_LAT,FAB_LNG,la,ln)*1.2),exacto:false};
+}
+// Cuantas unidades lleva la venta y en que categoria de camion caen. Solo
+// sirven las ventas donde todos los silos son de la misma categoria: si no,
+// no se puede repartir el costo entre tarifas distintas.
+function categoriaVenta(v){
+  const arr=productosDe(v);
+  if(!arr.length)return null;
+  let cap=null,unidades=0;
+  for(const a of arr){
+    const c=getMaxPorCamion(a.producto,a.modelo);
+    if(cap==null)cap=c; else if(cap!==c)return null;
+    unidades+=(a.cantidad||1);
+  }
+  return (cap!=null&&unidades>0)?{cap:String(cap),unidades}:null;
+}
+function mediana(xs){
+  if(!xs.length)return 0;
+  const a=[...xs].sort((x,y)=>x-y),m=Math.floor(a.length/2);
+  return a.length%2?a[m]:(a[m-1]+a[m])/2;
+}
+function analizarTarifas(){
+  const porCap={};
+  ventas.forEach(v=>{
+    if(v.estado!=='Entregado')return;
+    const costo=parseFloat(v.costo_flete)||0;
+    if(costo<=0)return;
+    const k=kmDeVenta(v);if(!k||k.km<5)return;
+    const cat=categoriaVenta(v);if(!cat)return;
+    const real=costo/(cat.unidades*k.km);
+    if(!isFinite(real)||real<=0)return;
+    (porCap[cat.cap]=porCap[cat.cap]||[]).push({real,exacto:k.exacto,venta:v});
+  });
+  return Object.keys(porCap).map(cap=>{
+    const xs=porCap[cap];
+    const real=Math.round(mediana(xs.map(x=>x.real)));
+    const cobra=tarifaPorCap(cap);
+    return{cap,n:xs.length,real,cobra,
+           dif:cobra?Math.round((real-cobra)/cobra*100):0,
+           exactas:xs.filter(x=>x.exacto).length};
+  }).sort((a,b)=>parseInt(a.cap)-parseInt(b.cap));
+}
+function tarifaPorCap(cap){
+  if(TARIFA_KM[cap])return TARIFA_KM[cap];
+  let best=0,bd=Infinity;
+  Object.keys(TARIFA_KM).forEach(k=>{const d=Math.abs(parseFloat(k)-parseFloat(cap));if(d<bd){bd=d;best=TARIFA_KM[k];}});
+  return best;
+}
+function nombreCap(cap){
+  const ej={'8':'6 y 10tn aéreos · 2 y 4tn autoconsumo','6':'16, 22 y 28tn aéreos · 7tn autoconsumo',
+            '5':'12 y 18tn autoconsumo','3':'30 a 72tn aéreos','2':'80 a 140tn aéreos','1':'150, 175 y 200tn aéreos'};
+  return ej[cap]||('silos que entran '+cap+' por camión');
+}
+function renderTarifas(){
+  const el=document.getElementById('cfg-body-tarifas');if(!el)return;
+  const filas=analizarTarifas();
+  const entregadas=ventas.filter(v=>v.estado==='Entregado'&&(parseFloat(v.costo_flete)||0)>0).length;
+  if(!filas.length){
+    el.innerHTML=`<p class="mmhint" style="margin:0">Todavía no hay entregas con el costo del flete cargado.<br>
+      Cada vez que entregás una venta y le ponés lo que te costó el flete de verdad, la app lo guarda. Con ${MIN_ENTREGAS} entregas de un mismo tipo de camión ya te dice si la tarifa quedó corta.</p>`;
+    return;
+  }
+  el.innerHTML=filas.map(f=>{
+    const listo=f.n>=MIN_ENTREGAS;
+    const color=!listo?'var(--text3)':Math.abs(f.dif)<5?'var(--green)':f.dif>0?'var(--red)':'var(--yellow)';
+    const veredicto=!listo?`Faltan ${MIN_ENTREGAS-f.n} entrega${MIN_ENTREGAS-f.n>1?'s':''} para poder sacar una conclusión`
+      :Math.abs(f.dif)<5?'La tarifa está bien'
+      :f.dif>0?`Te está costando ${f.dif}% más de lo que cobrás`
+      :`Estás cobrando ${Math.abs(f.dif)}% más de lo que te cuesta`;
+    return`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px">
+      <div style="font-weight:800;font-size:.84rem">Entran ${f.cap} por camión</div>
+      <div style="font-size:.66rem;color:var(--text3);margin-bottom:8px">${esc(nombreCap(f.cap))}</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem">
+        <div><span style="color:var(--text3)">Cobrás</span> <b>$${f.cobra.toLocaleString('es-AR')}</b>/km</div>
+        <div><span style="color:var(--text3)">Te cuesta</span> <b style="color:${color}">$${f.real.toLocaleString('es-AR')}</b>/km</div>
+        <div style="color:var(--text3)">sobre ${f.n} entrega${f.n>1?'s':''}</div>
+      </div>
+      <div style="font-size:.74rem;color:${color};margin-top:7px;font-weight:700">${veredicto}</div>
+      ${(listo&&Math.abs(f.dif)>=5)?`<button class="bg" style="margin-top:9px;padding:8px 14px;font-size:.76rem" onclick="aplicarTarifa('${f.cap}',${f.real})">Aplicar $${f.real.toLocaleString('es-AR')}/km</button>`:''}
+    </div>`;
+  }).join('')
+  +`<p class="mmhint" style="margin:10px 0 0">Sale de tus ${entregadas} entregas con costo de flete cargado. Mide el costo por km de cada unidad y toma el valor del medio, así una entrega rara no te mueve la tarifa. Nada cambia hasta que apretás Aplicar.</p>`;
+}
+async function aplicarTarifa(cap,valor){
+  TARIFA_KM[cap]=valor;
+  try{
+    const r=await sb.from('config').upsert([{clave:'tarifa_km',valor:JSON.stringify(TARIFA_KM)}],{onConflict:'clave'});
+    if(r.error)throw r.error;
+    if(CFG_RAW)CFG_RAW['tarifa_km']=JSON.stringify(TARIFA_KM);
+  }catch(e){toast('No se pudo guardar: '+(e.message||e),7000);return;}
+  toast(`🚛 Tarifa actualizada: $${valor.toLocaleString('es-AR')}/km`,5000);
+  renderTarifas();renderViajes();renderProxFletes();calcPintarResumen();
+}
+// Los km de las ventas viejas se completan de a poco, sin hacer esperar a
+// nadie: unas pocas por vez, y queda guardado para siempre.
+async function completarKmFaltantes(){
+  if(typeof google==='undefined'||!google.maps)return;
+  const faltan=ventas.filter(v=>v.estado==='Entregado'&&(parseFloat(v.costo_flete)||0)>0
+    &&!(parseFloat(v.km)>0)&&v.lat&&v.lng&&v.user_id===authedUser).slice(0,3);
+  for(const v of faltan){
+    try{
+      const res=await routeDir({lat:FAB_LAT,lng:FAB_LNG},{lat:parseFloat(v.lat),lng:parseFloat(v.lng)},[]);
+      const km=Math.round(res.routes[0].legs.reduce((a,l)=>a+l.distance.value,0)/1000);
+      if(km>0){await sb.from('ventas').update({km}).eq('id',v.id);v.km=km;}
+    }catch(e){}
+  }
+}
+
 // ── QUE VE CADA UNO ──────────────────────────────────────────
 // El vendedor ve lo suyo y lo que necesita para vender: el presupuesto, sus
 // ventas, sus clientes, el ranking y su comision. Los costos, la ganancia y
@@ -3555,6 +3695,7 @@ function calcAVenta(){
     modalLat=calc.lat;modalLng=calc.lng;
     if(mapModal&&modalMarker){const p={lat:calc.lat,lng:calc.lng};mapModal.setCenter(p);mapModal.setZoom(11);modalMarker.setPosition(p);modalMarker.setVisible(true);}
   }
+  if(calc.km)ventaKm=calc.km;
   const n=calcPrev.filas.length||1,fleteUnit=Math.round((parseFloat(calcPrev.flete)||0)/n);
   prodItems=calcPrev.filas.map((f,i)=>({prod:calcProdNombre(f.silo),modelo:calcModeloStr(f.silo),
     cono:String(f.silo.cono),fibra:calcFibraAplica(f.silo)&&f.silo.fibra,libre:'',cantidad:1,
