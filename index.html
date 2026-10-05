@@ -937,7 +937,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v74';
+const VERSION='v75';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -1645,14 +1645,19 @@ function renderCapacidades(){
     </div>`
     +g.map(x=>{
       const c=CAP_GRUPOS[x.ancho]||{};
+      // La columna de la camioneta viene cargada con los numeros que ya usaba
+      // la app, que son los del dueno. Solo hay que completar la del camion.
+      const ref=(PRECIOS||[]).find(z=>z.modelo===x.modelos[0]);
+      const prod=(ref&&ref.tipo==='comedero')?'Autoconsumo':'Silo Aéreo';
+      const porDefecto=c.camioneta||getMaxPorCamion(prod,x.modelos[0],'camioneta');
       const inp=(veh,val)=>`<input type="number" min="0" step="1" value="${val||''}" data-ancho="${x.ancho}" data-veh="${veh}" class="cap-inp" style="width:62px;background:var(--bg);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:7px;font-size:.8rem;font-family:inherit;text-align:center"/>`;
       return`<div style="display:flex;gap:6px;align-items:center;margin-bottom:5px">
         <div style="flex:1;min-width:0">
           <div style="font-size:.8rem;font-weight:700">${x.ancho} mts</div>
           <div style="font-size:.62rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.modelos.join(' · '))}</div>
-        </div>${inp('camioneta',c.camioneta)}${inp('camion',c.camion)}</div>`;
+        </div>${inp('camioneta',porDefecto)}${inp('camion',c.camion)}</div>`;
     }).join('')
-    +`<p class="mmhint" style="margin:8px 0 0">Cuántos silos de ese ancho entran en cada vehículo. Los que miden lo mismo ocupan lo mismo, por eso van juntos. Lo que dejes vacío sigue con la cuenta por toneladas.</p>`;
+    +`<p class="mmhint" style="margin:8px 0 0">Cuántos silos de ese ancho entran en cada vehículo. La columna de la camioneta ya viene con los números que usás hoy; falta la del camión. Lo que dejes vacío sigue con la cuenta de siempre.</p>`;
 }
 async function guardarCapacidades(){
   const nuevo={};
