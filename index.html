@@ -921,7 +921,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v67';
+const VERSION='v68';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -2324,7 +2324,10 @@ function setClientesEnViaje(vj){
   const paradasArr=parsePar(vj?.paradas_snap||[]);
   const peds=parsePar(vj?.pedido_ids||[]);
   const ids=new Set([...peds.map(String),...paradasArr.map(x=>String(x.id)).filter(Boolean)]);
-  const nombres=new Set(paradasArr.map(x=>(x.cliente||'').trim().toLowerCase()).filter(Boolean));
+  // Igual que arriba: el nombre solo tapa a las paradas viejas, las que se
+  // guardaron sin id. Una segunda compra del mismo cliente tiene que poder
+  // sumarse al viaje.
+  const nombres=new Set(paradasArr.filter(x=>x.id==null).map(x=>(x.cliente||'').trim().toLowerCase()).filter(Boolean));
   return{ids,nombres};
 }
 function noEstaEnViaje(v,enViaje){return !enViaje.ids.has(String(v.id))&&!enViaje.nombres.has((v.cliente||'').trim().toLowerCase());}
@@ -2332,7 +2335,14 @@ function noEstaEnViaje(v,enViaje){return !enViaje.ids.has(String(v.id))&&!enViaj
 function ventasAsignadas(){
   const ids=new Set(),nombres=new Set();
   [...viajesData,...fletesPublicos].forEach(vj=>{
-    parsePar(vj.paradas_snap).forEach(x=>{if(x.id!=null)ids.add(String(x.id));const n=(x.cliente||x.nombre||'').trim().toLowerCase();if(n)nombres.add(n);});
+    const viejo=estadoViaje(vj)==='historial';
+    parsePar(vj.paradas_snap).forEach(x=>{
+      if(x.id!=null)ids.add(String(x.id));
+      // Por nombre se descarta solo si la parada no tiene id y el viaje sigue
+      // vivo. Si no, un cliente que ya viajo una vez no podria volver a
+      // aparecer cuando compra de nuevo.
+      else if(!viejo){const n=(x.cliente||x.nombre||'').trim().toLowerCase();if(n)nombres.add(n);}
+    });
     parsePar(vj.pedido_ids||[]).forEach(pid=>ids.add(String(pid)));
   });
   return{ids,nombres};
