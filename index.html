@@ -935,7 +935,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v72';
+const VERSION='v73';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -1607,6 +1607,25 @@ function planVehiculo(oc){
   const camion=ops.find(o=>o.veh==='camion');
   if(camion&&elegido.veh!=='camion')elegido.faltaParaCamion=Math.max(0,Math.round((1-camion.llenado)*100));
   return elegido;
+}
+// Cuanto falta para completar la carga, dicho en silos y no en porcentaje:
+// es lo que sirve para saber si se puede meter una venta mas antes de salir.
+function faltaEnCarga(paradas,plan){
+  if(!plan)return'';
+  const resto=(plan.unidades*plan.cap)-calcOcupacion(paradas);
+  if(resto<=0.02)return'';
+  const vistos=[];
+  paradas.forEach(p=>productosDe(p).forEach(a=>{
+    const nom=`${(a.producto==='Autoconsumo'||a.producto==='Silo Aéreo')?a.producto+' ':''}${String(a.modelo||'').split(' · ')[0]}`;
+    const esp=1/getMaxPorCamion(a.producto,a.modelo);
+    if(nom.trim()&&!vistos.some(v=>v.nom===nom))vistos.push({nom,esp});
+  }));
+  const ops=vistos.map(v=>({...v,n:Math.floor((resto+1e-9)/v.esp)})).filter(v=>v.n>0)
+    .sort((a,b)=>a.n-b.n).slice(0,2);
+  if(!ops.length)return`queda ${Math.round(resto*100)}% de la carga libre`;
+  const txt=o=>`${o.n} ${o.nom}`;
+  const dos='entran '+ops.map(txt).join(' o ')+' más';
+  return dos.length<=60?dos:('entran '+txt(ops[0])+' más');
 }
 function textoVehiculo(p){
   if(!p)return'';
@@ -2346,7 +2365,7 @@ function renderViajes(){
         ${p.length?`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:.72rem">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="color:var(--text3)">Flete total</span><span style="color:var(--gold);font-weight:900;font-size:.9rem">${flete.listo?fPesos(flete.total):'—'}</span></div>
           ${flete.listo?`<div style="color:var(--text3);font-size:.63rem;margin-bottom:6px">${flete.kmReal} km · ${flete.plan?esc(textoVehiculo(flete.plan))+' × $'+flete.plan.porKm.toLocaleString('es-AR')+'/km':'tarifa por producto × km hasta su parada'}</div>`:'<div style="color:var(--text3);font-size:.63rem;margin-bottom:4px">Abrí el viaje para calcular la ruta y ver el flete</div>'}
-          ${flete.plan?`<div style="color:${flete.plan.llenado>=.99?'var(--green)':'var(--text3)'};font-size:.66rem;font-weight:700">🚚 Va en ${esc(flete.plan.nombre)} · ${Math.round(flete.plan.llenado*100)}% cargado${flete.plan.faltaPct>0?` · te falta ${flete.plan.faltaPct}% para llenarlo`:''}</div>`
+          ${flete.plan?`<div style="color:${flete.plan.llenado>=.99?'var(--green)':'var(--gold)'};font-size:.66rem;font-weight:700">🚚 Va en ${esc(flete.plan.nombre)} · ${Math.round(flete.plan.llenado*100)}% cargado</div>${flete.plan.faltaPct>0?`<div style="color:var(--text3);font-size:.63rem;margin-top:2px">Todavía ${esc(faltaEnCarga(p,flete.plan))||'falta un '+flete.plan.faltaPct+'%'}</div>`:''}`
             :(flete.ocupacion>1?`<div style="color:var(--yellow);font-weight:700;font-size:.66rem">${Math.round(flete.ocupacion*100)}% de una camioneta — cargá las tarifas en Configuración para saber si conviene camión</div>`:`<div style="color:var(--text3);font-size:.63rem">Camioneta ocupada: ${Math.round(flete.ocupacion*100)}%</div>`)}
         </div>`:''}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px">
@@ -3634,27 +3653,10 @@ function calcPrecioLinea(s){
   return{...pu,ars,descripcion:desc,silo:s};
 }
 function calcSilosCargados(){return calcSilos.filter(s=>s.id);}
-// El flete del presupuesto sigue la misma logica que el viaje: sale del
-// vehiculo. Lo que se cobra es la parte que ocupa el cliente, nunca menos de
-// la carga minima facturable, porque un silo solo no paga medio camion vacio.
-function calcPlanFlete(){
-  const silos=calcSilosCargados();
-  if(!silos.length||!calc.km)return null;
-  const prods=silos.map(s=>({producto:calcProdNombre(s),modelo:calcModeloStr(s),cantidad:1}));
-  const oc=ocupacionItem({productos:prods});
-  const plan=planVehiculo(oc);
-  if(!plan)return null;
-  const capTotal=plan.unidades*plan.cap;
-  const parte=Math.min(1,Math.max(oc/capTotal,PISO_CARGA));
-  return{plan,oc,parte,total:Math.round(parte*plan.porKmTotal*calc.km)};
-}
 function calcFleteTotal(){
   if(!calc.flete||!calc.km)return 0;
-  const silos=calcSilosCargados();
-  if(!silos.length)return 0;
-  const p=calcPlanFlete();
-  if(p)return p.total;
-  const prods=silos.map(s=>({producto:calcProdNombre(s),modelo:calcModeloStr(s),cantidad:1}));
+  const prods=calcSilosCargados().map(s=>({producto:calcProdNombre(s),modelo:calcModeloStr(s),cantidad:1}));
+  if(!prods.length)return 0;
   return Math.round(tarifaItem({productos:prods},provDe(calc.loc))*calc.km);
 }
 function calcPintarResumen(){
@@ -3663,12 +3665,7 @@ function calcPintarResumen(){
   if(!lineas.length){el.innerHTML='<div style="color:var(--text3);text-align:center;padding:6px">Elegí la capacidad y acá aparece el precio.</div>';return;}
   const sub=lineas.reduce((a,l)=>a+l.ars,0),fl=calcFleteTotal();
   el.innerHTML=lineas.map(l=>`<div class="calc-rrow"><span>${esc(calcProdNombre(l.silo))} ${esc(l.ref.modelo)}${l.silo.tipo==='aereo'?' · cono '+l.silo.cono+'°':''}${(calcFibraAplica(l.silo)&&l.silo.fibra)?' · base de fibra':''}</span><span>${fPesos(l.ars)}</span></div>`).join('')
-    +(calc.flete?(()=>{
-      const p=calc.km?calcPlanFlete():null;
-      const det=p?`${p.plan.unidades>1?p.plan.unidades+' ':''}${esc(p.plan.nombre)} · ocupa ${Math.round(p.parte*100)}%`:'';
-      return`<div class="calc-rrow"><span>Flete${calc.km?' ('+calc.km+' km)':''}</span><span>${calc.km?fPesos(fl):'<span style="color:var(--text3)">falta la distancia</span>'}</span></div>`
-        +(det?`<div style="font-size:.66rem;color:var(--text3);text-align:right;margin-top:-2px">${det}</div>`:'');
-    })():'')
+    +(calc.flete?`<div class="calc-rrow"><span>Flete${calc.km?' ('+calc.km+' km)':''}</span><span>${calc.km?fPesos(fl):'<span style="color:var(--text3)">falta la distancia</span>'}</span></div>`:'')
     +`<div class="calc-rrow" style="border-top:1px solid var(--border);margin-top:5px;padding-top:7px;font-weight:800"><span>Total</span><span style="color:var(--gold)">${fPesos(sub+fl)}</span></div>
       <div style="font-size:.68rem;color:var(--text3);text-align:right;margin-top:3px">${calc.iva?'IVA '+cfgNum('iva',10.5)+'% incluido':'Sin IVA'} · dólar $${cfgNum('dolar',1485)}</div>`;
 }
