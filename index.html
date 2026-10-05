@@ -935,7 +935,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v71';
+const VERSION='v72';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -3634,10 +3634,27 @@ function calcPrecioLinea(s){
   return{...pu,ars,descripcion:desc,silo:s};
 }
 function calcSilosCargados(){return calcSilos.filter(s=>s.id);}
+// El flete del presupuesto sigue la misma logica que el viaje: sale del
+// vehiculo. Lo que se cobra es la parte que ocupa el cliente, nunca menos de
+// la carga minima facturable, porque un silo solo no paga medio camion vacio.
+function calcPlanFlete(){
+  const silos=calcSilosCargados();
+  if(!silos.length||!calc.km)return null;
+  const prods=silos.map(s=>({producto:calcProdNombre(s),modelo:calcModeloStr(s),cantidad:1}));
+  const oc=ocupacionItem({productos:prods});
+  const plan=planVehiculo(oc);
+  if(!plan)return null;
+  const capTotal=plan.unidades*plan.cap;
+  const parte=Math.min(1,Math.max(oc/capTotal,PISO_CARGA));
+  return{plan,oc,parte,total:Math.round(parte*plan.porKmTotal*calc.km)};
+}
 function calcFleteTotal(){
   if(!calc.flete||!calc.km)return 0;
-  const prods=calcSilosCargados().map(s=>({producto:calcProdNombre(s),modelo:calcModeloStr(s),cantidad:1}));
-  if(!prods.length)return 0;
+  const silos=calcSilosCargados();
+  if(!silos.length)return 0;
+  const p=calcPlanFlete();
+  if(p)return p.total;
+  const prods=silos.map(s=>({producto:calcProdNombre(s),modelo:calcModeloStr(s),cantidad:1}));
   return Math.round(tarifaItem({productos:prods},provDe(calc.loc))*calc.km);
 }
 function calcPintarResumen(){
@@ -3646,7 +3663,12 @@ function calcPintarResumen(){
   if(!lineas.length){el.innerHTML='<div style="color:var(--text3);text-align:center;padding:6px">Elegí la capacidad y acá aparece el precio.</div>';return;}
   const sub=lineas.reduce((a,l)=>a+l.ars,0),fl=calcFleteTotal();
   el.innerHTML=lineas.map(l=>`<div class="calc-rrow"><span>${esc(calcProdNombre(l.silo))} ${esc(l.ref.modelo)}${l.silo.tipo==='aereo'?' · cono '+l.silo.cono+'°':''}${(calcFibraAplica(l.silo)&&l.silo.fibra)?' · base de fibra':''}</span><span>${fPesos(l.ars)}</span></div>`).join('')
-    +(calc.flete?`<div class="calc-rrow"><span>Flete${calc.km?' ('+calc.km+' km)':''}</span><span>${calc.km?fPesos(fl):'<span style="color:var(--text3)">falta la distancia</span>'}</span></div>`:'')
+    +(calc.flete?(()=>{
+      const p=calc.km?calcPlanFlete():null;
+      const det=p?`${p.plan.unidades>1?p.plan.unidades+' ':''}${esc(p.plan.nombre)} · ocupa ${Math.round(p.parte*100)}%`:'';
+      return`<div class="calc-rrow"><span>Flete${calc.km?' ('+calc.km+' km)':''}</span><span>${calc.km?fPesos(fl):'<span style="color:var(--text3)">falta la distancia</span>'}</span></div>`
+        +(det?`<div style="font-size:.66rem;color:var(--text3);text-align:right;margin-top:-2px">${det}</div>`:'');
+    })():'')
     +`<div class="calc-rrow" style="border-top:1px solid var(--border);margin-top:5px;padding-top:7px;font-weight:800"><span>Total</span><span style="color:var(--gold)">${fPesos(sub+fl)}</span></div>
       <div style="font-size:.68rem;color:var(--text3);text-align:right;margin-top:3px">${calc.iva?'IVA '+cfgNum('iva',10.5)+'% incluido':'Sin IVA'} · dólar $${cfgNum('dolar',1485)}</div>`;
 }
