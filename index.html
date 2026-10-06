@@ -409,6 +409,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <div class="fg"><label>Contraseña</label><input id="auth-pass" type="password" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')authSubmit()"/></div>
     <button class="abtn" id="authBtn" onclick="authSubmit()">Entrar</button>
     <div class="autherr" id="authErr"></div>
+    <div class="authtoggle" style="margin-top:10px"><a onclick="authEnlace()">Entrar con un enlace por mail</a></div>
     <div class="authtoggle" id="authToggle">¿No tenés cuenta? <a onclick="authToggleMode()">Registrate</a></div>
   </div>
 </div>
@@ -948,7 +949,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v82';
+const VERSION='v83';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -1069,6 +1070,26 @@ function traducirAuthError(m){
   if(/Email not confirmed/i.test(m))return'Confirmá tu email antes de entrar (revisá tu casilla)';
   if(/rate limit|too many/i.test(m))return'Demasiados intentos, esperá un momento';
   return m;
+}
+// Manda un enlace al mail para entrar sin contrasena. Es la salida para el
+// vendedor que entro por invitacion y nunca se puso una, y para el que se la
+// olvido.
+async function authEnlace(){
+  const email=(document.getElementById('auth-email').value||'').trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){authMsg('Escribí tu email arriba y volvé a tocar acá');return;}
+  const btn=document.getElementById('authBtn');btn.disabled=true;
+  authMsg('Mandando el enlace...',true);
+  try{
+    const{error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:location.origin+location.pathname}});
+    if(error)throw error;
+    authMsg('📧 Te mandamos un enlace a '+email+'. Abrilo desde este mismo teléfono y entrás sin contraseña. Después podés ponerte una en tu perfil.',true);
+  }catch(err){
+    const m=String(err&&err.message||err);
+    authMsg(/not found|no user|signups? not allowed/i.test(m)
+      ?'Ese mail no tiene cuenta todavía. Pedile al dueño que te invite.'
+      :traducirAuthError(m));
+  }
+  btn.disabled=false;
 }
 async function authSubmit(){
   const email=document.getElementById('auth-email').value.trim();
@@ -1588,6 +1609,13 @@ async function invitarVendedor(){
   const m=document.getElementById('inv-email').value.trim().toLowerCase();
   if(!n){toast('Poné el nombre');return;}
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)){toast('Ese email no parece válido');return;}
+  // Invitar dos veces el mismo mail no suma nada y despues confunde en la lista
+  try{
+    const r=await sb.from('invitaciones').select('id,nombre,usada_el').eq('email',m).eq('empresa_id',miEmpresa);
+    const previa=(r.data||[]).find(x=>!x.usada_el);
+    if(previa){toast('Ese mail ya está invitado como '+(previa.nombre||m)+'. Si no le llegó, tocá otra vez Invitar en unos minutos.',8000);return;}
+    if((r.data||[]).some(x=>x.usada_el)){toast('Ese mail ya entró a tu equipo con una invitación anterior.',8000);return;}
+  }catch(e){}
   const{error}=await sb.from('invitaciones').insert([{email:m,nombre:n,empresa_id:miEmpresa,rol:'vendedor'}]);
   if(error&&!/duplicate|unique/i.test(error.message)){toast('Error: '+error.message);return;}
   // El mail con el enlace lo manda Supabase. Si falla (suele ser el límite de
