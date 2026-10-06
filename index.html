@@ -823,6 +823,11 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
             <div class="fg"><label>Camión ($/km)</label><input id="cfg-km-camion" type="number" min="0" placeholder="4500"/></div>
           </div>
           <div class="fg"><label>Cargas de camioneta que entran en un camión</label><input id="cfg-cargas-camion" type="number" min="0" step="0.1" placeholder="2.5"/></div>
+          <div class="frow">
+            <div class="fg"><label>Ajuste silos base aérea (%)</label><input id="cfg-ajuste-aereo" type="number" step="1" placeholder="0"/></div>
+            <div class="fg"><label>Ajuste autoconsumos (%)</label><input id="cfg-ajuste-comedero" type="number" step="1" placeholder="0"/></div>
+          </div>
+          <p class="mmhint">Los aéreos no se cobran igual que los autoconsumos aunque entren los mismos por carga. Acá se corrige toda la familia de una, en vez de modelo por modelo.</p>
           <div class="inicio-stitle" style="margin:14px 0 8px">Lo que le toca a cada silo</div>
           <div id="cfg-tarifas-km"></div>
           <div class="inicio-stitle" style="margin:14px 0 8px">Tarifa por km, modelo por modelo</div>
@@ -941,7 +946,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v80';
+const VERSION='v81';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -1320,8 +1325,12 @@ function tarifaUnidad(producto,modelo,prov){
     if(v>0)return v;
   }
   const base=tarifaCalculada(producto,modelo);
+  // Primero la excepcion del modelo; si no tiene, el ajuste de su familia,
+  // porque los aereos no se cobran como los autoconsumos.
   const aj=AJUSTES_MODELO['m:'+modeloClave(producto,modelo)];
-  return (aj>0)?Math.round(base*aj):base;
+  if(aj>0)return Math.round(base*aj);
+  const fam=esAutoconsumo(producto,modelo)?cfgNum('ajuste_comedero',0):cfgNum('ajuste_aereo',0);
+  return fam?Math.round(base*(1+fam/100)):base;
 }
 function tarifaItem(obj,prov){
   const p=prov!=null?prov:provDe(obj);
@@ -1368,6 +1377,8 @@ function abrirConfig(){
   document.getElementById('cfg-km-camioneta').value=cfgNum('km_camioneta',0)||'';
   document.getElementById('cfg-km-camion').value=cfgNum('km_camion',0)||'';
   document.getElementById('cfg-cargas-camion').value=cfgNum('cargas_por_camion',0)||'';
+  document.getElementById('cfg-ajuste-aereo').value=cfgNum('ajuste_aereo',0)||'';
+  document.getElementById('cfg-ajuste-comedero').value=cfgNum('ajuste_comedero',0)||'';
   renderCapacidades();renderTarifasManual();renderTarifasModelo();
   const rc=document.getElementById('cfg-ranking-card');
   const esPrincipal=authedEmail===MAIN_EMAIL;
@@ -1649,7 +1660,8 @@ function guardarConfig(){
 // este navegador.
 async function guardarVehiculos(){
   const campos=[['cfg-km-camioneta','km_camioneta'],['cfg-km-camion','km_camion'],['cfg-cargas-camion','cargas_por_camion'],
-                ['cfg-precio-km','precio_km'],['cfg-piso','piso_carga']];
+                ['cfg-precio-km','precio_km'],['cfg-piso','piso_carga'],
+                ['cfg-ajuste-aereo','ajuste_aereo'],['cfg-ajuste-comedero','ajuste_comedero']];
   const filas=[];
   campos.forEach(([id,clave])=>{
     const e=document.getElementById(id);if(!e)return;
@@ -1670,13 +1682,18 @@ function renderTarifasManual(){
     '5':'12 y 18tn autoconsumo','3':'30 a 72tn aéreos','2':'80 a 140tn aéreos','1':'150, 175 y 200tn aéreos'};
   const piso=PISO_CARGA>0?PISO_CARGA:1;
   el.innerHTML=Object.keys(ejemplo).map(Number).sort((a,b)=>b-a).map(n=>{
-    const parte=Math.min(1,(1/n)/piso);
+    const parte=Math.min(1,(1/n)/piso),bruto=PRECIO_KM*parte;
+    const ae=Math.round(bruto*(1+cfgNum('ajuste_aereo',0)/100));
+    const co=Math.round(bruto*(1+cfgNum('ajuste_comedero',0)/100));
     return`<div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
       <div style="flex:1;min-width:0">
         <div style="font-size:.78rem;font-weight:700">Entran ${n} por carga</div>
         <div style="font-size:.62rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(ejemplo[n])}</div>
       </div>
-      <div style="font-size:.82rem;font-weight:800;color:var(--gold);white-space:nowrap">$${Math.round(PRECIO_KM*parte).toLocaleString('es-AR')}<span style="color:var(--text3);font-weight:400">/km</span></div>
+      <div style="font-size:.76rem;font-weight:800;white-space:nowrap;text-align:right">
+        <div style="color:var(--gold)">$${ae.toLocaleString('es-AR')}<span style="color:var(--text3);font-weight:400">/km aéreo</span></div>
+        ${co!==ae?`<div style="color:var(--gold)">$${co.toLocaleString('es-AR')}<span style="color:var(--text3);font-weight:400">/km autoc.</span></div>`:''}
+      </div>
     </div>`;}).join('')
     +`<p class="mmhint" style="margin:8px 0 0">Sale de dividir los $${PRECIO_KM.toLocaleString('es-AR')}/km del vehículo por cuántos entran, y eso por la carga mínima de ${Math.round(piso*100)}%, porque el viaje nunca sale lleno. Cambiás esos dos números de arriba y se actualiza toda la lista.</p>`;
 }
