@@ -825,6 +825,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
           <div class="fg"><label>Cargas de camioneta que entran en un camión</label><input id="cfg-cargas-camion" type="number" min="0" step="0.1" placeholder="2.5"/></div>
           <div class="inicio-stitle" style="margin:14px 0 8px">Tarifa por km de cada silo</div>
           <div id="cfg-tarifas-km"></div>
+          <div class="inicio-stitle" style="margin:14px 0 8px">Tarifa por km, modelo por modelo</div>
+          <div id="cfg-tarifas-modelo"></div>
           <div class="inicio-stitle" style="margin:14px 0 8px">Cuántos entran, por ancho de silo</div>
           <div id="cfg-capacidades"></div>
           <p class="mmhint">Con estos tres números el flete del viaje deja de salir de la suma de los silos y pasa a ser lo que cobra el fletero: primero se busca llenar la camioneta, y si la carga la pasa, se compara con el camión y gana el que salga más barato.</p>
@@ -939,7 +941,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v77';
+const VERSION='v78';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -1353,7 +1355,7 @@ function abrirConfig(){
   document.getElementById('cfg-km-camioneta').value=cfgNum('km_camioneta',0)||'';
   document.getElementById('cfg-km-camion').value=cfgNum('km_camion',0)||'';
   document.getElementById('cfg-cargas-camion').value=cfgNum('cargas_por_camion',0)||'';
-  renderCapacidades();renderTarifasManual();
+  renderCapacidades();renderTarifasManual();renderTarifasModelo();
   const rc=document.getElementById('cfg-ranking-card');
   const esPrincipal=authedEmail===MAIN_EMAIL;
   // El ranking lo ven todos los vendedores: si no lo ven, no hay con quién competir.
@@ -1622,7 +1624,7 @@ function guardarConfig(){
   if(de>0){DESVIO_MAX=de;localStorage.setItem('remeco_desvio',de);}
   const da=parseFloat(document.getElementById('cfg-dias-aviso').value);
   if(da>0){DIAS_AVISO=da;localStorage.setItem('remeco_dias_aviso',da);}
-  guardarVehiculos();guardarCapacidades();guardarTarifasManual();
+  guardarVehiculos();guardarCapacidades();guardarTarifasManual();guardarTarifasModelo();
   renderViajes();renderProxFletes();if(simParadas.length)renderSimParadas();cerrarConfig();toast('Configuración guardada ✓');
 }
 // ── EL FLETE SALE DEL VEHÍCULO, NO DE CADA SILO ──────────────
@@ -1672,6 +1674,50 @@ async function guardarTarifasManual(){
   try{const r=await sb.from('config').upsert([{clave:'tarifa_km',valor:JSON.stringify(TARIFA_KM)}],{onConflict:'clave'});if(r.error)throw r.error;
     if(CFG_RAW)CFG_RAW['tarifa_km']=JSON.stringify(TARIFA_KM);
   }catch(e){toast('No se pudieron guardar las tarifas: '+(e.message||e),7000);}
+}
+// Tarifa propia de cada modelo. Mandan sobre la tarifa por categoria: el
+// autoconsumo de 7tn entra de a seis como un aereo de 28, pero no se cobra
+// igual, asi que cada uno lleva su numero.
+// La tarifa que le toca a una categoria (cuantos entran por carga)
+function tarifaPorCap(cap){
+  if(TARIFA_KM[cap])return TARIFA_KM[cap];
+  let best=0,bd=Infinity;
+  Object.keys(TARIFA_KM).forEach(k=>{const d=Math.abs(parseFloat(k)-parseFloat(cap));if(d<bd){bd=d;best=TARIFA_KM[k];}});
+  return best;
+}
+function renderTarifasModelo(){
+  const el=document.getElementById('cfg-tarifas-modelo');if(!el)return;
+  const filas=(PRECIOS||[]).filter(p=>p.activo!==false);
+  if(!filas.length){el.innerHTML='<p class="mmhint" style="margin:0">Se arma sola con la lista de precios.</p>';return;}
+  const grupo=(tipo,titulo)=>{
+    const fs=filas.filter(p=>p.tipo===tipo);
+    if(!fs.length)return'';
+    return`<div class="inicio-stitle" style="margin:10px 0 6px">${titulo}</div>`+fs.map(p=>{
+      const prod=tipo==='comedero'?'Autoconsumo':'Silo Aéreo';
+      const clave='m:'+modeloClave(prod,p.modelo);
+      const propia=TARIFAS_FINAS[clave];
+      const porCat=Math.round(tarifaPorCap(String(getMaxPorCamion(prod,p.modelo,'camioneta'))));
+      return`<div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+        <span style="flex:1;min-width:0;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.modelo)}</span>
+        <input type="number" min="0" step="1" value="${propia||''}" placeholder="${porCat}" data-clave="${clave}" class="tarmod-inp"
+          style="width:96px;background:var(--bg);border:1px solid ${propia?'var(--gold)':'var(--border2)'};color:var(--text);border-radius:6px;padding:7px;font-size:.8rem;font-family:inherit;text-align:right"/>
+      </div>`;
+    }).join('');
+  };
+  el.innerHTML=grupo('comedero','Comederos / Autoconsumo')+grupo('aereo','Silos Base Aérea')
+    +`<p class="mmhint" style="margin:8px 0 0">Lo que cobrás por km de cada modelo. El número gris es lo que sale hoy de la tarifa por categoría; si escribís uno, manda ese. Los que dejes vacíos siguen con la categoría.</p>`;
+}
+async function guardarTarifasModelo(){
+  let cambio=false;
+  document.querySelectorAll('.tarmod-inp').forEach(e=>{
+    const k=e.dataset.clave,n=parseFloat(e.value)||0;
+    if(n>0&&TARIFAS_FINAS[k]!==n){TARIFAS_FINAS[k]=n;cambio=true;}
+    else if(!n&&TARIFAS_FINAS[k]){delete TARIFAS_FINAS[k];cambio=true;}
+  });
+  if(!cambio)return;
+  try{const r=await sb.from('config').upsert([{clave:'tarifas_finas',valor:JSON.stringify(TARIFAS_FINAS)}],{onConflict:'clave'});if(r.error)throw r.error;
+    if(CFG_RAW)CFG_RAW['tarifas_finas']=JSON.stringify(TARIFAS_FINAS);
+  }catch(e){toast('No se pudieron guardar las tarifas por modelo: '+(e.message||e),7000);}
 }
 function renderCapacidades(){
   const el=document.getElementById('cfg-capacidades');if(!el)return;
