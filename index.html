@@ -823,6 +823,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
             <div class="fg"><label>Camión ($/km)</label><input id="cfg-km-camion" type="number" min="0" placeholder="4500"/></div>
           </div>
           <div class="fg"><label>Cargas de camioneta que entran en un camión</label><input id="cfg-cargas-camion" type="number" min="0" step="0.1" placeholder="2.5"/></div>
+          <div class="inicio-stitle" style="margin:14px 0 8px">Tarifa por km de cada silo</div>
+          <div id="cfg-tarifas-km"></div>
           <div class="inicio-stitle" style="margin:14px 0 8px">Cuántos entran, por ancho de silo</div>
           <div id="cfg-capacidades"></div>
           <p class="mmhint">Con estos tres números el flete del viaje deja de salir de la suma de los silos y pasa a ser lo que cobra el fletero: primero se busca llenar la camioneta, y si la carga la pasa, se compara con el camión y gana el que salga más barato.</p>
@@ -937,7 +939,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v76';
+const VERSION='v77';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -1351,7 +1353,7 @@ function abrirConfig(){
   document.getElementById('cfg-km-camioneta').value=cfgNum('km_camioneta',0)||'';
   document.getElementById('cfg-km-camion').value=cfgNum('km_camion',0)||'';
   document.getElementById('cfg-cargas-camion').value=cfgNum('cargas_por_camion',0)||'';
-  renderCapacidades();
+  renderCapacidades();renderTarifasManual();
   const rc=document.getElementById('cfg-ranking-card');
   const esPrincipal=authedEmail===MAIN_EMAIL;
   // El ranking lo ven todos los vendedores: si no lo ven, no hay con quién competir.
@@ -1620,7 +1622,7 @@ function guardarConfig(){
   if(de>0){DESVIO_MAX=de;localStorage.setItem('remeco_desvio',de);}
   const da=parseFloat(document.getElementById('cfg-dias-aviso').value);
   if(da>0){DIAS_AVISO=da;localStorage.setItem('remeco_dias_aviso',da);}
-  guardarVehiculos();guardarCapacidades();
+  guardarVehiculos();guardarCapacidades();guardarTarifasManual();
   renderViajes();renderProxFletes();if(simParadas.length)renderSimParadas();cerrarConfig();toast('Configuración guardada ✓');
 }
 // ── EL FLETE SALE DEL VEHÍCULO, NO DE CADA SILO ──────────────
@@ -1644,6 +1646,33 @@ async function guardarVehiculos(){
 }
 // Tabla de cuantos entran, agrupada por el ancho del silo: los que miden lo
 // mismo ocupan lo mismo, asi se cargan 8 numeros y no 52.
+// Las tarifas por km, a mano. Hasta ahora solo se podian cambiar aplicando
+// una sugerencia del historial; esto deja corregirlas en el momento.
+function renderTarifasManual(){
+  const el=document.getElementById('cfg-tarifas-km');if(!el)return;
+  const ejemplo={'8':'6 y 10tn aéreos · 2 y 4tn autoconsumo','6':'16, 22 y 28tn aéreos · 7tn autoconsumo',
+    '5':'12 y 18tn autoconsumo','3':'30 a 72tn aéreos','2':'80 a 140tn aéreos','1':'150, 175 y 200tn aéreos'};
+  const caps=Object.keys(TARIFA_KM).map(Number).filter(n=>ejemplo[n]).sort((a,b)=>b-a);
+  el.innerHTML=caps.map(c=>`<div style="display:flex;gap:8px;align-items:center;margin-bottom:5px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.8rem;font-weight:700">Entran ${c} por carga</div>
+        <div style="font-size:.62rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(ejemplo[c])}</div>
+      </div>
+      <input type="number" min="0" step="10" value="${TARIFA_KM[c]}" data-cap="${c}" class="tar-inp" style="width:92px;background:var(--bg);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:7px;font-size:.82rem;font-family:inherit;text-align:right"/>
+    </div>`).join('')
+    +`<p class="mmhint" style="margin:8px 0 0">Lo que cobrás por km a cada silo cuando comparte viaje. Es la base del presupuesto; si tenés historia de entregas, abajo en "Tarifas de flete" te dice cuánto te está costando de verdad.</p>`;
+}
+async function guardarTarifasManual(){
+  let cambio=false;
+  document.querySelectorAll('.tar-inp').forEach(e=>{
+    const n=parseFloat(e.value)||0,c=e.dataset.cap;
+    if(n>0&&n!==TARIFA_KM[c]){TARIFA_KM[c]=n;cambio=true;}
+  });
+  if(!cambio)return;
+  try{const r=await sb.from('config').upsert([{clave:'tarifa_km',valor:JSON.stringify(TARIFA_KM)}],{onConflict:'clave'});if(r.error)throw r.error;
+    if(CFG_RAW)CFG_RAW['tarifa_km']=JSON.stringify(TARIFA_KM);
+  }catch(e){toast('No se pudieron guardar las tarifas: '+(e.message||e),7000);}
+}
 function renderCapacidades(){
   const el=document.getElementById('cfg-capacidades');if(!el)return;
   const g=gruposDeAncho();
