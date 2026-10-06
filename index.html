@@ -941,7 +941,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v79';
+const VERSION='v80';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -1265,6 +1265,9 @@ let TARIFA_KM={'1':3500,'2':2500,'3':1850,'5':1120,'6':930,'8':810,'20':800};
 // Patagonia, y un 28tn no viaja igual que un comedero. Por eso la tarifa se
 // mide en cuatro niveles y siempre gana el mas fino que tenga historia.
 let TARIFAS_FINAS={};
+// Excepciones por modelo, guardadas como proporcion sobre la cuenta (1.15 = 15%
+// mas caro). Asi cuando sube el flete del vehiculo, la excepcion sube igual.
+let AJUSTES_MODELO={};
 // La provincia sale de la localidad guardada: "Guernica, Provincia de Buenos
 // Aires" -> "buenos aires". Las ventas viejas tambien quedan clasificadas.
 function provDe(x){
@@ -1316,7 +1319,9 @@ function tarifaUnidad(producto,modelo,prov){
     const v=TARIFAS_FINAS[k];
     if(v>0)return v;
   }
-  return tarifaCalculada(producto,modelo);
+  const base=tarifaCalculada(producto,modelo);
+  const aj=AJUSTES_MODELO['m:'+modeloClave(producto,modelo)];
+  return (aj>0)?Math.round(base*aj):base;
 }
 function tarifaItem(obj,prov){
   const p=prov!=null?prov:provDe(obj);
@@ -1695,28 +1700,32 @@ function renderTarifasModelo(){
     return`<div class="inicio-stitle" style="margin:10px 0 6px">${titulo}</div>`+fs.map(p=>{
       const prod=tipo==='comedero'?'Autoconsumo':'Silo Aéreo';
       const clave='m:'+modeloClave(prod,p.modelo);
-      const propia=TARIFAS_FINAS[clave];
-      const porCat=Math.round(tarifaPorCap(String(getMaxPorCamion(prod,p.modelo,'camioneta'))));
+      const base=tarifaCalculada(prod,p.modelo);
+      const aj=AJUSTES_MODELO[clave];
+      const propia=(aj>0)?Math.round(base*aj):0;
+      const porCat=base;
       return`<div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
         <span style="flex:1;min-width:0;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.modelo)}</span>
-        <input type="number" min="0" step="1" value="${propia||''}" placeholder="${porCat}" data-clave="${clave}" class="tarmod-inp"
+        <input type="number" min="0" step="1" value="${propia||''}" placeholder="${porCat}" data-clave="${clave}" data-base="${base}" class="tarmod-inp"
           style="width:96px;background:var(--bg);border:1px solid ${propia?'var(--gold)':'var(--border2)'};color:var(--text);border-radius:6px;padding:7px;font-size:.8rem;font-family:inherit;text-align:right"/>
       </div>`;
     }).join('');
   };
   el.innerHTML=grupo('comedero','Comederos / Autoconsumo')+grupo('aereo','Silos Base Aérea')
-    +`<p class="mmhint" style="margin:8px 0 0">Lo que cobrás por km de cada modelo. El número gris es lo que sale hoy de la tarifa por categoría; si escribís uno, manda ese. Los que dejes vacíos siguen con la categoría.</p>`;
+    +`<p class="mmhint" style="margin:8px 0 0">Para los modelos que cobrás distinto a lo que da la cuenta, como el autoconsumo de 7tn. El número gris es lo que da la cuenta; si escribís otro, se guarda la diferencia en porcentaje, así cuando sube el flete del vehículo este sube igual. Los que dejes vacíos siguen la cuenta.</p>`;
 }
 async function guardarTarifasModelo(){
   let cambio=false;
   document.querySelectorAll('.tarmod-inp').forEach(e=>{
-    const k=e.dataset.clave,n=parseFloat(e.value)||0;
-    if(n>0&&TARIFAS_FINAS[k]!==n){TARIFAS_FINAS[k]=n;cambio=true;}
-    else if(!n&&TARIFAS_FINAS[k]){delete TARIFAS_FINAS[k];cambio=true;}
+    const k=e.dataset.clave,n=parseFloat(e.value)||0,base=parseFloat(e.dataset.base)||0;
+    if(n>0&&base>0){
+      const f=Math.round((n/base)*1000)/1000;
+      if(AJUSTES_MODELO[k]!==f){AJUSTES_MODELO[k]=f;cambio=true;}
+    }else if(!n&&AJUSTES_MODELO[k]){delete AJUSTES_MODELO[k];cambio=true;}
   });
   if(!cambio)return;
-  try{const r=await sb.from('config').upsert([{clave:'tarifas_finas',valor:JSON.stringify(TARIFAS_FINAS)}],{onConflict:'clave'});if(r.error)throw r.error;
-    if(CFG_RAW)CFG_RAW['tarifas_finas']=JSON.stringify(TARIFAS_FINAS);
+  try{const r=await sb.from('config').upsert([{clave:'ajuste_modelo',valor:JSON.stringify(AJUSTES_MODELO)}],{onConflict:'clave'});if(r.error)throw r.error;
+    if(CFG_RAW)CFG_RAW['ajuste_modelo']=JSON.stringify(AJUSTES_MODELO);
   }catch(e){toast('No se pudieron guardar las tarifas por modelo: '+(e.message||e),7000);}
 }
 function renderCapacidades(){
@@ -3540,6 +3549,7 @@ function tarifasDeConfig(){
   const pz=cfgNum('piso_carga',0);if(pz>0)PISO_CARGA=pz/100;
   try{const c=CFG_RAW&&CFG_RAW['capacidad_anchos'];if(c){const o=JSON.parse(c);if(o&&typeof o==='object')CAP_GRUPOS=o;}}catch(e){}
   try{const f=CFG_RAW&&CFG_RAW['tarifas_finas'];if(f){const o=JSON.parse(f);if(o&&typeof o==='object')TARIFAS_FINAS=o;}}catch(e){}
+  try{const a=CFG_RAW&&CFG_RAW['ajuste_modelo'];if(a){const o=JSON.parse(a);if(o&&typeof o==='object')AJUSTES_MODELO=o;}}catch(e){}
   const raw=CFG_RAW&&CFG_RAW['tarifa_km'];
   if(!raw)return;
   try{const o=JSON.parse(raw);if(o&&typeof o==='object')Object.keys(o).forEach(k=>{const n=parseFloat(o[k]);if(n>0)TARIFA_KM[k]=n;});}catch(e){}
