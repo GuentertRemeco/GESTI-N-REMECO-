@@ -163,6 +163,7 @@ tr:hover td{background:var(--bg3)}
 .rent-row:last-child{border-bottom:none;margin-top:6px;padding-top:8px;font-weight:800;font-size:.85rem}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:5000;align-items:center;justify-content:center;padding:12px}
 .overlay.on{display:flex}
+#overlayVendedor{z-index:7600}
 .authgate{display:none;position:fixed;inset:0;background:var(--bg);z-index:9000;align-items:center;justify-content:center;padding:16px}
 .authgate.on{display:flex}
 .authbox{background:#15202e;border:1px solid var(--gold);border-radius:14px;padding:26px 22px;width:100%;max-width:380px}
@@ -755,6 +756,20 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 </div>
 
 <!-- MODAL PERFIL -->
+<div class="overlay" id="overlayVendedor">
+  <div class="modal-sm">
+    <h2 style="font-size:.88rem;color:var(--gold);margin-bottom:4px">Editar vendedor</h2>
+    <p class="mmhint" id="ve-sub" style="margin-bottom:12px"></p>
+    <div class="fg"><label>Nombre</label><input id="ve-nombre" placeholder="Nombre y apellido" onkeydown="if(event.key==='Enter')guardarVendedor()"/></div>
+    <div class="fg"><label>Teléfono</label><input id="ve-telefono" type="tel" placeholder="2954201051" onkeydown="if(event.key==='Enter')guardarVendedor()"/></div>
+    <p class="mmhint">El teléfono es el que sale en los presupuestos que él manda. El nombre es el que ve todo el equipo en el ranking.</p>
+    <div class="mbtns">
+      <button class="bd" onclick="cerrarVendedor()">Cancelar</button>
+      <button class="bg" onclick="guardarVendedor()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="overlayPerfil">
   <div class="modal-sm">
     <h2 style="font-size:.88rem;color:var(--gold);margin-bottom:12px">Mi perfil</h2>
@@ -950,7 +965,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v86';
+const VERSION='v87';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
@@ -1590,7 +1605,7 @@ async function guardarPrecios(){
 }
 
 // ── MI EQUIPO E INVITACIONES ─────────────────────────────────
-let equipoCache={eq:[],inv:[]},telEditando=null;
+let equipoCache={eq:[],inv:[]};
 async function cargarMiEquipo(){
   const el=document.getElementById('cfg-equipo-lista');if(!el)return;
   el.innerHTML='<div class="sp"></div>';
@@ -1598,31 +1613,27 @@ async function cargarMiEquipo(){
   try{const r=await sb.from('vendedores').select('*').eq('empresa_id',miEmpresa);eq=r.data||[];}catch(e){}
   try{const r=await sb.from('invitaciones').select('*').eq('empresa_id',miEmpresa).order('created_at',{ascending:false});inv=(r.data||[]).filter(x=>!x.usada_el);}catch(e){}
   eq.sort((a,b)=>(a.rol===b.rol?0:a.rol==='admin'?-1:1)||String(a.nombre||'').localeCompare(String(b.nombre||'')));
-  equipoCache={eq,inv};telEditando=null;
+  equipoCache={eq,inv};
   renderMiEquipo();
 }
 // El telefono se ve como dato; para cambiarlo esta el lapiz. Tener el campo
 // siempre abierto ensuciaba la lista y se tocaba sin querer.
+// El telefono se ve como dato; el lapiz abre el cuadro para cambiar el nombre
+// y el telefono juntos. Tener campos sueltos en la lista se tocaba sin querer.
 function renderMiEquipo(){
   const el=document.getElementById('cfg-equipo-lista');if(!el)return;
   const{eq,inv}=equipoCache;
   const caja='background:var(--bg3);border:1px solid var(--border);border-radius:9px;margin-bottom:6px;padding:10px 11px';
   const filaVend=v=>{
-    const editando=telEditando===v.user_id;
     const tel=(v.telefono||'').trim();
-    const derecha=editando
-      ?`<input type="tel" id="tel-${v.user_id}" value="${esc(tel)}" placeholder="Teléfono" autofocus
-          onkeydown="if(event.key==='Enter')aplicarTelefono('${v.user_id}');if(event.key==='Escape')cancelarTelefono()"
-          style="width:122px;background:var(--bg);border:1px solid var(--gold);color:var(--text);border-radius:7px;padding:7px 9px;font-size:.8rem;font-family:inherit"/>
-        <button class="vbtn" title="Guardar" onclick="aplicarTelefono('${v.user_id}')">✓</button>
-        <button class="vbtn" title="Cancelar" onclick="cancelarTelefono()">✕</button>`
-      :`<span style="font-size:.8rem;color:${tel?'var(--text2)':'var(--text3)'};white-space:nowrap">${tel?'📞 '+esc(tel):'sin teléfono'}</span>
-        <button class="vbtn" title="Cambiar el teléfono" onclick="editarTelefono('${v.user_id}')">✏️</button>`;
     return`<div style="${caja};display:flex;align-items:center;gap:8px">
       <div style="flex:1;min-width:0">
         <div style="font-weight:700;font-size:.84rem">${esc(v.nombre)||'—'}${v.user_id===authedUser?'<span style="color:var(--gold);font-size:.64rem;margin-left:5px">· VOS</span>':''}</div>
         <div style="font-size:.66rem;color:${v.rol==='admin'?'var(--gold)':'var(--text3)'}">${v.rol==='admin'?'Dueño · ve todo':'Vendedor · ve solo lo suyo'}</div>
-      </div>${derecha}</div>`;
+      </div>
+      <span style="font-size:.8rem;color:${tel?'var(--text2)':'var(--text3)'};white-space:nowrap">${tel?'📞 '+esc(tel):'sin teléfono'}</span>
+      <button class="vbtn" title="Editar" onclick="editarVendedor('${v.user_id}')">✏️</button>
+    </div>`;
   };
   el.innerHTML=`<div class="inicio-stitle" style="margin-bottom:8px">En tu equipo</div>`
     +(eq.length?eq.map(filaVend).join('')
@@ -1637,15 +1648,39 @@ function renderMiEquipo(){
           <button class="vbtn del" title="Cancelar" onclick="cancelarInvitacion('${i.id}')">✕</button>
         </div>`).join(''):'');
 }
-function editarTelefono(uid){telEditando=uid;renderMiEquipo();setTimeout(()=>document.getElementById('tel-'+uid)?.focus(),30);}
-function cancelarTelefono(){telEditando=null;renderMiEquipo();}
-async function aplicarTelefono(uid){
-  const e=document.getElementById('tel-'+uid);if(!e)return;
-  const t=(e.value||'').trim();
+let vendEditando=null;
+function editarVendedor(uid){
+  const v=equipoCache.eq.find(x=>x.user_id===uid);if(!v)return;
+  vendEditando=uid;
+  document.getElementById('ve-sub').textContent=v.rol==='admin'?'Dueño · ve todo':'Vendedor · ve solo lo suyo';
+  document.getElementById('ve-nombre').value=v.nombre||'';
+  document.getElementById('ve-telefono').value=v.telefono||'';
+  document.getElementById('overlayVendedor').classList.add('on');
+  setTimeout(()=>document.getElementById('ve-nombre').focus(),60);
+}
+function cerrarVendedor(){vendEditando=null;document.getElementById('overlayVendedor').classList.remove('on');}
+async function guardarVendedor(){
+  if(!vendEditando)return;
+  const uid=vendEditando;
+  const nombre=(document.getElementById('ve-nombre').value||'').trim();
+  const tel=(document.getElementById('ve-telefono').value||'').trim();
+  if(!nombre){toast('El nombre no puede quedar vacío');return;}
   const v=equipoCache.eq.find(x=>x.user_id===uid);
-  if(v)v.telefono=t;
-  telEditando=null;renderMiEquipo();
-  await guardarTelefono(uid,t);
+  if(v){v.nombre=nombre;v.telefono=tel;}
+  cerrarVendedor();renderMiEquipo();
+  try{
+    const r=await sb.from('vendedores').update({nombre,telefono:tel||null}).eq('user_id',uid);
+    if(r.error)throw r.error;
+    if(uid===authedUser){miTelefono=tel;const p=getPerfil();savePerfil({...p,nombre});aplicarPerfil();}
+    toast('✓ Guardado');
+    if(_vendCache)_vendCache[uid]=nombre;
+    renderRankingInicio();
+  }catch(e){
+    const m=String(e&&e.message||e);
+    toast(/column .*telefono|telefono.* does not exist/i.test(m)
+      ?'Falta correr sql/remeco_telefono_vendedor.sql en Supabase para guardar el teléfono'
+      :'No se pudo guardar: '+m,9000);
+  }
 }
 // El telefono de cada vendedor: es el que sale en el presupuesto que el manda
 async function guardarTelefono(uid,valor){
@@ -4289,8 +4324,8 @@ document.addEventListener('touchend',()=>{
   }else ptReset();
   ptDist=0;
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();}});
-document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();}}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();cerrarVendedor();}});
+document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();cerrarVendedor();}}));
 
 const ah=new Date();
 document.getElementById('inicioFecha').textContent=ah.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
