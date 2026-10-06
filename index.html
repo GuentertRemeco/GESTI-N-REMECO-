@@ -950,7 +950,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v84';
+const VERSION='v86';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
@@ -1590,6 +1590,63 @@ async function guardarPrecios(){
 }
 
 // ── MI EQUIPO E INVITACIONES ─────────────────────────────────
+let equipoCache={eq:[],inv:[]},telEditando=null;
+async function cargarMiEquipo(){
+  const el=document.getElementById('cfg-equipo-lista');if(!el)return;
+  el.innerHTML='<div class="sp"></div>';
+  let eq=[],inv=[];
+  try{const r=await sb.from('vendedores').select('*').eq('empresa_id',miEmpresa);eq=r.data||[];}catch(e){}
+  try{const r=await sb.from('invitaciones').select('*').eq('empresa_id',miEmpresa).order('created_at',{ascending:false});inv=(r.data||[]).filter(x=>!x.usada_el);}catch(e){}
+  eq.sort((a,b)=>(a.rol===b.rol?0:a.rol==='admin'?-1:1)||String(a.nombre||'').localeCompare(String(b.nombre||'')));
+  equipoCache={eq,inv};telEditando=null;
+  renderMiEquipo();
+}
+// El telefono se ve como dato; para cambiarlo esta el lapiz. Tener el campo
+// siempre abierto ensuciaba la lista y se tocaba sin querer.
+function renderMiEquipo(){
+  const el=document.getElementById('cfg-equipo-lista');if(!el)return;
+  const{eq,inv}=equipoCache;
+  const caja='background:var(--bg3);border:1px solid var(--border);border-radius:9px;margin-bottom:6px;padding:10px 11px';
+  const filaVend=v=>{
+    const editando=telEditando===v.user_id;
+    const tel=(v.telefono||'').trim();
+    const derecha=editando
+      ?`<input type="tel" id="tel-${v.user_id}" value="${esc(tel)}" placeholder="Teléfono" autofocus
+          onkeydown="if(event.key==='Enter')aplicarTelefono('${v.user_id}');if(event.key==='Escape')cancelarTelefono()"
+          style="width:122px;background:var(--bg);border:1px solid var(--gold);color:var(--text);border-radius:7px;padding:7px 9px;font-size:.8rem;font-family:inherit"/>
+        <button class="vbtn" title="Guardar" onclick="aplicarTelefono('${v.user_id}')">✓</button>
+        <button class="vbtn" title="Cancelar" onclick="cancelarTelefono()">✕</button>`
+      :`<span style="font-size:.8rem;color:${tel?'var(--text2)':'var(--text3)'};white-space:nowrap">${tel?'📞 '+esc(tel):'sin teléfono'}</span>
+        <button class="vbtn" title="Cambiar el teléfono" onclick="editarTelefono('${v.user_id}')">✏️</button>`;
+    return`<div style="${caja};display:flex;align-items:center;gap:8px">
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:.84rem">${esc(v.nombre)||'—'}${v.user_id===authedUser?'<span style="color:var(--gold);font-size:.64rem;margin-left:5px">· VOS</span>':''}</div>
+        <div style="font-size:.66rem;color:${v.rol==='admin'?'var(--gold)':'var(--text3)'}">${v.rol==='admin'?'Dueño · ve todo':'Vendedor · ve solo lo suyo'}</div>
+      </div>${derecha}</div>`;
+  };
+  el.innerHTML=`<div class="inicio-stitle" style="margin-bottom:8px">En tu equipo</div>`
+    +(eq.length?eq.map(filaVend).join('')
+      :'<div style="font-size:.78rem;color:var(--text3);padding:6px 0">Todavía estás solo.</div>')
+    +`<p class="mmhint" style="margin:2px 0 0">El teléfono de cada uno es el que sale en los presupuestos que él manda.</p>`
+    +(inv.length?`<div class="inicio-stitle" style="margin:13px 0 8px">Invitaciones sin usar</div>`
+      +inv.map(i=>`<div style="${caja};display:flex;align-items:center;gap:10px">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:.84rem">✉️ ${esc(i.nombre||i.email)}</div>
+            <div style="font-size:.66rem;color:var(--yellow)">${esc(i.email)}${i.telefono?' · 📞 '+esc(i.telefono):''} · esperando que entre</div>
+          </div>
+          <button class="vbtn del" title="Cancelar" onclick="cancelarInvitacion('${i.id}')">✕</button>
+        </div>`).join(''):'');
+}
+function editarTelefono(uid){telEditando=uid;renderMiEquipo();setTimeout(()=>document.getElementById('tel-'+uid)?.focus(),30);}
+function cancelarTelefono(){telEditando=null;renderMiEquipo();}
+async function aplicarTelefono(uid){
+  const e=document.getElementById('tel-'+uid);if(!e)return;
+  const t=(e.value||'').trim();
+  const v=equipoCache.eq.find(x=>x.user_id===uid);
+  if(v)v.telefono=t;
+  telEditando=null;renderMiEquipo();
+  await guardarTelefono(uid,t);
+}
 // El telefono de cada vendedor: es el que sale en el presupuesto que el manda
 async function guardarTelefono(uid,valor){
   const t=(valor||'').trim();
@@ -1597,28 +1654,13 @@ async function guardarTelefono(uid,valor){
     const r=await sb.from('vendedores').update({telefono:t||null}).eq('user_id',uid);
     if(r.error)throw r.error;
     if(uid===authedUser)miTelefono=t;
-    toast(t?'Teléfono guardado':'Teléfono borrado');
-  }catch(e){toast('No se pudo guardar el teléfono: '+(e.message||e),7000);}
-}
-async function cargarMiEquipo(){
-  const el=document.getElementById('cfg-equipo-lista');if(!el)return;
-  el.innerHTML='<div class="sp"></div>';
-  let eq=[],inv=[];
-  try{const r=await sb.from('vendedores').select('user_id,nombre,rol,telefono').eq('empresa_id',miEmpresa);eq=r.data||[];}catch(e){}
-  try{const r=await sb.from('invitaciones').select('id,email,nombre,telefono,usada_el').eq('empresa_id',miEmpresa).order('created_at',{ascending:false});inv=(r.data||[]).filter(x=>!x.usada_el);}catch(e){}
-  eq.sort((a,b)=>(a.rol===b.rol?0:a.rol==='admin'?-1:1)||String(a.nombre||'').localeCompare(String(b.nombre||'')));
-  const fila=(txt,sub,color,extra)=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;margin-bottom:6px">
-    <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.84rem">${txt}</div><div style="font-size:.66rem;color:${color||'var(--text3)'}">${sub}</div></div>${extra||''}</div>`;
-  el.innerHTML=`<div class="inicio-stitle" style="margin-bottom:8px">En tu equipo</div>`
-    +(eq.length?eq.map(v=>fila(esc(v.nombre)||'—'+(v.user_id===authedUser?' · VOS':''),
-        (v.rol==='admin'?'Dueño · ve todo':'Vendedor · ve solo lo suyo')+' · el teléfono sale en sus presupuestos',
-        v.rol==='admin'?'var(--gold)':'var(--text3)',
-        `<input type="tel" value="${esc(v.telefono||'')}" placeholder="Teléfono" onchange="guardarTelefono('${v.user_id}',this.value)"
-          style="width:118px;flex-shrink:0;background:var(--bg);border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:7px 9px;font-size:.78rem;font-family:inherit"/>`)).join('')
-      :'<div style="font-size:.78rem;color:var(--text3);padding:6px 0">Todavía estás solo.</div>')
-    +(inv.length?`<div class="inicio-stitle" style="margin:13px 0 8px">Invitaciones sin usar</div>`
-      +inv.map(i=>fila('✉️ '+esc(i.nombre||i.email),esc(i.email)+(i.telefono?' · '+esc(i.telefono):'')+' · esperando que entre','var(--yellow)',
-        `<button class="vbtn del" title="Cancelar" onclick="cancelarInvitacion('${i.id}')">✕</button>`)).join(''):'');
+    toast(t?'📞 Teléfono guardado':'Teléfono borrado');
+  }catch(e){
+    const m=String(e&&e.message||e);
+    toast(/column .*telefono|telefono.* does not exist/i.test(m)
+      ?'Para guardar teléfonos falta correr sql/remeco_telefono_vendedor.sql en Supabase'
+      :'No se pudo guardar el teléfono: '+m,9000);
+  }
 }
 async function invitarVendedor(){
   if(!miEmpresa){toast('Tu usuario todavía no tiene empresa asignada');return;}
@@ -1634,7 +1676,13 @@ async function invitarVendedor(){
     if((r.data||[]).some(x=>x.usada_el)){toast('Ese mail ya entró a tu equipo con una invitación anterior.',8000);return;}
   }catch(e){}
   const tel=(document.getElementById('inv-telefono')?.value||'').trim();
-  const{error}=await sb.from('invitaciones').insert([{email:m,nombre:n,telefono:tel||null,empresa_id:miEmpresa,rol:'vendedor'}]);
+  let{error}=await sb.from('invitaciones').insert([{email:m,nombre:n,telefono:tel||null,empresa_id:miEmpresa,rol:'vendedor'}]);
+  if(error&&/column .*telefono|telefono.* does not exist/i.test(error.message)){
+    // Todavia no se corrio el SQL del telefono: la invitacion sale igual
+    const r2=await sb.from('invitaciones').insert([{email:m,nombre:n,empresa_id:miEmpresa,rol:'vendedor'}]);
+    error=r2.error;
+    if(!error&&tel)toast('Invitado. El teléfono no se guardó: falta correr el SQL remeco_telefono_vendedor.sql',8000);
+  }
   if(error&&!/duplicate|unique/i.test(error.message)){toast('Error: '+error.message);return;}
   // El mail con el enlace lo manda Supabase. Si falla (suele ser el límite de
   // envíos), la invitación igual queda guardada y puede registrarse a mano.
@@ -2060,12 +2108,16 @@ function cargarProdItems(v){
 
 // ── DATOS ────────────────────────────────────────────────────
 async function cargarDatos(){
-  try{const{data:mv}=await sb.from('vendedores').select('empresa_id,rol,telefono').eq('user_id',authedUser).maybeSingle();
-    if(mv){miEmpresa=mv.empresa_id;miRol=mv.rol;miTelefono=mv.telefono||'';}}catch(e){}
+  // Se pide la fila entera a proposito: si se agrega una columna nueva y la
+  // base todavia no la tiene, nombrarla haria fallar toda la consulta y el
+  // usuario quedaria sin empresa y sin rol.
+  try{const{data:mv,error:me}=await sb.from('vendedores').select('*').eq('user_id',authedUser).maybeSingle();
+    if(me)console.error('[Remeco] No se pudo leer tu ficha de vendedor:',me);
+    if(mv){miEmpresa=mv.empresa_id;miRol=mv.rol;miTelefono=mv.telefono||'';}}catch(e){console.error('[Remeco] vendedores:',e);}
   // Si entro por invitacion y todavia no tiene el telefono, se copia de ahi
   if(!miTelefono&&authedEmail){
-    try{const r=await sb.from('invitaciones').select('telefono').eq('email',authedEmail).not('telefono','is',null).limit(1);
-      const t=r.data&&r.data[0]&&r.data[0].telefono;
+    try{const r=await sb.from('invitaciones').select('*').eq('email',authedEmail).limit(5);
+      const t=(r.data||[]).map(x=>x.telefono).find(Boolean);
       if(t){miTelefono=t;await sb.from('vendedores').update({telefono:t}).eq('user_id',authedUser);}
     }catch(e){}
   }
