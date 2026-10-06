@@ -950,7 +950,7 @@ const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
 const sb=supabase.createClient(SURL,SKEY);
 
-const VERSION='v84';
+const VERSION='v85';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
@@ -1598,14 +1598,19 @@ async function guardarTelefono(uid,valor){
     if(r.error)throw r.error;
     if(uid===authedUser)miTelefono=t;
     toast(t?'Teléfono guardado':'Teléfono borrado');
-  }catch(e){toast('No se pudo guardar el teléfono: '+(e.message||e),7000);}
+  }catch(e){
+    const m=String(e&&e.message||e);
+    toast(/column .*telefono|telefono.* does not exist/i.test(m)
+      ?'Para guardar teléfonos falta correr sql/remeco_telefono_vendedor.sql en Supabase'
+      :'No se pudo guardar el teléfono: '+m,9000);
+  }
 }
 async function cargarMiEquipo(){
   const el=document.getElementById('cfg-equipo-lista');if(!el)return;
   el.innerHTML='<div class="sp"></div>';
   let eq=[],inv=[];
-  try{const r=await sb.from('vendedores').select('user_id,nombre,rol,telefono').eq('empresa_id',miEmpresa);eq=r.data||[];}catch(e){}
-  try{const r=await sb.from('invitaciones').select('id,email,nombre,telefono,usada_el').eq('empresa_id',miEmpresa).order('created_at',{ascending:false});inv=(r.data||[]).filter(x=>!x.usada_el);}catch(e){}
+  try{const r=await sb.from('vendedores').select('*').eq('empresa_id',miEmpresa);eq=r.data||[];}catch(e){}
+  try{const r=await sb.from('invitaciones').select('*').eq('empresa_id',miEmpresa).order('created_at',{ascending:false});inv=(r.data||[]).filter(x=>!x.usada_el);}catch(e){}
   eq.sort((a,b)=>(a.rol===b.rol?0:a.rol==='admin'?-1:1)||String(a.nombre||'').localeCompare(String(b.nombre||'')));
   const fila=(txt,sub,color,extra)=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;margin-bottom:6px">
     <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.84rem">${txt}</div><div style="font-size:.66rem;color:${color||'var(--text3)'}">${sub}</div></div>${extra||''}</div>`;
@@ -1634,7 +1639,13 @@ async function invitarVendedor(){
     if((r.data||[]).some(x=>x.usada_el)){toast('Ese mail ya entró a tu equipo con una invitación anterior.',8000);return;}
   }catch(e){}
   const tel=(document.getElementById('inv-telefono')?.value||'').trim();
-  const{error}=await sb.from('invitaciones').insert([{email:m,nombre:n,telefono:tel||null,empresa_id:miEmpresa,rol:'vendedor'}]);
+  let{error}=await sb.from('invitaciones').insert([{email:m,nombre:n,telefono:tel||null,empresa_id:miEmpresa,rol:'vendedor'}]);
+  if(error&&/column .*telefono|telefono.* does not exist/i.test(error.message)){
+    // Todavia no se corrio el SQL del telefono: la invitacion sale igual
+    const r2=await sb.from('invitaciones').insert([{email:m,nombre:n,empresa_id:miEmpresa,rol:'vendedor'}]);
+    error=r2.error;
+    if(!error&&tel)toast('Invitado. El teléfono no se guardó: falta correr el SQL remeco_telefono_vendedor.sql',8000);
+  }
   if(error&&!/duplicate|unique/i.test(error.message)){toast('Error: '+error.message);return;}
   // El mail con el enlace lo manda Supabase. Si falla (suele ser el límite de
   // envíos), la invitación igual queda guardada y puede registrarse a mano.
@@ -2060,12 +2071,16 @@ function cargarProdItems(v){
 
 // ── DATOS ────────────────────────────────────────────────────
 async function cargarDatos(){
-  try{const{data:mv}=await sb.from('vendedores').select('empresa_id,rol,telefono').eq('user_id',authedUser).maybeSingle();
-    if(mv){miEmpresa=mv.empresa_id;miRol=mv.rol;miTelefono=mv.telefono||'';}}catch(e){}
+  // Se pide la fila entera a proposito: si se agrega una columna nueva y la
+  // base todavia no la tiene, nombrarla haria fallar toda la consulta y el
+  // usuario quedaria sin empresa y sin rol.
+  try{const{data:mv,error:me}=await sb.from('vendedores').select('*').eq('user_id',authedUser).maybeSingle();
+    if(me)console.error('[Remeco] No se pudo leer tu ficha de vendedor:',me);
+    if(mv){miEmpresa=mv.empresa_id;miRol=mv.rol;miTelefono=mv.telefono||'';}}catch(e){console.error('[Remeco] vendedores:',e);}
   // Si entro por invitacion y todavia no tiene el telefono, se copia de ahi
   if(!miTelefono&&authedEmail){
-    try{const r=await sb.from('invitaciones').select('telefono').eq('email',authedEmail).not('telefono','is',null).limit(1);
-      const t=r.data&&r.data[0]&&r.data[0].telefono;
+    try{const r=await sb.from('invitaciones').select('*').eq('email',authedEmail).limit(5);
+      const t=(r.data||[]).map(x=>x.telefono).find(Boolean);
       if(t){miTelefono=t;await sb.from('vendedores').update({telefono:t}).eq('user_id',authedUser);}
     }catch(e){}
   }
