@@ -963,9 +963,13 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 <script>
 const SURL='https://ahympdvzytatwlgzvyoh.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeW1wZHZ6eXRhdHdsZ3p2eW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTA3NzEsImV4cCI6MjA5NzEyNjc3MX0.-GacwwSY5e6Iw4s7j2cHxu8-gKa1CuHwcWAFk3Shzuw';
-const sb=supabase.createClient(SURL,SKEY);
+// flowType implicit: el enlace de la invitacion lo pide el duenio desde SU
+// navegador, pero lo abre el vendedor en el telefono de el. Con el modo por
+// defecto (pkce) ese enlace solo sirve en el navegador que lo pidio, asi que
+// al vendedor no lo dejaba entrar nunca.
+const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v87';
+const VERSION='v89';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
@@ -1043,11 +1047,18 @@ async function cambiarPass(){
   if(error){toast('Error: '+error.message);return;}
   el.value='';toast('🔒 Contraseña guardada. Ya podés entrar con mail y contraseña.',6000);
 }
-function guardarPerfil(){
+async function guardarPerfil(){
   const nombre=document.getElementById('p-nombre').value.trim();
   const email=document.getElementById('p-email').value.trim();
   if(!nombre){toast('Poné tu nombre');return;}
   savePerfil({nombre,email});aplicarPerfil();cerrarPerfilEditar();toast('Perfil guardado ✓');
+  // Guardarlo tambien en la base: asi el nombre lo ve el equipo en el ranking
+  // y no se pierde al entrar desde otro telefono.
+  if(authedUser){
+    try{await sb.from('vendedores').update({nombre}).eq('user_id',authedUser);
+      if(_vendCache)_vendCache[authedUser]=nombre;
+    }catch(e){}
+  }
 }
 async function cerrarSesion(){
   document.getElementById('perfilMenu').style.display='none';
@@ -1065,7 +1076,13 @@ let miEmpresa=null,miRol=null,miTelefono='';
 let PRECIOS=[],CFG={},CFG_RAW={}; // lista de precios en dólares y parámetros, desde Supabase // de la tabla vendedores: a qué empresa pertenezco y si soy dueño
 const MAIN_EMAIL='guentergerherd@gmail.com';
 let rankMetrica='fact';
-function mostrarGate(){document.getElementById('authGate').classList.add('on');}
+function mostrarGate(){
+  // Dejamos el ultimo mail escrito: volver a tipearlo en el telefono es un
+  // fastidio, y la contrasena no se guarda nunca.
+  const e=document.getElementById('auth-email');
+  if(e&&!e.value){try{e.value=localStorage.getItem('remeco_ultimo_mail')||'';}catch(_){}}
+  document.getElementById('authGate').classList.add('on');
+}
 function ocultarGate(){document.getElementById('authGate').classList.remove('on');}
 function authMsg(t,ok){const e=document.getElementById('authErr');e.textContent=t||'';e.classList.toggle('authok',!!ok);}
 function authToggleMode(){
@@ -1125,7 +1142,16 @@ async function authSubmit(){
       // si hay sesión, onAuthStateChange continúa el arranque
     }else{
       const{error}=await sb.auth.signInWithPassword({email,password:pass});
-      if(error)throw error;
+      if(error){
+        // El que entro por invitacion nunca se puso contrasena: hay que
+        // mandarlo al enlace, no dejarlo pegando contra la misma pared.
+        if(/invalid login credentials/i.test(error.message||'')){
+          authMsg('Esa contraseña no es la tuya, o todavía no te pusiste ninguna. Tocá "Entrar con un enlace por mail" acá abajo y entrás sin contraseña.');
+          document.getElementById('authBtn').disabled=false;
+          return;
+        }
+        throw error;
+      }
     }
   }catch(err){
     authMsg(traducirAuthError(err.message));
@@ -1137,6 +1163,7 @@ async function onSesionActiva(session){
   document.getElementById('authBtn').disabled=false;
   const p=getPerfil(),u=session.user,meta=u.user_metadata||{};
   authedEmail=(u.email||'').toLowerCase();
+  try{localStorage.setItem('remeco_ultimo_mail',authedEmail);}catch(_){}
   if(meta.nombre&&!p.nombre)savePerfil({...p,nombre:meta.nombre,email:u.email});
   else if(!p.email)savePerfil({...p,email:u.email});
   aplicarPerfil();
@@ -2148,7 +2175,13 @@ async function cargarDatos(){
   // usuario quedaria sin empresa y sin rol.
   try{const{data:mv,error:me}=await sb.from('vendedores').select('*').eq('user_id',authedUser).maybeSingle();
     if(me)console.error('[Remeco] No se pudo leer tu ficha de vendedor:',me);
-    if(mv){miEmpresa=mv.empresa_id;miRol=mv.rol;miTelefono=mv.telefono||'';}}catch(e){console.error('[Remeco] vendedores:',e);}
+    if(mv){
+      miEmpresa=mv.empresa_id;miRol=mv.rol;miTelefono=mv.telefono||'';
+      // El nombre lo cargo el duenio al invitar: que no haya que escribirlo
+      // de nuevo en cada telefono.
+      const p=getPerfil();
+      if(mv.nombre&&p.nombre!==mv.nombre){savePerfil({...p,nombre:mv.nombre,email:authedEmail||p.email});aplicarPerfil();}
+    }}catch(e){console.error('[Remeco] vendedores:',e);}
   // Si entro por invitacion y todavia no tiene el telefono, se copia de ahi
   if(!miTelefono&&authedEmail){
     try{const r=await sb.from('invitaciones').select('*').eq('email',authedEmail).limit(5);
