@@ -969,7 +969,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v90';
+const VERSION='v91';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
@@ -3098,7 +3098,20 @@ async function guardarVenta(){
       if(mv){miEmpresa=mv.empresa_id;miRol=mv.rol;aplicarRol();}}catch(e){}
   }
   if(miEmpresa)data.empresa_id=miEmpresa;
-  const{error}=editId?await sb.from('ventas').update(data).eq('id',editId):await sb.from('ventas').insert([data]);
+  // Si la base todavia no tiene alguna columna nueva (porque falta correr un
+  // SQL), se guarda igual sin ese dato en vez de perder la venta cargada.
+  const enviar=d=>editId?sb.from('ventas').update(d).eq('id',editId):sb.from('ventas').insert([d]);
+  let payload={...data},sinGuardar=[],r=await enviar(payload);
+  for(let i=0;i<5&&r.error;i++){
+    const m=String(r.error.message||'');
+    const col=(m.match(/Could not find the '([^']+)' column/i)||m.match(/column "?([a-z_]+)"? of relation/i)||[])[1];
+    if(!col||!(col in payload))break;
+    delete payload[col];sinGuardar.push(col);
+    r=await enviar(payload);
+  }
+  const{error}=r;
+  const nombresCol={km:'los kilómetros',empresa_id:'la empresa',costo_producto:'el costo',costo_flete:'el flete'};
+  const aviso=sinGuardar.length?' · sin '+sinGuardar.map(c=>nombresCol[c]||c).join(' ni ')+', falta correr el SQL en Supabase':'';
   if(error){
     console.error('[Remeco] No se pudo guardar la venta:',error);
     const m=String(error.message||'');
@@ -3106,12 +3119,13 @@ async function guardarVenta(){
     const txt=/row-level security|policy/i.test(m)
       ? (miEmpresa?'La base rechazó la venta: tu usuario no tiene permiso para cargar ventas en esta empresa.'
                   :'Tu usuario todavía no está asignado a una empresa, por eso la base no deja guardar. Avisale al dueño.')
-      : /column .* does not exist/i.test(m) ? 'Falta una columna en la base: '+m
+      : /Could not find the '([^']+)' column|column .* does not exist/i.test(m)
+        ? 'Falta una columna en la base. Corré los SQL de la carpeta sql/ en Supabase.\n'+m
       : 'No se pudo guardar: '+m;
     mostrarErr(txt+'\n\n('+m+')');
     return;
   }
-  toast(editId?'Venta actualizada ✓':'Venta guardada ✓');
+  toast((editId?'Venta actualizada ✓':'Venta guardada ✓')+aviso,aviso?9000:2800);
   cerrarModal();await cargarDatos();
 }
 async function eliminarVenta(id){
