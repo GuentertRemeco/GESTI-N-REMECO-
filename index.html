@@ -969,7 +969,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v89';
+const VERSION='v90';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
@@ -4141,7 +4141,8 @@ function calcVistaPrevia(){
     detalles:[calc.flete?'El precio incluye el flete':'El precio no incluye el flete','Montaje incluido',calc.iva?`Incluye IVA ${iva}%`:'Precios sin IVA'].join(';'),
     materiales:'',
     pagos:PAGOS_DEF,
-    plazo:cfgNum('entrega_dias',15)
+    plazo:cfgNum('entrega_dias',15),
+    firma:(getPerfil().nombre||'Metalúrgica Remeco')+' - Metalúrgica Remeco.'
   };
   calcPintarHoja();
   const box=document.getElementById('calc-prev-box');
@@ -4187,7 +4188,9 @@ function calcPintarHoja(){
   <div class="lbl">Formas de pago (para agregar una nueva línea separar con ";")</div>
   <textarea rows="3" oninput="calcPrevSet('pagos',this.value)">${esc(calcPrev.pagos)}</textarea>
   <div class="lbl">Plazo de entrega estimado (días)</div>
-  <input type="number" value="${calcPrev.plazo}" oninput="calcPrevSet('plazo',parseFloat(this.value)||0)" style="width:110px"/>`;
+  <input type="number" value="${calcPrev.plazo}" oninput="calcPrevSet('plazo',parseFloat(this.value)||0)" style="width:110px"/>
+  <div class="lbl">Quién firma</div>
+  <input type="text" value="${esc(calcPrev.firma||'')}" oninput="calcPrevSet('firma',this.value)"/>`;
 }
 // El PDF se arma como archivo PDF de verdad (jsPDF). Antes se abria una
 // pestana nueva y se imprimia desde el navegador: en el celular no se podia
@@ -4275,7 +4278,7 @@ async function calcPDF(){
   y+=9;
   parrafo('Esperamos con interés trabajar con usted.');
   parrafo('Le saluda atentamente :');
-  y+=4;parrafo(`${getPerfil().nombre||'Metalúrgica Remeco'} - Metalúrgica Remeco.`);
+  y+=4;parrafo(calcPrev.firma||'Metalúrgica Remeco.');
   // Una hoja por silo con su foto
   for(const f of calcPrev.filas){
     if(!f.ref||!f.ref.imagen)continue;
