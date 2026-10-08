@@ -236,6 +236,17 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .hoja .lbl{font-size:.82rem;color:#556;margin:14px 0 5px}
 .hoja .tot{font-weight:800}
 @media (max-width:768px){.hoja{padding:16px 11px}.hoja td{padding:6px}.hoja textarea,.hoja input{font-size:.8rem;padding:5px}}
+.gr-wrap{display:flex;gap:4px;align-items:flex-end;height:210px;padding:10px 2px 0;overflow-x:auto}
+.gr-col{flex:1;min-width:30px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;cursor:default}
+.gr-val{font-size:.56rem;color:var(--text3);white-space:nowrap;font-weight:700}
+.gr-bar{width:100%;background:linear-gradient(180deg,var(--gold2),var(--gold));border-radius:5px 5px 0 0;min-height:2px;transition:height .25s}
+.gr-col.hoy .gr-bar{background:linear-gradient(180deg,#8fe3a8,var(--green))}
+.gr-mes{font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.gr-col.hoy .gr-mes{color:var(--green);font-weight:800}
+.gr-tot{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.gr-tot>div{flex:1;min-width:92px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.gr-tot .t{font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+.gr-tot .v{font-size:.98rem;white-space:nowrap;font-weight:900;color:var(--gold);margin-top:2px}
 .opt-btn{background:var(--bg);border:1px solid var(--border2);color:var(--text2);border-radius:7px;padding:5px 10px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
 .opt-btn.on{background:var(--gold);color:#111820;border-color:var(--gold)}
 .prod-item{background:var(--bg3);border:1px solid #1e3a55;border-radius:9px;margin-bottom:7px;overflow:hidden}
@@ -522,7 +533,9 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     </div>
     <div id="recordatoriosBox"></div>
     <div class="ini-cards-big">
-      <div class="ic-big"><div class="ic-label" id="ic-lbl-fact">Facturado · <span id="ic-mes"></span></div><div class="ic-val" id="ic-fact">$0</div><div class="ic-sub" id="ic-fact-sub"></div></div>
+      <div class="ic-big" onclick="abrirGrafico()" style="cursor:pointer" title="Ver el mes a mes">
+        <div class="ic-label" id="ic-lbl-fact">Facturado · <span id="ic-mes"></span></div><div class="ic-val" id="ic-fact">$0</div><div class="ic-sub" id="ic-fact-sub"></div>
+        <div style="font-size:.58rem;color:var(--gold);margin-top:6px;letter-spacing:.5px">📊 VER MES A MES →</div></div>
       <div class="ic-big"><div class="ic-label" id="ic-lbl-rent">Rentabilidad</div><div class="ic-val" style="color:var(--green)" id="ic-rent">$0</div><div class="ic-sub" id="ic-rent-sub" style="color:var(--text3)"></div></div>
     </div>
     <div class="ini-cards-sm">
@@ -833,6 +846,14 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 </div>
 
 <!-- PANTALLA CONFIGURACIÓN (pantalla completa) -->
+<div id="graficoScreen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:7200;flex-direction:column">
+  <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
+    <button class="bd" onclick="cerrarGrafico()" style="padding:8px 13px">← Volver</button>
+    <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">📊 MES A MES</div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:16px" id="graficoBody"></div>
+</div>
+
 <div id="configScreen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:7000;flex-direction:column">
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
@@ -984,7 +1005,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v92';
+const VERSION='v93';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
@@ -4016,6 +4037,104 @@ async function completarKmFaltantes(){
   }
 }
 
+// ── EL MES A MES ─────────────────────────────────────────────
+// Se abre tocando la tarjeta de facturado. Muestra los ultimos doce meses en
+// barras, con la plata, la ganancia o la cantidad de ventas.
+let grafMetrica='fact';
+function cerrarGrafico(){document.getElementById('graficoScreen').style.display='none';}
+function abrirGrafico(){
+  if(soyVendedor()&&grafMetrica!=='cant'&&grafMetrica!=='com')grafMetrica='cant';
+  document.getElementById('graficoScreen').style.display='flex';
+  renderGrafico();
+}
+function setGrafMetrica(m){grafMetrica=m;renderGrafico();}
+function mesesDeVentas(n){
+  const hoy=new Date(),out=[];
+  for(let i=n-1;i>=0;i--){
+    const d=new Date(hoy.getFullYear(),hoy.getMonth()-i,1);
+    out.push({anio:d.getFullYear(),mes:d.getMonth(),
+      etiqueta:d.toLocaleDateString('es-AR',{month:'short'}).replace('.',''),
+      largo:d.toLocaleDateString('es-AR',{month:'long',year:'numeric'}),
+      fact:0,gan:0,cant:0,com:0});
+  }
+  ventas.forEach(v=>{
+    const d=new Date(v.created_at);
+    const f=out.find(x=>x.anio===d.getFullYear()&&x.mes===d.getMonth());
+    if(!f)return;
+    const pr=parseFloat(v.precio)||0;
+    f.fact+=pr;f.cant++;
+    f.gan+=pr-(parseFloat(v.costo_producto)||0)-(parseFloat(v.costo_flete)||0);
+    if(v.estado==='Entregado')f.com+=comisionDe(v);
+  });
+  return out;
+}
+function renderGrafico(){
+  const el=document.getElementById('graficoBody');if(!el)return;
+  const meses=mesesDeVentas(12);
+  const esPlata=grafMetrica!=='cant';
+  const valor=m=>m[grafMetrica]||0;
+  const max=Math.max(...meses.map(valor),1);
+  const fmt=v=>esPlata?fPesos(v):String(v);
+  const fmtCorto=v=>esPlata?('$'+fNum(v)):String(v);
+  const corto=v=>esPlata?(v?'$'+fNum(v):''):(v||'');
+  const hoy=new Date();
+  const opciones=soyVendedor()
+    ?[['cant','Mis ventas'],['com','Mi comisión']]
+    :[['fact','Facturado'],['gan','Ganancia'],['cant','Ventas']];
+  const total=meses.reduce((a,m)=>a+valor(m),0);
+  const conAlgo=meses.filter(m=>valor(m)>0);
+  const prom=conAlgo.length?total/conAlgo.length:0;
+  const mejor=meses.reduce((a,m)=>valor(m)>valor(a)?m:a,meses[0]);
+  el.innerHTML=`
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+      ${opciones.map(([k,t])=>`<button class="opt-btn${grafMetrica===k?' on':''}" onclick="setGrafMetrica('${k}')">${t}</button>`).join('')}
+    </div>
+    <div class="gr-wrap">
+      ${meses.map(m=>{
+        const v=valor(m),h=Math.max(2,Math.round(v/max*150));
+        const esHoy=m.anio===hoy.getFullYear()&&m.mes===hoy.getMonth();
+        return`<div class="gr-col${esHoy?' hoy':''}" title="${esc(m.largo)}: ${fmt(v)}">
+          <div class="gr-val">${corto(v)}</div>
+          <div class="gr-bar" style="height:${h}px"></div>
+          <div class="gr-mes">${esc(m.etiqueta)}</div>
+        </div>`;}).join('')}
+    </div>
+    <div class="gr-tot">
+      <div><div class="t">Últimos 12 meses</div><div class="v">${fmtCorto(total)}</div></div>
+      <div><div class="t">Promedio por mes</div><div class="v">${fmtCorto(Math.round(prom))}</div></div>
+      <div><div class="t">Mejor mes</div><div class="v">${fmtCorto(valor(mejor))}</div>
+        <div style="font-size:.6rem;color:var(--text3);margin-top:2px">${esc(mejor.largo)}</div></div>
+    </div>
+    ${renderGraficoProvincias()}`;
+  const w=el.querySelector('.gr-wrap');
+  if(w)w.scrollLeft=w.scrollWidth;
+}
+// Donde se vende: las provincias que mas pesan, con la misma medida elegida
+function renderGraficoProvincias(){
+  if(grafMetrica==='com')return'';
+  const agg={};
+  ventas.forEach(v=>{
+    const p=provDe(v)||'sin provincia';
+    const pr=parseFloat(v.precio)||0;
+    const a=(agg[p]=agg[p]||{fact:0,gan:0,cant:0});
+    a.fact+=pr;a.cant++;a.gan+=pr-(parseFloat(v.costo_producto)||0)-(parseFloat(v.costo_flete)||0);
+  });
+  const filas=Object.entries(agg).map(([p,a])=>({p,v:a[grafMetrica]||0}))
+    .filter(x=>x.v>0).sort((a,b)=>b.v-a.v).slice(0,6);
+  if(!filas.length)return'';
+  const max=filas[0].v;
+  const fmt=v=>grafMetrica==='cant'?String(v):fPesos(v);
+  return`<div class="inicio-stitle" style="margin:18px 0 8px">Dónde se vende</div>`
+    +filas.map(f=>`<div style="margin-bottom:7px">
+      <div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:3px">
+        <span>${esc(tituloProv(f.p))}</span><span style="color:var(--gold);font-weight:700">${fmt(f.v)}</span>
+      </div>
+      <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${Math.round(f.v/max*100)}%;background:var(--gold)"></div>
+      </div>
+    </div>`).join('');
+}
+
 // ── QUE VE CADA UNO ──────────────────────────────────────────
 // El vendedor ve lo suyo y lo que necesita para vender: el presupuesto, sus
 // ventas, sus clientes, el ranking y su comision. Los costos, la ganancia y
@@ -4420,7 +4539,7 @@ document.addEventListener('touchend',()=>{
   }else ptReset();
   ptDist=0;
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();cerrarVendedor();cerrarEntrega();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarGrafico();cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();cerrarVendedor();cerrarEntrega();}});
 document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();cerrarVendedor();cerrarEntrega();}}));
 
 const ah=new Date();
