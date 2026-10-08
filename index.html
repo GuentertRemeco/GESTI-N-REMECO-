@@ -163,7 +163,7 @@ tr:hover td{background:var(--bg3)}
 .rent-row:last-child{border-bottom:none;margin-top:6px;padding-top:8px;font-weight:800;font-size:.85rem}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:5000;align-items:center;justify-content:center;padding:12px}
 .overlay.on{display:flex}
-#overlayVendedor{z-index:7600}
+#overlayVendedor,#overlayEntrega{z-index:7600}
 .authgate{display:none;position:fixed;inset:0;background:var(--bg);z-index:9000;align-items:center;justify-content:center;padding:16px}
 .authgate.on{display:flex}
 .authbox{background:#15202e;border:1px solid var(--gold);border-radius:14px;padding:26px 22px;width:100%;max-width:380px}
@@ -756,6 +756,21 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 </div>
 
 <!-- MODAL PERFIL -->
+<div class="overlay" id="overlayEntrega">
+  <div class="modal-sm">
+    <h2 style="font-size:.88rem;color:var(--gold);margin-bottom:4px">Se entregó la venta</h2>
+    <p class="mmhint" id="en-cliente" style="margin-bottom:12px"></p>
+    <div class="fg"><label>¿Cuánto te costó el flete?</label>
+      <input id="en-flete" type="number" min="0" placeholder="0" onkeydown="if(event.key==='Enter')confirmarEntrega()"/></div>
+    <p class="mmhint" id="en-ref"></p>
+    <p class="mmhint">Con el costo real de cada entrega, la app va midiendo cuánto sale el flete de verdad y te avisa si la tarifa quedó corta.</p>
+    <div class="mbtns">
+      <button class="bd" onclick="cerrarEntrega()">Cancelar</button>
+      <button class="bg" onclick="confirmarEntrega()">Guardar y entregar</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="overlayVendedor">
   <div class="modal-sm">
     <h2 style="font-size:.88rem;color:var(--gold);margin-bottom:4px">Editar vendedor</h2>
@@ -969,7 +984,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v89';
+const VERSION='v92';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
@@ -2684,16 +2699,47 @@ function menuEstado(ev,id){
   m.style.left=Math.min(r.left,window.innerWidth-230)+'px';
   m.style.top=Math.min(r.bottom+4,window.innerHeight-280)+'px';
 }
-async function setEstadoRapido(id,est){
+// Al entregar se pregunta el flete real: cuando se carga la venta el flete es
+// un aproximado, y recien al entregar se sabe lo que cobro el fletero. Ese
+// numero es el que despues usa la app para medir si la tarifa quedo corta.
+let entregaId=null;
+function pedirFleteEntrega(id){
+  const v=ventas.find(x=>String(x.id)===String(id));if(!v)return false;
+  if(soyVendedor())return false;
+  entregaId=id;
+  document.getElementById('en-cliente').textContent=(v.cliente||'')+(v.localidad?' · '+locCorta(v.localidad):'');
+  const prev=parseFloat(v.costo_flete)||0;
+  document.getElementById('en-flete').value=prev||'';
+  document.getElementById('en-ref').textContent=prev?('Cuando cargaste la venta pusiste '+fPesos(prev)+'. Si salió otra cosa, corregilo.')
+    :'No habías cargado ningún flete en esta venta.';
+  document.getElementById('overlayEntrega').classList.add('on');
+  setTimeout(()=>document.getElementById('en-flete').select(),60);
+  return true;
+}
+function cerrarEntrega(){entregaId=null;document.getElementById('overlayEntrega').classList.remove('on');}
+async function confirmarEntrega(){
+  if(!entregaId)return;
+  const id=entregaId;
+  const n=parseFloat(document.getElementById('en-flete').value);
+  cerrarEntrega();
+  await setEstadoRapido(id,'Entregado',isNaN(n)?null:n);
+}
+async function setEstadoRapido(id,est,fleteReal){
   document.getElementById('estadoMenu').style.display='none';
-  const{error}=await sb.from('ventas').update({estado:est}).eq('id',id);
+  if(est==='Entregado'&&fleteReal===undefined&&pedirFleteEntrega(id))return;
+  const cambios={estado:est};
+  if(fleteReal!=null&&fleteReal>=0)cambios.costo_flete=fleteReal;
+  const{error}=await sb.from('ventas').update(cambios).eq('id',id);
   if(error){toast('Error: '+error.message);return;}
-  const v=ventas.find(x=>x.id===id);if(v)v.estado=est;
+  const v=ventas.find(x=>x.id===id);
+  if(v){v.estado=est;if(cambios.costo_flete!=null)v.costo_flete=cambios.costo_flete;}
   renderVentas();renderStats();renderPendientes();renderClientes();
   // El color del cliente en el mapa depende del estado, así que se repinta
   if(mapMapa)actMarkersMapa();
   if(mapClientes&&cliVistaActual==='mapa')initMapaClientes();
-  toast('Ahora está en "'+est+'" ✓');
+  toast('Ahora está en "'+est+'"'+((fleteReal!=null&&fleteReal>=0)?' · flete '+fPesos(fleteReal):'')+' ✓');
+  // El flete real alimenta las tarifas que aprenden
+  if(est==='Entregado'){const el=document.getElementById('cfg-body-tarifas');if(el&&el.style.display!=='none')renderTarifas();}
 }
 document.addEventListener('click',e=>{
   const em=document.getElementById('estadoMenu');
@@ -3098,7 +3144,20 @@ async function guardarVenta(){
       if(mv){miEmpresa=mv.empresa_id;miRol=mv.rol;aplicarRol();}}catch(e){}
   }
   if(miEmpresa)data.empresa_id=miEmpresa;
-  const{error}=editId?await sb.from('ventas').update(data).eq('id',editId):await sb.from('ventas').insert([data]);
+  // Si la base todavia no tiene alguna columna nueva (porque falta correr un
+  // SQL), se guarda igual sin ese dato en vez de perder la venta cargada.
+  const enviar=d=>editId?sb.from('ventas').update(d).eq('id',editId):sb.from('ventas').insert([d]);
+  let payload={...data},sinGuardar=[],r=await enviar(payload);
+  for(let i=0;i<5&&r.error;i++){
+    const m=String(r.error.message||'');
+    const col=(m.match(/Could not find the '([^']+)' column/i)||m.match(/column "?([a-z_]+)"? of relation/i)||[])[1];
+    if(!col||!(col in payload))break;
+    delete payload[col];sinGuardar.push(col);
+    r=await enviar(payload);
+  }
+  const{error}=r;
+  const nombresCol={km:'los kilómetros',empresa_id:'la empresa',costo_producto:'el costo',costo_flete:'el flete'};
+  const aviso=sinGuardar.length?' · sin '+sinGuardar.map(c=>nombresCol[c]||c).join(' ni ')+', falta correr el SQL en Supabase':'';
   if(error){
     console.error('[Remeco] No se pudo guardar la venta:',error);
     const m=String(error.message||'');
@@ -3106,12 +3165,13 @@ async function guardarVenta(){
     const txt=/row-level security|policy/i.test(m)
       ? (miEmpresa?'La base rechazó la venta: tu usuario no tiene permiso para cargar ventas en esta empresa.'
                   :'Tu usuario todavía no está asignado a una empresa, por eso la base no deja guardar. Avisale al dueño.')
-      : /column .* does not exist/i.test(m) ? 'Falta una columna en la base: '+m
+      : /Could not find the '([^']+)' column|column .* does not exist/i.test(m)
+        ? 'Falta una columna en la base. Corré los SQL de la carpeta sql/ en Supabase.\n'+m
       : 'No se pudo guardar: '+m;
     mostrarErr(txt+'\n\n('+m+')');
     return;
   }
-  toast(editId?'Venta actualizada ✓':'Venta guardada ✓');
+  toast((editId?'Venta actualizada ✓':'Venta guardada ✓')+aviso,aviso?9000:2800);
   cerrarModal();await cargarDatos();
 }
 async function eliminarVenta(id){
@@ -4141,7 +4201,8 @@ function calcVistaPrevia(){
     detalles:[calc.flete?'El precio incluye el flete':'El precio no incluye el flete','Montaje incluido',calc.iva?`Incluye IVA ${iva}%`:'Precios sin IVA'].join(';'),
     materiales:'',
     pagos:PAGOS_DEF,
-    plazo:cfgNum('entrega_dias',15)
+    plazo:cfgNum('entrega_dias',15),
+    firma:(getPerfil().nombre||'Metalúrgica Remeco')+' - Metalúrgica Remeco.'
   };
   calcPintarHoja();
   const box=document.getElementById('calc-prev-box');
@@ -4187,7 +4248,9 @@ function calcPintarHoja(){
   <div class="lbl">Formas de pago (para agregar una nueva línea separar con ";")</div>
   <textarea rows="3" oninput="calcPrevSet('pagos',this.value)">${esc(calcPrev.pagos)}</textarea>
   <div class="lbl">Plazo de entrega estimado (días)</div>
-  <input type="number" value="${calcPrev.plazo}" oninput="calcPrevSet('plazo',parseFloat(this.value)||0)" style="width:110px"/>`;
+  <input type="number" value="${calcPrev.plazo}" oninput="calcPrevSet('plazo',parseFloat(this.value)||0)" style="width:110px"/>
+  <div class="lbl">Quién firma</div>
+  <input type="text" value="${esc(calcPrev.firma||'')}" oninput="calcPrevSet('firma',this.value)"/>`;
 }
 // El PDF se arma como archivo PDF de verdad (jsPDF). Antes se abria una
 // pestana nueva y se imprimia desde el navegador: en el celular no se podia
@@ -4275,7 +4338,7 @@ async function calcPDF(){
   y+=9;
   parrafo('Esperamos con interés trabajar con usted.');
   parrafo('Le saluda atentamente :');
-  y+=4;parrafo(`${getPerfil().nombre||'Metalúrgica Remeco'} - Metalúrgica Remeco.`);
+  y+=4;parrafo(calcPrev.firma||'Metalúrgica Remeco.');
   // Una hoja por silo con su foto
   for(const f of calcPrev.filas){
     if(!f.ref||!f.ref.imagen)continue;
@@ -4357,8 +4420,8 @@ document.addEventListener('touchend',()=>{
   }else ptReset();
   ptDist=0;
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();cerrarVendedor();}});
-document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();cerrarVendedor();}}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();cerrarVendedor();cerrarEntrega();}});
+document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();cerrarVendedor();cerrarEntrega();}}));
 
 const ah=new Date();
 document.getElementById('inicioFecha').textContent=ah.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
