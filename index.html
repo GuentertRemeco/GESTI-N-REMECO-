@@ -163,7 +163,7 @@ tr:hover td{background:var(--bg3)}
 .rent-row:last-child{border-bottom:none;margin-top:6px;padding-top:8px;font-weight:800;font-size:.85rem}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:5000;align-items:center;justify-content:center;padding:12px}
 .overlay.on{display:flex}
-#overlayVendedor{z-index:7600}
+#overlayVendedor,#overlayEntrega{z-index:7600}
 .authgate{display:none;position:fixed;inset:0;background:var(--bg);z-index:9000;align-items:center;justify-content:center;padding:16px}
 .authgate.on{display:flex}
 .authbox{background:#15202e;border:1px solid var(--gold);border-radius:14px;padding:26px 22px;width:100%;max-width:380px}
@@ -756,6 +756,21 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 </div>
 
 <!-- MODAL PERFIL -->
+<div class="overlay" id="overlayEntrega">
+  <div class="modal-sm">
+    <h2 style="font-size:.88rem;color:var(--gold);margin-bottom:4px">Se entregó la venta</h2>
+    <p class="mmhint" id="en-cliente" style="margin-bottom:12px"></p>
+    <div class="fg"><label>¿Cuánto te costó el flete?</label>
+      <input id="en-flete" type="number" min="0" placeholder="0" onkeydown="if(event.key==='Enter')confirmarEntrega()"/></div>
+    <p class="mmhint" id="en-ref"></p>
+    <p class="mmhint">Con el costo real de cada entrega, la app va midiendo cuánto sale el flete de verdad y te avisa si la tarifa quedó corta.</p>
+    <div class="mbtns">
+      <button class="bd" onclick="cerrarEntrega()">Cancelar</button>
+      <button class="bg" onclick="confirmarEntrega()">Guardar y entregar</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="overlayVendedor">
   <div class="modal-sm">
     <h2 style="font-size:.88rem;color:var(--gold);margin-bottom:4px">Editar vendedor</h2>
@@ -969,7 +984,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v91';
+const VERSION='v92';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
@@ -2684,16 +2699,47 @@ function menuEstado(ev,id){
   m.style.left=Math.min(r.left,window.innerWidth-230)+'px';
   m.style.top=Math.min(r.bottom+4,window.innerHeight-280)+'px';
 }
-async function setEstadoRapido(id,est){
+// Al entregar se pregunta el flete real: cuando se carga la venta el flete es
+// un aproximado, y recien al entregar se sabe lo que cobro el fletero. Ese
+// numero es el que despues usa la app para medir si la tarifa quedo corta.
+let entregaId=null;
+function pedirFleteEntrega(id){
+  const v=ventas.find(x=>String(x.id)===String(id));if(!v)return false;
+  if(soyVendedor())return false;
+  entregaId=id;
+  document.getElementById('en-cliente').textContent=(v.cliente||'')+(v.localidad?' · '+locCorta(v.localidad):'');
+  const prev=parseFloat(v.costo_flete)||0;
+  document.getElementById('en-flete').value=prev||'';
+  document.getElementById('en-ref').textContent=prev?('Cuando cargaste la venta pusiste '+fPesos(prev)+'. Si salió otra cosa, corregilo.')
+    :'No habías cargado ningún flete en esta venta.';
+  document.getElementById('overlayEntrega').classList.add('on');
+  setTimeout(()=>document.getElementById('en-flete').select(),60);
+  return true;
+}
+function cerrarEntrega(){entregaId=null;document.getElementById('overlayEntrega').classList.remove('on');}
+async function confirmarEntrega(){
+  if(!entregaId)return;
+  const id=entregaId;
+  const n=parseFloat(document.getElementById('en-flete').value);
+  cerrarEntrega();
+  await setEstadoRapido(id,'Entregado',isNaN(n)?null:n);
+}
+async function setEstadoRapido(id,est,fleteReal){
   document.getElementById('estadoMenu').style.display='none';
-  const{error}=await sb.from('ventas').update({estado:est}).eq('id',id);
+  if(est==='Entregado'&&fleteReal===undefined&&pedirFleteEntrega(id))return;
+  const cambios={estado:est};
+  if(fleteReal!=null&&fleteReal>=0)cambios.costo_flete=fleteReal;
+  const{error}=await sb.from('ventas').update(cambios).eq('id',id);
   if(error){toast('Error: '+error.message);return;}
-  const v=ventas.find(x=>x.id===id);if(v)v.estado=est;
+  const v=ventas.find(x=>x.id===id);
+  if(v){v.estado=est;if(cambios.costo_flete!=null)v.costo_flete=cambios.costo_flete;}
   renderVentas();renderStats();renderPendientes();renderClientes();
   // El color del cliente en el mapa depende del estado, así que se repinta
   if(mapMapa)actMarkersMapa();
   if(mapClientes&&cliVistaActual==='mapa')initMapaClientes();
-  toast('Ahora está en "'+est+'" ✓');
+  toast('Ahora está en "'+est+'"'+((fleteReal!=null&&fleteReal>=0)?' · flete '+fPesos(fleteReal):'')+' ✓');
+  // El flete real alimenta las tarifas que aprenden
+  if(est==='Entregado'){const el=document.getElementById('cfg-body-tarifas');if(el&&el.style.display!=='none')renderTarifas();}
 }
 document.addEventListener('click',e=>{
   const em=document.getElementById('estadoMenu');
@@ -4374,8 +4420,8 @@ document.addEventListener('touchend',()=>{
   }else ptReset();
   ptDist=0;
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();cerrarVendedor();}});
-document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();cerrarVendedor();}}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();cerrarVendedor();cerrarEntrega();}});
+document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){cerrarModal();cerrarNuevoViaje();cerrarAgregar();cerrarPerfilEditar();cerrarConfig();cerrarDetalle();cerrarSugerencias();cerrarVendedor();cerrarEntrega();}}));
 
 const ah=new Date();
 document.getElementById('inicioFecha').textContent=ah.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
