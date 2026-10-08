@@ -237,10 +237,14 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .hoja .tot{font-weight:800}
 @media (max-width:768px){.hoja{padding:16px 11px}.hoja td{padding:6px}.hoja textarea,.hoja input{font-size:.8rem;padding:5px}}
 .gr-wrap{display:flex;gap:4px;align-items:flex-end;height:210px;padding:10px 2px 0;overflow-x:auto}
-.gr-col{flex:1;min-width:30px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;cursor:default}
+.gr-col{flex:1;min-width:30px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;cursor:default}
 .gr-val{font-size:.56rem;color:var(--text3);white-space:nowrap;font-weight:700}
 .gr-bar{width:100%;background:linear-gradient(180deg,var(--gold2),var(--gold));border-radius:5px 5px 0 0;min-height:2px;transition:height .25s}
 .gr-col.hoy .gr-bar{background:linear-gradient(180deg,#8fe3a8,var(--green))}
+.gr-col.sel .gr-bar{outline:2px solid var(--gold2);outline-offset:1px}
+.gr-col.sel .gr-mes{color:var(--gold2);font-weight:800}
+.gr-col:not(.sel){opacity:1}
+.gr-wrap.conSel .gr-col:not(.sel){opacity:.45}
 .gr-mes{font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
 .gr-col.hoy .gr-mes{color:var(--green);font-weight:800}
 .gr-tot{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
@@ -1005,7 +1009,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v93';
+const VERSION='v94';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
@@ -4040,9 +4044,10 @@ async function completarKmFaltantes(){
 // ── EL MES A MES ─────────────────────────────────────────────
 // Se abre tocando la tarjeta de facturado. Muestra los ultimos doce meses en
 // barras, con la plata, la ganancia o la cantidad de ventas.
-let grafMetrica='fact';
+let grafMetrica='fact',grafMes=null;
 function cerrarGrafico(){document.getElementById('graficoScreen').style.display='none';}
 function abrirGrafico(){
+  grafMes=null;
   if(soyVendedor()&&grafMetrica!=='cant'&&grafMetrica!=='com')grafMetrica='cant';
   document.getElementById('graficoScreen').style.display='flex';
   renderGrafico();
@@ -4068,6 +4073,13 @@ function mesesDeVentas(n){
   });
   return out;
 }
+function toggleGrafMes(anio,mes){
+  grafMes=(grafMes&&grafMes.anio===anio&&grafMes.mes===mes)?null:{anio,mes};
+  renderGrafico();
+}
+function ventasDelMes(m){
+  return ventas.filter(v=>{const d=new Date(v.created_at);return d.getFullYear()===m.anio&&d.getMonth()===m.mes;});
+}
 function renderGrafico(){
   const el=document.getElementById('graficoBody');if(!el)return;
   const meses=mesesDeVentas(12);
@@ -4081,39 +4093,77 @@ function renderGrafico(){
   const opciones=soyVendedor()
     ?[['cant','Mis ventas'],['com','Mi comisión']]
     :[['fact','Facturado'],['gan','Ganancia'],['cant','Ventas']];
-  const total=meses.reduce((a,m)=>a+valor(m),0);
-  const conAlgo=meses.filter(m=>valor(m)>0);
-  const prom=conAlgo.length?total/conAlgo.length:0;
-  const mejor=meses.reduce((a,m)=>valor(m)>valor(a)?m:a,meses[0]);
   el.innerHTML=`
     <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
       ${opciones.map(([k,t])=>`<button class="opt-btn${grafMetrica===k?' on':''}" onclick="setGrafMetrica('${k}')">${t}</button>`).join('')}
     </div>
-    <div class="gr-wrap">
+    <div class="gr-wrap${grafMes?' conSel':''}">
       ${meses.map(m=>{
         const v=valor(m),h=Math.max(2,Math.round(v/max*150));
         const esHoy=m.anio===hoy.getFullYear()&&m.mes===hoy.getMonth();
-        return`<div class="gr-col${esHoy?' hoy':''}" title="${esc(m.largo)}: ${fmt(v)}">
+        const sel=grafMes&&grafMes.anio===m.anio&&grafMes.mes===m.mes;
+        return`<div class="gr-col${esHoy?' hoy':''}${sel?' sel':''}" onclick="toggleGrafMes(${m.anio},${m.mes})" title="${esc(m.largo)}: ${fmt(v)}">
           <div class="gr-val">${corto(v)}</div>
           <div class="gr-bar" style="height:${h}px"></div>
           <div class="gr-mes">${esc(m.etiqueta)}</div>
         </div>`;}).join('')}
     </div>
-    <div class="gr-tot">
+    <div style="font-size:.62rem;color:var(--text3);text-align:center;margin-top:6px">${grafMes?'Tocá el mes de nuevo para volver a los doce meses':'Tocá un mes para ver ese mes solo'}</div>
+    ${grafMes?renderUnMes(meses.find(m=>m.anio===grafMes.anio&&m.mes===grafMes.mes),fmt,fmtCorto)
+             :renderDoceMeses(meses,valor,fmtCorto)}`;
+  const w=el.querySelector('.gr-wrap');
+  if(w){
+    const sel=w.querySelector('.gr-col.sel');
+    // El mes elegido queda centrado; sin eleccion, a la vista el mes actual
+    if(sel)w.scrollLeft=sel.offsetLeft-w.clientWidth/2+sel.clientWidth/2;
+    else w.scrollLeft=w.scrollWidth;
+  }
+}
+function renderDoceMeses(meses,valor,fmtCorto){
+  const total=meses.reduce((a,m)=>a+valor(m),0);
+  const conAlgo=meses.filter(m=>valor(m)>0);
+  const prom=conAlgo.length?total/conAlgo.length:0;
+  const mejor=meses.reduce((a,m)=>valor(m)>valor(a)?m:a,meses[0]);
+  return`<div class="gr-tot">
       <div><div class="t">Últimos 12 meses</div><div class="v">${fmtCorto(total)}</div></div>
       <div><div class="t">Promedio por mes</div><div class="v">${fmtCorto(Math.round(prom))}</div></div>
       <div><div class="t">Mejor mes</div><div class="v">${fmtCorto(valor(mejor))}</div>
         <div style="font-size:.6rem;color:var(--text3);margin-top:2px">${esc(mejor.largo)}</div></div>
     </div>
-    ${renderGraficoProvincias()}`;
-  const w=el.querySelector('.gr-wrap');
-  if(w)w.scrollLeft=w.scrollWidth;
+    ${renderGraficoProvincias(ventas)}`;
+}
+// Un mes solo: sus numeros, donde se vendio y que se vendio
+function renderUnMes(m,fmt,fmtCorto){
+  if(!m)return'';
+  const vs=ventasDelMes(m);
+  const cajas=soyVendedor()
+    ?[['Mis ventas',String(m.cant)],['Mi comisión',fmtCorto(m.com)]]
+    :[['Facturado',fmtCorto(m.fact)],['Ganancia',fmtCorto(m.gan)],['Ventas',String(m.cant)]];
+  return`<div style="display:flex;align-items:center;gap:8px;margin:16px 0 8px">
+      <div class="inicio-stitle" style="margin:0;text-transform:capitalize">${esc(m.largo)}</div>
+      <button class="bd" style="padding:4px 10px;font-size:.66rem;margin-left:auto" onclick="toggleGrafMes(${m.anio},${m.mes})">✕ Ver los 12 meses</button>
+    </div>
+    <div class="gr-tot" style="margin-top:0">${cajas.map(([t,v])=>`<div><div class="t">${t}</div><div class="v">${v}</div></div>`).join('')}</div>
+    ${renderGraficoProvincias(vs)}
+    ${vs.length?`<div class="inicio-stitle" style="margin:18px 0 8px">Qué se vendió</div>`
+      +vs.sort((a,b)=>(parseFloat(b.precio)||0)-(parseFloat(a.precio)||0)).map(v=>`
+        <div class="pend-row" onclick="cerrarGrafico();ir('ventas');setTimeout(()=>verVenta('${v.id}'),120)">
+          <div class="pc-info">
+            <div class="pc-cli">${esc(v.cliente)||'—'}</div>
+            <div class="pc-sub">${productosTexto(v)} · ${esc(locCorta(v.localidad))}</div>
+          </div>
+          <div style="text-align:right">
+            ${eTag(v.estado)}
+            ${soyVendedor()?'':`<div style="font-size:.78rem;font-weight:700;color:var(--gold);margin-top:4px">${v.precio?'$'+fNum(v.precio):''}</div>`}
+          </div>
+        </div>`).join('')
+      :'<div style="font-size:.78rem;color:var(--text3);text-align:center;padding:14px">Ese mes no hubo ventas.</div>'}`;
 }
 // Donde se vende: las provincias que mas pesan, con la misma medida elegida
-function renderGraficoProvincias(){
+function renderGraficoProvincias(lista){
   if(grafMetrica==='com')return'';
   const agg={};
-  ventas.forEach(v=>{
+  (lista||[]).forEach(v=>{
     const p=provDe(v)||'sin provincia';
     const pr=parseFloat(v.precio)||0;
     const a=(agg[p]=agg[p]||{fact:0,gan:0,cant:0});
