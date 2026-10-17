@@ -37,7 +37,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--text3);cursor:pointer;font-family:inherit;padding:8px 4px;transition:color .15s;position:relative}
 .bnav-item.on{color:var(--gold)}
 .bnav-item.on::after{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:var(--gold);border-radius:0 0 2px 2px}
-.bnav-icon{font-size:1.3rem;line-height:1}
+.bnav-icon{width:23px;height:23px;display:flex;align-items:center;justify-content:center}
+.bnav-icon svg{width:100%;height:100%}
 .bnav-label{font-size:.58rem;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
 .inicio-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;max-width:760px;width:100%;margin:0 auto}
 .ini-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
@@ -77,10 +78,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .search-wrap{flex:1;position:relative}
 .search-wrap input{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:8px 12px 8px 34px;font-size:.82rem;font-family:inherit}
 .search-wrap input:focus{outline:none;border-color:var(--gold)}
-.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:.9rem;pointer-events:none}
+.search-icon{display:inline-flex;align-items:center;position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:.9rem;pointer-events:none}
 .vbar-chips{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .vbar-chips::-webkit-scrollbar{display:none}
-.chip{background:var(--bg3);border:1px solid var(--border2);color:var(--text3);border-radius:20px;padding:4px 10px;font-size:.68rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;font-family:inherit}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border2);color:var(--text3);border-radius:20px;padding:4px 10px;font-size:.68rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;font-family:inherit}
 .chip.on{background:var(--gold);color:#111820;border-color:var(--gold)}
 .chip.prod-a.on{background:var(--blue);border-color:var(--blue);color:#0a1018}
 .chip.prod-c.on{background:var(--yellow);border-color:var(--yellow);color:#1a0a00}
@@ -212,14 +213,15 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .calc-silo-t{font-size:.92rem;font-weight:700;margin-bottom:6px}
 .calc-quitar{position:absolute;top:9px;right:9px;background:none;border:none;color:var(--text3);font-size:1rem;cursor:pointer;padding:3px 6px}
 .calc-btn{width:100%;border:none;border-radius:8px;padding:13px;font-size:.95rem;font-weight:700;font-family:inherit;cursor:pointer;color:#fff}
-.calc-btn.naranja{background:#e8710a}
+.calc-btn.naranja{background:var(--gold);color:#111820;font-weight:800}
+.calc-btn.sec{background:transparent;color:var(--gold);border:1px solid var(--gold);font-weight:700}
 .calc-btn.grande{padding:15px;font-size:1rem;margin-bottom:9px}
-.calc-btn.roja{background:#e02020}
+.calc-btn.roja{background:transparent;color:#d96a6a;border:1px solid #5e2a2a;font-weight:700}
 .calc-ck{display:flex;align-items:center;gap:11px;font-size:.92rem;color:var(--text2);cursor:pointer}
-.calc-ck input{width:20px;height:20px;accent-color:#e8710a;cursor:pointer}
+.calc-ck input{width:20px;height:20px;accent-color:var(--gold);cursor:pointer}
 .calc-radios{display:flex;gap:20px;margin:4px 0 13px}
 .calc-rd{display:flex;align-items:center;gap:7px;font-size:.92rem;cursor:pointer}
-.calc-rd input{width:18px;height:18px;accent-color:#e8710a;cursor:pointer}
+.calc-rd input{width:18px;height:18px;accent-color:var(--gold);cursor:pointer}
 .calc-resumen{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:.88rem}
 .calc-rrow{display:flex;justify-content:space-between;gap:10px;padding:4px 0}
 .hoja{background:#fff;color:#11202e;max-width:720px;margin:0 auto;border-radius:6px;padding:26px 24px;font-size:.88rem;line-height:1.5}
@@ -230,11 +232,21 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .hoja td{border:1px solid #b9c2cd;padding:8px;vertical-align:middle;background:#fff}
 .hoja tr:hover td{background:#fff}
 .hoja tr:hover th{background:#eef1f5}
-.hoja textarea,.hoja input{width:100%;border:1.5px solid #e8710a;border-radius:5px;padding:7px;font-family:inherit;font-size:.85rem;color:#11202e;background:#fff;box-sizing:border-box}
+.hoja textarea,.hoja input{width:100%;border:1.5px solid #c9a840;border-radius:5px;padding:7px;font-family:inherit;font-size:.85rem;color:#11202e;background:#fff;box-sizing:border-box}
 .hoja textarea{resize:vertical}
 .hoja .imp{width:100%;text-align:right}
 .hoja .lbl{font-size:.82rem;color:#556;margin:14px 0 5px}
 .hoja .tot{font-weight:800}
+.hoja-cab{display:flex;align-items:flex-start;gap:14px}
+.hoja-cab img{width:150px;height:auto;flex-shrink:0}
+.hoja-cab>div{flex:1;min-width:0}
+.hoja .emp{overflow-wrap:anywhere}
+@media (max-width:560px){
+  .hoja-cab{gap:10px}
+  .hoja-cab img{width:104px}
+  .hoja h3{font-size:.9rem}
+  .hoja .emp{font-size:.68rem}
+}
 @media (max-width:768px){.hoja{padding:16px 11px}.hoja td{padding:6px}.hoja textarea,.hoja input{font-size:.8rem;padding:5px}}
 .gr-wrap{display:flex;gap:4px;align-items:flex-end;height:210px;padding:10px 2px 0;overflow-x:auto}
 .gr-col{flex:1;min-width:30px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;cursor:default}
@@ -251,6 +263,20 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .gr-tot>div{flex:1;min-width:92px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
 .gr-tot .t{font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
 .gr-tot .v{font-size:.98rem;white-space:nowrap;font-weight:900;color:var(--gold);margin-top:2px}
+.ico{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;vertical-align:-.18em}
+.ico svg{width:100%;height:100%;display:block}
+.etag-punto{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block;flex-shrink:0}
+.nt-ico{width:17px;height:17px;display:inline-flex;margin-right:5px;vertical-align:-.2em}
+.nt-ico svg{width:100%;height:100%}
+.prod-grupo{display:flex;align-items:center;gap:7px;font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--text2);margin:16px 0 8px}
+.prod-grupo:first-child{margin-top:0}
+.prod-punto{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.prod-fila{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--border2);border-radius:9px;padding:10px 12px;margin-bottom:7px;cursor:pointer}
+.prod-fila:active{background:var(--bg2)}
+.prod-fila-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.prod-prod{font-weight:800;font-size:.92rem;line-height:1.3;min-width:0}
+.prod-fila-sub{display:flex;gap:10px;flex-wrap:wrap;font-size:.76rem;color:var(--text2);margin-top:5px}
+.prod-fila-fecha{font-size:.72rem;color:var(--text2);margin-top:6px}
 .opt-btn{background:var(--bg);border:1px solid var(--border2);color:var(--text2);border-radius:7px;padding:5px 10px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
 .opt-btn.on{background:var(--gold);color:#111820;border-color:var(--gold)}
 .prod-item{background:var(--bg3);border:1px solid #1e3a55;border-radius:9px;margin-bottom:7px;overflow:hidden}
@@ -436,27 +462,27 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 </div>
 <nav class="topnav">
   <div class="nav-logo">Remeco <span>Gestión</span></div>
-  <button class="ntab on" onclick="ir('calc')">🧮 Presupuesto</button>
-  <button class="ntab" onclick="ir('inicio')">🏠 Inicio</button>
-  <button class="ntab" onclick="ir('ventas')">📋 Ventas</button>
-  <button class="ntab" onclick="ir('mapa')">🗺️ Mapa</button>
-  <button class="ntab" id="nt-flete" onclick="ir('flete')">🚛 Flete</button>
-  <button class="ntab" id="nt-sim" onclick="ir('simular')">🚚 Simular flete</button>
-  <button class="ntab" onclick="ir('clientes')">👤 Clientes</button>
-  <button class="ntab" onclick="ir('asistente')">🤖 Asistente</button>
+  <button class="ntab on" onclick="ir('calc')"><span data-ico="calc" class="nt-ico"></span>Presupuesto</button>
+  <button class="ntab" onclick="ir('inicio')"><span data-ico="inicio" class="nt-ico"></span>Inicio</button>
+  <button class="ntab" onclick="ir('ventas')"><span data-ico="ventas" class="nt-ico"></span>Ventas</button>
+  <button class="ntab" onclick="ir('mapa')"><span data-ico="mapa" class="nt-ico"></span>Mapa</button>
+  <button class="ntab" id="nt-flete" onclick="ir('flete')"><span data-ico="flete" class="nt-ico"></span>Flete</button>
+  <button class="ntab" id="nt-sim" onclick="ir('simular')"><span data-ico="ruta" class="nt-ico"></span>Simular flete</button>
+  <button class="ntab" onclick="ir('clientes')"><span data-ico="clientes" class="nt-ico"></span>Clientes</button>
+  <button class="ntab" onclick="ir('asistente')"><span data-ico="robot" class="nt-ico"></span>Asistente</button>
   <div class="nav-right">
-    <div class="bell" title="Configuración" onclick="abrirConfig()" style="cursor:pointer">⚙️</div>
+    <div class="bell" title="Configuración" onclick="abrirConfig()" style="cursor:pointer"><span data-ico="config" style="width:20px;height:20px" class="ico-slot"></span></div>
     <div class="user-chip" onclick="abrirPerfilMenu(event)"><span class="uc-ini" id="ucIniTop">U</span><span class="uc-name" id="ucNameTop">Usuario</span></div>
     <button class="bg" onclick="abrirNueva()" style="padding:6px 13px;font-size:.75rem">+ Nueva venta</button>
   </div>
 </nav>
 
 <nav class="bnav" id="bnav">
-  <button class="bnav-item on" id="bn-calc" onclick="ir('calc')"><span class="bnav-icon">🧮</span><span class="bnav-label">Presupuesto</span></button>
-  <button class="bnav-item" id="bn-inicio" onclick="ir('inicio')"><span class="bnav-icon">🏠</span><span class="bnav-label">Inicio</span></button>
-  <button class="bnav-item" id="bn-ventas" onclick="ir('ventas')"><span class="bnav-icon">📋</span><span class="bnav-label">Ventas</span></button>
-  <button class="bnav-item" id="bn-flete" onclick="ir('flete')"><span class="bnav-icon">🚛</span><span class="bnav-label">Flete</span></button>
-  <button class="bnav-item" id="bn-clientes" onclick="ir('clientes')"><span class="bnav-icon">👤</span><span class="bnav-label">Clientes</span></button>
+  <button class="bnav-item on" id="bn-calc" onclick="ir('calc')"><span class="bnav-icon" data-ico="calc"></span><span class="bnav-label">Presupuesto</span></button>
+  <button class="bnav-item" id="bn-inicio" onclick="ir('inicio')"><span class="bnav-icon" data-ico="inicio"></span><span class="bnav-label">Inicio</span></button>
+  <button class="bnav-item" id="bn-ventas" onclick="ir('ventas')"><span class="bnav-icon" data-ico="ventas"></span><span class="bnav-label">Ventas</span></button>
+  <button class="bnav-item" id="bn-flete" onclick="ir('flete')"><span class="bnav-icon" data-ico="flete"></span><span class="bnav-label">Flete</span></button>
+  <button class="bnav-item" id="bn-clientes" onclick="ir('clientes')"><span class="bnav-icon" data-ico="clientes"></span><span class="bnav-label">Clientes</span></button>
 </nav>
 
 <!-- PRESUPUESTO (pantalla de entrada) -->
@@ -479,7 +505,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <fieldset class="calc-fs">
       <legend>Agregar Silo</legend>
       <div id="calc-silos"></div>
-      <button class="calc-btn naranja" onclick="calcAgregarSilo()">+ Agregar Silo</button>
+      <button class="calc-btn sec" onclick="calcAgregarSilo()">+ Agregar Silo</button>
     </fieldset>
 
     <fieldset class="calc-fs">
@@ -495,7 +521,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
           <label class="calc-lb">Dirección</label>
           <div style="display:flex;gap:6px">
             <input class="calc-in" id="calc-loc" style="flex:1;min-width:0" placeholder="Escribí la localidad y elegila de la lista" onkeydown="if(event.key==='Enter'){event.preventDefault();calcBuscarLoc();}"/>
-            <button class="bv" onclick="calcBuscarLoc()" style="padding:0 15px;font-size:1rem">🔍</button>
+            <button class="bv" onclick="calcBuscarLoc()" style="padding:0 15px" title="Buscar la localidad"><span data-ico="buscar" class="ico-slot" style="width:18px;height:18px;display:inline-flex"></span></button>
           </div>
         </div>
         <div id="calc-modo-km" style="display:none">
@@ -533,13 +559,13 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   <div class="inicio-wrap">
     <div class="ini-top">
       <div><div class="ini-fecha" id="inicioFecha"></div><div class="ini-saludo" id="inicioBienvenida">Remeco</div></div>
-      <div class="ini-user"><div class="ini-bell" title="Asistente" onclick="ir('asistente')" style="cursor:pointer;border-color:var(--gold);color:var(--gold)">🤖</div><div class="ini-bell" title="Configuración" onclick="abrirConfig()" style="cursor:pointer">⚙️</div><div class="ini-uc" id="ini-uc" onclick="abrirPerfilMenu(event)">U</div></div>
+      <div class="ini-user"><div class="ini-bell" title="Asistente" onclick="ir('asistente')" style="cursor:pointer;border-color:var(--gold);color:var(--gold)"><span data-ico="robot" style="width:21px;height:21px" class="ico-slot"></span></div><div class="ini-bell" title="Configuración" onclick="abrirConfig()" style="cursor:pointer"><span data-ico="config" style="width:20px;height:20px" class="ico-slot"></span></div><div class="ini-uc" id="ini-uc" onclick="abrirPerfilMenu(event)">U</div></div>
     </div>
     <div id="recordatoriosBox"></div>
     <div class="ini-cards-big">
       <div class="ic-big" onclick="abrirGrafico()" style="cursor:pointer" title="Ver el mes a mes">
         <div class="ic-label" id="ic-lbl-fact">Facturado · <span id="ic-mes"></span></div><div class="ic-val" id="ic-fact">$0</div><div class="ic-sub" id="ic-fact-sub"></div>
-        <div style="font-size:.58rem;color:var(--gold);margin-top:6px;letter-spacing:.5px">📊 VER MES A MES →</div></div>
+        <div style="font-size:.58rem;color:var(--gold);margin-top:6px;letter-spacing:.5px;display:flex;align-items:center;gap:4px"><span data-ico="grafico" class="ico-slot" style="width:13px;height:13px"></span>VER MES A MES →</div></div>
       <div class="ic-big"><div class="ic-label" id="ic-lbl-rent">Rentabilidad</div><div class="ic-val" style="color:var(--green)" id="ic-rent">$0</div><div class="ic-sub" id="ic-rent-sub" style="color:var(--text3)"></div></div>
     </div>
     <div class="ini-cards-sm">
@@ -550,8 +576,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <div class="inicio-stitle">Acciones rápidas</div>
     <div class="qa-row">
       <button class="qa-btn primary" onclick="abrirNueva()"><span class="ic">＋</span><span class="tx">Nueva venta</span></button>
-      <button class="qa-btn" id="qa-flete" onclick="abrirNuevoViaje()"><span class="ic">🚚</span><span class="tx">Nuevo flete</span></button>
-      <button class="qa-btn" id="qa-sim" onclick="ir('simular')"><span class="ic">📍</span><span class="tx">Simular ruta</span></button>
+      <button class="qa-btn" id="qa-flete" onclick="abrirNuevoViaje()"><span class="ic" data-ico="flete" style="width:26px;height:26px"></span><span class="tx">Nuevo flete</span></button>
+      <button class="qa-btn" id="qa-sim" onclick="ir('simular')"><span class="ic" data-ico="ruta" style="width:26px;height:26px"></span><span class="tx">Simular ruta</span></button>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin:6px 0 9px">
       <div class="inicio-stitle" style="margin:0">Pedidos pendientes</div>
@@ -567,18 +593,23 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 
 <!-- VENTAS -->
 <div class="page" id="page-ventas">
+  <div class="fp-tabs">
+    <button class="fp-tab on" id="vt-lista" onclick="setVentasVista('lista')">Lista</button>
+    <button class="fp-tab" id="vt-prod" onclick="setVentasVista('produccion')">Producción</button>
+  </div>
+  <div id="ventas-lista-wrap">
   <div class="vbar">
     <div class="vbar-top">
-      <div class="search-wrap"><span class="search-icon">🔍</span><input id="buscar" placeholder="Buscar cliente, localidad..." autocomplete="off"/></div>
+      <div class="search-wrap"><span class="search-icon" data-ico="buscar" style="width:16px;height:16px"></span><input id="buscar" placeholder="Buscar cliente, localidad..." autocomplete="off"/></div>
       <button class="bg" onclick="abrirNueva()" style="padding:7px 12px;font-size:.75rem;white-space:nowrap;flex-shrink:0">+ Nueva</button>
     </div>
     <div class="vbar-chips">
       <button class="chip on" data-estado="">Todos</button>
-      <button class="chip" data-estado="Confirmado">✅ Confirmado</button>
-      <button class="chip" data-estado="En producción">⚙️ Producción</button>
-      <button class="chip" data-estado="Listo para entregar">📦 Listo</button>
-      <button class="chip" data-estado="En camino">🚛 En camino</button>
-      <button class="chip" data-estado="Entregado">✔ Entregado</button>
+      <button class="chip" data-estado="Confirmado"><span class="etag-punto" style="background:#ffffff"></span>Confirmado</button>
+      <button class="chip" data-estado="En producción"><span class="etag-punto" style="background:#ffc040"></span>Producción</button>
+      <button class="chip" data-estado="Listo para entregar"><span class="etag-punto" style="background:#c0a0ff"></span>Listo</button>
+      <button class="chip" data-estado="En camino"><span class="etag-punto" style="background:#5ab8ff"></span>En camino</button>
+      <button class="chip" data-estado="Entregado"><span class="etag-punto" style="background:#3ddc84"></span>Entregado</button>
       <button class="chip prod-a" data-prod="a">Aéreo</button>
       <button class="chip prod-c" data-prod="c">Autoconsumo</button>
     </div>
@@ -589,6 +620,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   </div>
   <div class="vtable-wrap"><table><thead><tr><th>Cliente</th><th>Producto</th><th>Localidad</th><th>Flete</th><th>Precio</th><th>Estado</th><th>Entrega</th><th></th></tr></thead><tbody id="vtbody"><tr><td colspan="8"><div class="sp"></div></td></tr></tbody></table></div>
   <div class="vcards-wrap" id="vcards"><div class="sp"></div></div>
+  </div>
+  <div id="ventas-prod-wrap" style="display:none;flex:1;overflow-y:auto;padding:14px 14px 90px"></div>
 </div>
 
 <!-- MAPA -->
@@ -713,11 +746,11 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     <div class="fg"><label>Localidad</label>
       <div style="display:flex;gap:6px">
         <input id="f-localidad" style="flex:1;min-width:0" placeholder="Escribí la ciudad y tocá Buscar" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();buscarLocalidad();}"/>
-        <button class="bg" id="btnBuscarLoc" onclick="buscarLocalidad()" style="flex-shrink:0;padding:8px 14px;font-size:.8rem" title="Buscar en el mapa">🔍</button>
+        <button class="bg" id="btnBuscarLoc" onclick="buscarLocalidad()" style="flex-shrink:0;padding:8px 14px;font-size:.8rem" title="Buscar en el mapa"><span data-ico="buscar" class="ico-slot" style="width:16px;height:16px;display:inline-flex"></span></button>
       </div>
     </div>
     <div class="fg"><label>Notas</label><textarea id="f-notas" placeholder="Info adicional..." rows="2"></textarea></div>
-    <p class="mmhint">📍 Escribí la localidad y tocá 🔍 (o Enter). Después podés tocar el mapa para afinar el punto exacto.</p>
+    <p class="mmhint">Escribí la localidad y tocá la lupa (o Enter). Después podés tocar el mapa para afinar el punto exacto.</p>
     <div id="mmap-div" style="height:180px;border-radius:8px;overflow:hidden;border:1px solid #1e3a55;margin-bottom:4px"></div>
     <div class="mact">
       <div id="ventaErr" style="display:none;width:100%;background:#2a1010;border:1px solid var(--red);border-radius:9px;padding:11px 13px;margin-bottom:10px;font-size:.78rem;color:#ffb0b0;line-height:1.45;white-space:pre-wrap;word-break:break-word"></div>
@@ -1009,9 +1042,47 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v95';
+const VERSION='v98';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
+// ── ÍCONOS ───────────────────────────────────────────────────
+// Dibujados a mano en vez de emojis: los emojis los dibuja cada telefono a su
+// manera, traen sus propios colores y nunca alinean. Estos toman el color del
+// texto donde esten.
+const SVG=(d,s)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${s||1.8}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICO={
+  calc:SVG('<rect x="5" y="3" width="14" height="18" rx="2"/><line x1="8.5" y1="7" x2="15.5" y2="7"/><line x1="8.5" y1="11.5" x2="8.5" y2="11.5"/><line x1="12" y1="11.5" x2="12" y2="11.5"/><line x1="15.5" y1="11.5" x2="15.5" y2="11.5"/><line x1="8.5" y1="15" x2="8.5" y2="15"/><line x1="12" y1="15" x2="12" y2="15"/><line x1="15.5" y1="15" x2="15.5" y2="18"/><line x1="8.5" y1="18" x2="12" y2="18"/>',2.1),
+  inicio:SVG('<path d="M4 10.5 12 4l8 6.5"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/>'),
+  ventas:SVG('<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3.5h6v1"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/><line x1="9" y1="17.5" x2="12.5" y2="17.5"/>'),
+  flete:SVG('<path d="M2.5 7.5h10v9h-10z"/><path d="M12.5 11h4l3 3v2.5h-7z"/><circle cx="7" cy="18" r="1.8"/><circle cx="16.5" cy="18" r="1.8"/>'),
+  clientes:SVG('<circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6"/>'),
+  mapa:SVG('<path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/>'),
+  ruta:SVG('<circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="6" r="2.4"/><path d="M8.4 18h5.1a3 3 0 0 0 0-6H10a3 3 0 0 1 0-6h5.6"/>'),
+  robot:SVG('<rect x="4" y="8" width="16" height="11" rx="3"/><circle cx="9.3" cy="13.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="14.7" cy="13.5" r="1.1" fill="currentColor" stroke="none"/><path d="M12 8V4.8"/><circle cx="12" cy="3.6" r="1.2"/>'),
+  config:SVG('<circle cx="12" cy="12" r="3.2"/><path d="M19.4 14.4a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1v.3a2 2 0 1 1-4 0v-.2a1.6 1.6 0 0 0-2.8-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H3.4a2 2 0 1 1 0-4h.2a1.6 1.6 0 0 0 1.1-2.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 2.7-1.1V3.4a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7h.3a2 2 0 1 1 0 4h-.2a1.6 1.6 0 0 0-1.5 1.1z"/>',1.5),
+  pin:SVG('<path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/>'),
+  fecha:SVG('<rect x="4" y="5.5" width="16" height="15" rx="2"/><line x1="4" y1="10" x2="20" y2="10"/><line x1="8.5" y1="3.5" x2="8.5" y2="7"/><line x1="15.5" y1="3.5" x2="15.5" y2="7"/>'),
+  tel:SVG('<path d="M6.5 3.5h3l1.5 4-2 1.4a12 12 0 0 0 6.1 6.1l1.4-2 4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 5.7a2 2 0 0 1 2-2.2z"/>'),
+  user:SVG('<circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6"/>'),
+  lapiz:SVG('<path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3z"/><line x1="14.5" y1="6.5" x2="17.5" y2="9.5"/>'),
+  basura:SVG('<path d="M5 7h14"/><path d="M9 7V5h6v2"/><path d="M6.5 7l.8 12a2 2 0 0 0 2 1.9h5.4a2 2 0 0 0 2-1.9l.8-12"/><line x1="10.5" y1="10.5" x2="10.5" y2="17.5"/><line x1="13.5" y1="10.5" x2="13.5" y2="17.5"/>'),
+  buscar:SVG('<circle cx="11" cy="11" r="6"/><line x1="15.5" y1="15.5" x2="20" y2="20"/>'),
+  copa:SVG('<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 5.5H5.5a2.5 2.5 0 0 0 2.5 4"/><path d="M16 5.5h2.5a2.5 2.5 0 0 1-2.5 4"/><line x1="12" y1="13" x2="12" y2="17"/><path d="M9 20h6l-.6-3H9.6z"/>'),
+  grafico:SVG('<line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="11" width="3.2" height="7"/><rect x="11" y="6.5" width="3.2" height="11.5"/><rect x="16" y="14" width="3.2" height="4"/>')
+};
+// Los iconos del HTML fijo se dibujan una vez al arrancar
+function pintarIconos(){
+  document.querySelectorAll('[data-ico]').forEach(e=>{
+    const n=e.dataset.ico;if(!ICO[n]||e.dataset.listo)return;
+    e.innerHTML=ICO[n];e.dataset.listo='1';
+    if(!e.style.width){e.style.width='';}
+  });
+}
+function ico(n,px,color){
+  const v=ICO[n];if(!v)return'';
+  return`<span class="ico" style="width:${px||18}px;height:${px||18}px${color?';color:'+color:''}">${v}</span>`;
+}
+
 const FABRICA='Metalúrgica Remeco, Colonia Menonita, Campo 2, La Pampa, Argentina';
 const FAB_LAT=-37.574806,FAB_LNG=-63.842556;
 let RADIO_COSTADO=parseFloat(localStorage.getItem('remeco_costado'))||100;
@@ -1286,7 +1357,8 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;',
 function fNum(n){n=parseFloat(n)||0;if(n>=1000000)return(n/1000000).toFixed(1).replace('.',',')+'M';if(n>=1000)return Math.round(n/1000)+'K';return Math.round(n).toLocaleString('es-AR');}
 function fPesos(n){return'$'+Math.round(parseFloat(n)||0).toLocaleString('es-AR');}
 function fFecha(d){if(!d)return'—';const[y,m,dd]=d.split('-');return`${parseInt(dd)} ${['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][parseInt(m)-1]} ${y}`;}
-function eTag(e){const mp={'Confirmado':['e0','✅'],'En producción':['e1','⚙️'],'Listo para entregar':['e2','📦'],'En camino':['e3','🚛'],'Entregado':['e4','✔']};const[c,i]=mp[e]||['e0','●'];return`<span class="etag ${c}">${i} ${esc(e)||'—'}</span>`;}
+function eTag(e){const mp={'Confirmado':'e0','En producción':'e1','Listo para entregar':'e2','En camino':'e3','Entregado':'e4'};
+  return`<span class="etag ${mp[e]||'e0'}"><span class="etag-punto"></span>${esc(e)||'—'}</span>`;}
 function parsePar(s){if(!s)return[];try{return Array.isArray(s)?s:JSON.parse(s);}catch{return[];}}
 function distKm(lat1,lng1,lat2,lng2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
 function distAlPath(la,ln,path){
@@ -1533,7 +1605,7 @@ function renderHistorialCfg(){
   el.innerHTML=hist.map(vj=>{const p=parsePar(vj.paradas_snap);return`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin-bottom:6px">
     <div style="display:flex;align-items:center;gap:8px">
       <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.78rem">🚛 ${esc(vj.nombre)} <span style="font-size:.6rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:1px 7px;margin-left:4px">✅ ENTREGADO</span></div>
-      <div style="font-size:.65rem;color:var(--text3);margin-top:2px">${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · 📍 '+vj.km_real+' km':''} · 📅 ${fFecha(vj.fecha)}</div>
+      <div style="font-size:.65rem;color:var(--text3);margin-top:2px">${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · '+ico('pin',11)+' '+vj.km_real+' km':''} · ${ico('fecha',11)} ${fFecha(vj.fecha)}</div>
       <div style="font-size:.63rem;color:var(--text3);margin-top:1px">${p.map(x=>esc(x.cliente||x.nombre||'')).filter(Boolean).join(' · ')}</div></div>
       <button class="vbtn del" onclick="eliminarViaje('${vj.id}').then(()=>renderHistorialCfg())">✕</button>
     </div>
@@ -1576,14 +1648,17 @@ async function renderRankingInicio(){
   const faltan=lider-mias;
   // Con muchos vendedores mostramos el podio y tu fila, para que no ocupe media pantalla
   const filas=(data.length>6&&yoIdx>4)?data.slice(0,5).concat([data[yoIdx]]):data.slice(0,6);
-  const medalla=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="color:var(--text3);font-weight:800;font-size:.8rem">${i+1}</span>`;
+  const colores=['#e8c15a','#c7ced6','#cd8e4e'];
+  const medalla=i=>i<3
+    ?`<span style="display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:50%;background:${colores[i]};color:#111820;font-weight:900;font-size:.72rem">${i+1}</span>`
+    :`<span style="color:var(--text3);font-weight:800;font-size:.8rem">${i+1}</span>`;
   const mensaje=yoIdx<0?''
-    :yoIdx===0?'<div style="font-size:.74rem;color:var(--green);font-weight:800;margin-top:9px">🔥 Vas primero este mes. No te dejes alcanzar.</div>'
+    :yoIdx===0?'<div style="font-size:.74rem;color:var(--green);font-weight:800;margin-top:9px">Vas primero este mes. No te dejes alcanzar.</div>'
     :faltan<=0?''
     :`<div style="font-size:.74rem;color:var(--gold);font-weight:700;margin-top:9px">Te ${faltan===1?'falta':'faltan'} <b>${faltan}</b> venta${faltan!==1?'s':''} para llegar al primer puesto.</div>`;
   el.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:20px">
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px">
-      <div class="inicio-stitle" style="margin:0">🏆 Ranking de ventas · este mes</div>
+      <div class="inicio-stitle" style="margin:0">${ico('copa',14)} Ranking de ventas · este mes</div>
       <span style="font-size:.62rem;color:var(--text3);flex-shrink:0">por cantidad</span>
     </div>
     ${filas.map(f=>{
@@ -2362,7 +2437,7 @@ function renderRecordatorios(){
           <div style="font-size:.66rem;color:${col};font-weight:700">${cuando} · ${fFecha(vj.fecha)}</div>
         </div>
         <button title="Sale ese día" style="${btn}" onclick="confirmarSalida('${vj.id}')">✅</button>
-        <label title="Cambiar la fecha" style="${btn};position:relative">📅
+        <label title="Cambiar la fecha" style="${btn};position:relative">${ico('fecha',15)}
           <input type="date" value="${vj.fecha}" onchange="cambiarFechaSalida('${vj.id}',this.value)" style="position:absolute;inset:0;opacity:0;cursor:pointer"/>
         </label>
       </div>`;
@@ -2399,7 +2474,7 @@ function renderFpDisponibles(){
     return`<div class="disp-card">
       <div onclick="abrirViajeDetalle('${vj.id}')" style="cursor:pointer">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px"><div style="font-weight:800;font-size:.88rem;color:var(--gold)">🚛 ${esc(vj.nombre)}</div><span style="font-size:.68rem;font-weight:800;color:${color};flex-shrink:0">${libre}% libre</span></div>
-        <div style="font-size:.72rem;color:var(--text2);margin-bottom:7px">📅 ${fFecha(vj.fecha)} <span style="color:${fi.color};font-weight:700">(${fi.sub})</span> · ${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · '+vj.km_real+' km':''}${mios?` · <span style="color:var(--gold);font-weight:700">⭐ ${mios} tuya${mios>1?'s':''}</span>`:''}</div>
+        <div style="font-size:.72rem;color:var(--text2);margin-bottom:7px">${ico('fecha',12)} ${fFecha(vj.fecha)} <span style="color:${fi.color};font-weight:700">(${fi.sub})</span> · ${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · '+vj.km_real+' km':''}${mios?` · <span style="color:var(--gold);font-weight:700">⭐ ${mios} tuya${mios>1?'s':''}</span>`:''}</div>
         ${prev.map((x,i)=>`<div style="font-size:.72rem;color:var(--text2);padding:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i+1}. ${esc(x.cliente||x.nombre)||'—'} <span style="color:var(--text3)">· ${esc(locCorta(x.localidad))}</span></div>`).join('')}
         ${p.length>3?`<div style="font-size:.7rem;color:var(--text3);padding:2px 0">+ ${p.length-3} parada${p.length-3>1?'s':''} más…</div>`:''}
         <div class="cap-bar-wrap" style="margin-top:8px"><div class="cap-bar-label"><span>👤 ${esc(vdNombreVend(vj.user_id))}</span><span style="color:${color};font-weight:700">${Math.round(oc*100)}% cargado</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>
@@ -2440,7 +2515,7 @@ function vdResumenCarga(paradas){
 function selloVendedor(v,estilo){
   if(!v||!v.user_id||v.user_id===authedUser)return'';
   const n=vdNombreVend(v.user_id);
-  return`<span style="${estilo||''}">👤 ${esc(n)}</span>`;
+  return`<span style="${estilo||''}">${ico('user',12)} ${esc(n)}</span>`;
 }
 function vdNombreVend(uid){
   if(!uid)return'—';
@@ -2489,7 +2564,7 @@ function vdPintar(vj){
   ${entregado?'<div style="background:#0d2e18;border:1px solid #2a8c50;color:var(--green);border-radius:11px;padding:10px 13px;font-size:.82rem;font-weight:800;margin-bottom:12px">✅ Este viaje ya fue entregado</div>':''}
 
   <div class="vd-hero">
-    <div class="vd-kpi"><div class="vd-kpi-lbl">📅 Sale</div><div class="vd-kpi-val">${vdFechaCorta(vj.fecha)}</div><div class="vd-kpi-sub" style="color:${fi.color}">${fi.sub}</div></div>
+    <div class="vd-kpi"><div class="vd-kpi-lbl">${ico('fecha',11)} Sale</div><div class="vd-kpi-val">${vdFechaCorta(vj.fecha)}</div><div class="vd-kpi-sub" style="color:${fi.color}">${fi.sub}</div></div>
     <div class="vd-kpi"><div class="vd-kpi-lbl">📍 Recorrido</div><div class="vd-kpi-val">${vj.km_real?Math.round(vj.km_real).toLocaleString('es-AR'):'—'}</div><div class="vd-kpi-sub">km</div></div>
     <div class="vd-kpi"><div class="vd-kpi-lbl">🚏 Paradas</div><div class="vd-kpi-val">${p.length}</div><div class="vd-kpi-sub">${mios.length?mios.length+' tuya'+(mios.length>1?'s':''):'ninguna tuya'}</div></div>
     <div class="vd-kpi"><div class="vd-kpi-lbl">📦 Camión</div><div class="vd-kpi-val" style="color:${colOc}">${Math.round(oc*100)}%</div><div class="vd-kpi-sub" style="color:${colOc}">${oc>=1?(camiones>1?camiones+' camiones':'1 camión'):Math.round(libre)+'% libre'}</div></div>
@@ -2676,6 +2751,7 @@ function asIniciar(){
 
 // ── VENTAS ───────────────────────────────────────────────────
 function renderVentas(){
+  if(ventasVista==='produccion')renderProduccion();
   let l=[...ventas];
   const q=(document.getElementById('buscar').value||'').toLowerCase();
   if(filterEstado)l=l.filter(v=>v.estado===filterEstado);
@@ -2690,26 +2766,26 @@ function renderVentas(){
   else l.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
   document.getElementById('vCount').textContent=`${l.length} venta${l.length!==1?'s':''}`;
   const em='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">Sin resultados</div></div>';
-  document.getElementById('vtbody').innerHTML=l.length?l.map(v=>`<tr onclick="verVenta('${v.id}')" style="cursor:pointer"><td><strong>${esc(v.cliente)||'—'}</strong><br><span style="font-size:.68rem;color:var(--text3)">${esc(v.cuit)}</span>${selloVendedor(v,'font-size:.66rem;color:var(--gold);display:block;margin-top:2px')}</td><td>${productosTexto(v)}</td><td>${esc(v.localidad)||'—'}</td><td style="font-size:.74rem;color:var(--text2)">${v.costo_flete?'$'+fNum(v.costo_flete):'—'}</td><td style="color:var(--gold);font-weight:700">${v.precio?'$'+fNum(v.precio):'—'}</td><td><span onclick="menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></td><td style="font-size:.72rem">${fFecha(v.fecha_entrega)}</td><td><div class="act-btns"><button class="ab" onclick="event.stopPropagation();abrirEditar('${v.id}')">✏️</button><button class="ab del" onclick="event.stopPropagation();eliminarVenta('${v.id}')">🗑</button></div></td></tr>`).join(''):`<tr><td colspan="8">${em}</td></tr>`;
+  document.getElementById('vtbody').innerHTML=l.length?l.map(v=>`<tr onclick="verVenta('${v.id}')" style="cursor:pointer"><td><strong>${esc(v.cliente)||'—'}</strong><br><span style="font-size:.68rem;color:var(--text3)">${esc(v.cuit)}</span>${selloVendedor(v,'font-size:.66rem;color:var(--gold);display:block;margin-top:2px')}</td><td>${productosTexto(v)}</td><td>${esc(v.localidad)||'—'}</td><td style="font-size:.74rem;color:var(--text2)">${v.costo_flete?'$'+fNum(v.costo_flete):'—'}</td><td style="color:var(--gold);font-weight:700">${v.precio?'$'+fNum(v.precio):'—'}</td><td><span onclick="menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></td><td style="font-size:.72rem">${fFecha(v.fecha_entrega)}</td><td><div class="act-btns"><button class="ab" onclick="event.stopPropagation();abrirEditar('${v.id}')" title="Editar">${ico('lapiz',15)}</button><button class="ab del" onclick="event.stopPropagation();eliminarVenta('${v.id}')" title="Borrar">${ico('basura',15)}</button></div></td></tr>`).join(''):`<tr><td colspan="8">${em}</td></tr>`;
   document.getElementById('vcards').innerHTML=l.length?l.map(v=>`<div class="vcard" onclick="verVenta('${v.id}')">
     <div class="vcard-header">
       <div class="vcard-main">
         <div class="vcard-name">${esc(v.cliente)||'—'}</div>
         <div style="font-size:.76rem;color:var(--text2);margin:4px 0">${productosTexto(v)}</div>
-        <div class="vcard-loc">📍 ${esc(v.localidad)||'—'}</div>
+        <div class="vcard-loc">${ico('pin',13)} ${esc(v.localidad)||'—'}</div>
         ${selloVendedor(v,'font-size:.68rem;color:var(--gold);display:inline-block;margin-top:4px')}
       </div>
       <div class="vcard-right">
         <div class="vcard-price">${v.precio?'$'+fNum(v.precio):'—'}</div>
         <div style="margin-top:5px"><span onclick="event.stopPropagation();menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></div>
         <div class="vcard-actions" style="margin-top:8px">
-          <button class="vcard-btn" onclick="event.stopPropagation();abrirEditar('${v.id}')" title="Editar">✏️</button>
-          <button class="vcard-btn" onclick="event.stopPropagation();eliminarVenta('${v.id}')" title="Eliminar">🗑</button>
+          <button class="vcard-btn" onclick="event.stopPropagation();abrirEditar('${v.id}')" title="Editar">${ico('lapiz',16)}</button>
+          <button class="vcard-btn" onclick="event.stopPropagation();eliminarVenta('${v.id}')" title="Eliminar">${ico('basura',16)}</button>
         </div>
       </div>
     </div>
     <div class="vcard-footer">
-      <div class="vcard-date">${v.fecha_entrega?'📅 '+fFecha(v.fecha_entrega):'Sin fecha'}${v.costo_flete?` · 🚚 Flete $${fNum(v.costo_flete)}`:''}</div>
+      <div class="vcard-date">${v.fecha_entrega?ico('fecha',12)+' '+fFecha(v.fecha_entrega):'Sin fecha'}${v.costo_flete?` · ${ico('flete',13)} Flete $${fNum(v.costo_flete)}`:''}</div>
     </div>
   </div>`).join(''):em;
 }
@@ -4185,6 +4261,75 @@ function renderGraficoProvincias(lista){
     </div>`).join('');
 }
 
+// ── QUÉ FABRICAR PRIMERO ─────────────────────────────────────
+// La lista de ventas sirve para la oficina; esta es para el galpon: solo
+// que hay que hacer, cuantos y para cuando, ordenado por fecha de entrega.
+// Sin precios ni costos, que no hacen falta para fabricar.
+let ventasVista='lista';
+function setVentasVista(v){
+  ventasVista=v;
+  document.getElementById('vt-lista').classList.toggle('on',v==='lista');
+  document.getElementById('vt-prod').classList.toggle('on',v==='produccion');
+  document.getElementById('ventas-lista-wrap').style.display=v==='lista'?'':'none';
+  const pw=document.getElementById('ventas-prod-wrap');
+  pw.style.display=v==='produccion'?'block':'none';
+  if(v==='produccion')renderProduccion();
+}
+function diasHasta(f){
+  if(!f)return null;
+  const hoy=new Date();hoy.setHours(0,0,0,0);
+  const d=new Date(f+'T00:00:00');
+  return Math.round((d-hoy)/86400000);
+}
+function textoDias(n){
+  if(n==null)return'sin fecha';
+  if(n<0)return`hace ${-n} día${n===-1?'':'s'}`;
+  if(n===0)return'hoy';
+  if(n===1)return'mañana';
+  return`en ${n} días`;
+}
+function renderProduccion(){
+  const el=document.getElementById('ventas-prod-wrap');if(!el)return;
+  // Lo que ya salio del galpon no se fabrica mas: En camino y Entregado afuera
+  const pend=ventas.filter(v=>v.estado!=='Entregado'&&v.estado!=='En camino');
+  if(!pend.length){
+    el.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--text3);font-size:.84rem">No hay nada para fabricar.<br>Todo lo cargado ya salió del galpón.</div>';
+    return;
+  }
+  const conDias=pend.map(v=>({v,d:diasHasta(v.fecha_entrega)}));
+  conDias.sort((a,b)=>{
+    if(a.d==null&&b.d==null)return 0;
+    if(a.d==null)return 1;
+    if(b.d==null)return -1;
+    return a.d-b.d;
+  });
+  const grupos=[
+    {t:'Atrasados',c:'var(--red)',f:x=>x.d!=null&&x.d<0},
+    {t:'Esta semana',c:'var(--yellow)',f:x=>x.d!=null&&x.d>=0&&x.d<=7},
+    {t:'Más adelante',c:'var(--text3)',f:x=>x.d!=null&&x.d>7},
+    {t:'Sin fecha de entrega',c:'var(--text3)',f:x=>x.d==null}
+  ];
+  const fila=(x,color)=>{const{v,d}=x;return`<div class="prod-fila" style="border-left-color:${color}" onclick="verVenta('${v.id}')">
+      <div class="prod-fila-top">
+        <div class="prod-prod">${productosTexto(v)}</div>
+        <span onclick="event.stopPropagation();menuEstado(event,'${v.id}')">${eTag(v.estado)}</span>
+      </div>
+      <div class="prod-fila-sub">
+        <span>${esc(v.cliente)||'—'}</span>
+        <span style="color:var(--text3)">${ico('pin',11)} ${esc(locCorta(v.localidad))||'—'}</span>
+      </div>
+      <div class="prod-fila-fecha">${ico('fecha',11)} ${v.fecha_entrega?fFecha(v.fecha_entrega):'—'} · <b>${textoDias(d)}</b></div>
+    </div>`;};
+  el.innerHTML=grupos.map(g=>{
+    const filas=conDias.filter(g.f);
+    if(!filas.length)return'';
+    return`<div class="prod-grupo"><span class="prod-punto" style="background:${g.c}"></span>${g.t}
+        <span style="color:var(--text3);font-weight:400">· ${filas.length}</span></div>`
+      +filas.map(f=>fila(f,g.c)).join('');
+  }).join('')
+  +`<p class="mmhint" style="margin-top:14px">Ordenado por fecha de entrega. Tocá el estado para moverlo, o la fila para ver la venta. Lo que ya salió —en camino o entregado— no aparece acá.</p>`;
+}
+
 // ── QUE VE CADA UNO ──────────────────────────────────────────
 // El vendedor ve lo suyo y lo que necesita para vender: el presupuesto, sus
 // ventas, sus clientes, el ranking y su comision. Los costos, la ganancia y
@@ -4303,11 +4448,24 @@ function calcPrecioLinea(s){
   return{...pu,ars,descripcion:desc,silo:s};
 }
 function calcSilosCargados(){return calcSilos.filter(s=>s.id);}
+// El flete nunca puede pasar lo que sale el vehiculo. Dos silos de 100tn
+// llenan la carga, asi que se cobra el vehiculo entero y no dos veces la
+// tarifa de cada uno: 804 km x 3.500 = 2.814.000, no 4.691.000.
+function calcFleteDetalle(){
+  if(!calc.flete||!calc.km)return null;
+  const silos=calcSilosCargados();
+  if(!silos.length)return null;
+  const prods=silos.map(s=>({producto:calcProdNombre(s),modelo:calcModeloStr(s),cantidad:1}));
+  const porSilo=tarifaItem({productos:prods},provDe(calc.loc))*calc.km;
+  const oc=ocupacionItem({productos:prods});
+  const vehiculos=Math.max(1,Math.ceil(oc-1e-9));
+  const tope=vehiculos*PRECIO_KM*calc.km;
+  const llena=porSilo>=tope;
+  return{total:aMiles(llena?tope:porSilo),llena,vehiculos,oc};
+}
 function calcFleteTotal(){
-  if(!calc.flete||!calc.km)return 0;
-  const prods=calcSilosCargados().map(s=>({producto:calcProdNombre(s),modelo:calcModeloStr(s),cantidad:1}));
-  if(!prods.length)return 0;
-  return aMiles(tarifaItem({productos:prods},provDe(calc.loc))*calc.km);
+  const d=calcFleteDetalle();
+  return d?d.total:0;
 }
 function calcPintarResumen(){
   const el=document.getElementById('calc-resumen');if(!el)return;
@@ -4315,7 +4473,11 @@ function calcPintarResumen(){
   if(!lineas.length){el.innerHTML='<div style="color:var(--text3);text-align:center;padding:6px">Elegí la capacidad y acá aparece el precio.</div>';return;}
   const sub=lineas.reduce((a,l)=>a+l.ars,0),fl=calcFleteTotal();
   el.innerHTML=lineas.map(l=>`<div class="calc-rrow"><span>${esc(calcProdNombre(l.silo))} ${esc(l.ref.modelo)}${l.silo.tipo==='aereo'?' · cono '+l.silo.cono+'°':''}${(calcFibraAplica(l.silo)&&l.silo.fibra)?' · base de fibra':''}</span><span>${fPesos(l.ars)}</span></div>`).join('')
-    +(calc.flete?`<div class="calc-rrow"><span>Flete${calc.km?' ('+calc.km+' km)':''}</span><span>${calc.km?fPesos(fl):'<span style="color:var(--text3)">falta la distancia</span>'}</span></div>`:'')
+    +(calc.flete?(()=>{
+      const d=calc.km?calcFleteDetalle():null;
+      return`<div class="calc-rrow"><span>Flete${calc.km?' ('+calc.km+' km)':''}</span><span>${calc.km?fPesos(fl):'<span style="color:var(--text3)">falta la distancia</span>'}</span></div>`
+        +((d&&d.llena)?`<div style="font-size:.66rem;color:var(--text3);text-align:right;margin-top:-2px">${d.vehiculos>1?d.vehiculos+' cargas completas':'carga completa'} · se cobra el vehículo</div>`:'');
+    })():'')
     +`<div class="calc-rrow" style="border-top:1px solid var(--border);margin-top:5px;padding-top:7px;font-weight:800"><span>Total</span><span style="color:var(--gold)">${fPesos(sub+fl)}</span></div>
       <div style="font-size:.68rem;color:var(--text3);text-align:right;margin-top:3px">${calc.iva?'IVA '+cfgNum('iva',10.5)+'% incluido':'Sin IVA'} · dólar $${cfgNum('dolar',1485)}</div>`;
 }
@@ -4391,8 +4553,8 @@ function calcPintarTotalHoja(){const e=document.getElementById('hoja-total');if(
 function calcPintarHoja(){
   const el=document.getElementById('calc-hoja');if(!el||!calcPrev)return;
   el.innerHTML=`
-  <div style="display:flex;align-items:flex-start;gap:14px">
-    <img src="img/logo-remeco.png" alt="Metalúrgica Remeco" style="width:150px;height:auto;flex-shrink:0"/>
+  <div class="hoja-cab">
+    <img src="img/logo-remeco.png" alt="Metalúrgica Remeco"/>
     <div style="flex:1">
       <h3>Metalúrgica Remeco.</h3>
       <div class="emp">Colonia Menonita<br>Tel: ${esc(telPresupuesto())}<br>${MAIL_FABRICA}</div>
@@ -4596,6 +4758,7 @@ document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=
 
 const ah=new Date();
 document.getElementById('inicioFecha').textContent=ah.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+pintarIconos();
 aplicarPerfil();
 if(window.innerWidth<=768)document.getElementById('fabBtn').style.display='block';
 
