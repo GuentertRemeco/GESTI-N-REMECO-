@@ -268,6 +268,15 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .etag-punto{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block;flex-shrink:0}
 .nt-ico{width:17px;height:17px;display:inline-flex;margin-right:5px;vertical-align:-.2em}
 .nt-ico svg{width:100%;height:100%}
+.prod-grupo{display:flex;align-items:center;gap:7px;font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--text2);margin:16px 0 8px}
+.prod-grupo:first-child{margin-top:0}
+.prod-punto{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.prod-fila{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--border2);border-radius:9px;padding:10px 12px;margin-bottom:7px;cursor:pointer}
+.prod-fila:active{background:var(--bg2)}
+.prod-fila-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.prod-prod{font-weight:800;font-size:.92rem;line-height:1.3;min-width:0}
+.prod-fila-sub{display:flex;gap:10px;flex-wrap:wrap;font-size:.76rem;color:var(--text2);margin-top:5px}
+.prod-fila-fecha{font-size:.72rem;color:var(--text2);margin-top:6px}
 .opt-btn{background:var(--bg);border:1px solid var(--border2);color:var(--text2);border-radius:7px;padding:5px 10px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
 .opt-btn.on{background:var(--gold);color:#111820;border-color:var(--gold)}
 .prod-item{background:var(--bg3);border:1px solid #1e3a55;border-radius:9px;margin-bottom:7px;overflow:hidden}
@@ -584,6 +593,11 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 
 <!-- VENTAS -->
 <div class="page" id="page-ventas">
+  <div class="fp-tabs">
+    <button class="fp-tab on" id="vt-lista" onclick="setVentasVista('lista')">Lista</button>
+    <button class="fp-tab" id="vt-prod" onclick="setVentasVista('produccion')">Producción</button>
+  </div>
+  <div id="ventas-lista-wrap">
   <div class="vbar">
     <div class="vbar-top">
       <div class="search-wrap"><span class="search-icon" data-ico="buscar" style="width:16px;height:16px"></span><input id="buscar" placeholder="Buscar cliente, localidad..." autocomplete="off"/></div>
@@ -606,6 +620,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
   </div>
   <div class="vtable-wrap"><table><thead><tr><th>Cliente</th><th>Producto</th><th>Localidad</th><th>Flete</th><th>Precio</th><th>Estado</th><th>Entrega</th><th></th></tr></thead><tbody id="vtbody"><tr><td colspan="8"><div class="sp"></div></td></tr></tbody></table></div>
   <div class="vcards-wrap" id="vcards"><div class="sp"></div></div>
+  </div>
+  <div id="ventas-prod-wrap" style="display:none;flex:1;overflow-y:auto;padding:14px 14px 90px"></div>
 </div>
 
 <!-- MAPA -->
@@ -1026,7 +1042,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v97';
+const VERSION='v98';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -2735,6 +2751,7 @@ function asIniciar(){
 
 // ── VENTAS ───────────────────────────────────────────────────
 function renderVentas(){
+  if(ventasVista==='produccion')renderProduccion();
   let l=[...ventas];
   const q=(document.getElementById('buscar').value||'').toLowerCase();
   if(filterEstado)l=l.filter(v=>v.estado===filterEstado);
@@ -4242,6 +4259,75 @@ function renderGraficoProvincias(lista){
         <div style="height:100%;width:${Math.round(f.v/max*100)}%;background:var(--gold)"></div>
       </div>
     </div>`).join('');
+}
+
+// ── QUÉ FABRICAR PRIMERO ─────────────────────────────────────
+// La lista de ventas sirve para la oficina; esta es para el galpon: solo
+// que hay que hacer, cuantos y para cuando, ordenado por fecha de entrega.
+// Sin precios ni costos, que no hacen falta para fabricar.
+let ventasVista='lista';
+function setVentasVista(v){
+  ventasVista=v;
+  document.getElementById('vt-lista').classList.toggle('on',v==='lista');
+  document.getElementById('vt-prod').classList.toggle('on',v==='produccion');
+  document.getElementById('ventas-lista-wrap').style.display=v==='lista'?'':'none';
+  const pw=document.getElementById('ventas-prod-wrap');
+  pw.style.display=v==='produccion'?'block':'none';
+  if(v==='produccion')renderProduccion();
+}
+function diasHasta(f){
+  if(!f)return null;
+  const hoy=new Date();hoy.setHours(0,0,0,0);
+  const d=new Date(f+'T00:00:00');
+  return Math.round((d-hoy)/86400000);
+}
+function textoDias(n){
+  if(n==null)return'sin fecha';
+  if(n<0)return`hace ${-n} día${n===-1?'':'s'}`;
+  if(n===0)return'hoy';
+  if(n===1)return'mañana';
+  return`en ${n} días`;
+}
+function renderProduccion(){
+  const el=document.getElementById('ventas-prod-wrap');if(!el)return;
+  // Lo que ya salio del galpon no se fabrica mas: En camino y Entregado afuera
+  const pend=ventas.filter(v=>v.estado!=='Entregado'&&v.estado!=='En camino');
+  if(!pend.length){
+    el.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--text3);font-size:.84rem">No hay nada para fabricar.<br>Todo lo cargado ya salió del galpón.</div>';
+    return;
+  }
+  const conDias=pend.map(v=>({v,d:diasHasta(v.fecha_entrega)}));
+  conDias.sort((a,b)=>{
+    if(a.d==null&&b.d==null)return 0;
+    if(a.d==null)return 1;
+    if(b.d==null)return -1;
+    return a.d-b.d;
+  });
+  const grupos=[
+    {t:'Atrasados',c:'var(--red)',f:x=>x.d!=null&&x.d<0},
+    {t:'Esta semana',c:'var(--yellow)',f:x=>x.d!=null&&x.d>=0&&x.d<=7},
+    {t:'Más adelante',c:'var(--text3)',f:x=>x.d!=null&&x.d>7},
+    {t:'Sin fecha de entrega',c:'var(--text3)',f:x=>x.d==null}
+  ];
+  const fila=(x,color)=>{const{v,d}=x;return`<div class="prod-fila" style="border-left-color:${color}" onclick="verVenta('${v.id}')">
+      <div class="prod-fila-top">
+        <div class="prod-prod">${productosTexto(v)}</div>
+        <span onclick="event.stopPropagation();menuEstado(event,'${v.id}')">${eTag(v.estado)}</span>
+      </div>
+      <div class="prod-fila-sub">
+        <span>${esc(v.cliente)||'—'}</span>
+        <span style="color:var(--text3)">${ico('pin',11)} ${esc(locCorta(v.localidad))||'—'}</span>
+      </div>
+      <div class="prod-fila-fecha">${ico('fecha',11)} ${v.fecha_entrega?fFecha(v.fecha_entrega):'—'} · <b>${textoDias(d)}</b></div>
+    </div>`;};
+  el.innerHTML=grupos.map(g=>{
+    const filas=conDias.filter(g.f);
+    if(!filas.length)return'';
+    return`<div class="prod-grupo"><span class="prod-punto" style="background:${g.c}"></span>${g.t}
+        <span style="color:var(--text3);font-weight:400">· ${filas.length}</span></div>`
+      +filas.map(f=>fila(f,g.c)).join('');
+  }).join('')
+  +`<p class="mmhint" style="margin-top:14px">Ordenado por fecha de entrega. Tocá el estado para moverlo, o la fila para ver la venta. Lo que ya salió —en camino o entregado— no aparece acá.</p>`;
 }
 
 // ── QUE VE CADA UNO ──────────────────────────────────────────
