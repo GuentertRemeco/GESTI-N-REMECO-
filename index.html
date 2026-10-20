@@ -168,7 +168,7 @@ tr:hover td{background:var(--bg3)}
 .rent-row:last-child{border-bottom:none;margin-top:6px;padding-top:8px;font-weight:800;font-size:.85rem}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:5000;align-items:center;justify-content:center;padding:12px}
 .overlay.on{display:flex}
-#overlayVendedor,#overlayEntrega{z-index:7600}
+#overlayVendedor,#overlayEntrega,#overlayEditViaje{z-index:7600}
 .authgate{display:none;position:fixed;inset:0;background:var(--bg);z-index:9000;align-items:center;justify-content:center;padding:16px}
 .authgate.on{display:flex}
 .authbox{background:#15202e;border:1px solid var(--gold);border-radius:14px;padding:26px 22px;width:100%;max-width:380px}
@@ -390,6 +390,9 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .vd-inner{max-width:700px;margin:0 auto}
 .vd-hero{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:13px}
 .vd-kpi{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 8px;text-align:center}
+.vd-kpi.ed{cursor:pointer;position:relative;border-color:var(--border2)}
+.vd-kpi.ed:active{background:var(--bg3)}
+.vd-kpi .ed-lap{position:absolute;top:7px;right:8px;color:var(--gold);opacity:.75;display:flex}
 .vd-kpi-lbl{font-size:.55rem;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:800;margin-bottom:6px}
 .vd-kpi-val{font-size:1.18rem;font-weight:900;color:var(--text);line-height:1.05}
 .vd-kpi-sub{font-size:.62rem;color:var(--text3);margin-top:4px;font-weight:700}
@@ -1046,7 +1049,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v101';
+const VERSION='v102';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -2578,7 +2581,7 @@ function vdPintar(vj){
   ${entregado?'<div style="background:#0d2e18;border:1px solid #2a8c50;color:var(--green);border-radius:11px;padding:10px 13px;font-size:.82rem;font-weight:800;margin-bottom:12px">✅ Este viaje ya fue entregado</div>':''}
 
   <div class="vd-hero">
-    <div class="vd-kpi"><div class="vd-kpi-lbl">${ico('fecha',11)} Sale</div><div class="vd-kpi-val">${vdFechaCorta(vj.fecha)}</div><div class="vd-kpi-sub" style="color:${fi.color}">${fi.sub}</div></div>
+    <div class="vd-kpi${esMio?' ed':''}"${esMio?` onclick="editarViaje('${vj.id}')" title="Cambiar la fecha de salida"`:''}>${esMio?`<span class="ed-lap">${ico('lapiz',12)}</span>`:''}<div class="vd-kpi-lbl">${ico('fecha',11)} Sale</div><div class="vd-kpi-val">${vdFechaCorta(vj.fecha)}</div><div class="vd-kpi-sub" style="color:${fi.color}">${fi.sub}</div></div>
     <div class="vd-kpi"><div class="vd-kpi-lbl">${ico('pin',11)} Recorrido</div><div class="vd-kpi-val">${vj.km_real?Math.round(vj.km_real).toLocaleString('es-AR'):'—'}</div><div class="vd-kpi-sub">km</div></div>
     <div class="vd-kpi"><div class="vd-kpi-lbl">${ico('parada',11)} Paradas</div><div class="vd-kpi-val">${p.length}</div><div class="vd-kpi-sub">${mios.length?mios.length+' tuya'+(mios.length>1?'s':''):'ninguna tuya'}</div></div>
     <div class="vd-kpi"><div class="vd-kpi-lbl">${ico('caja',11)} Camión</div><div class="vd-kpi-val" style="color:${colOc}">${Math.round(oc*100)}%</div><div class="vd-kpi-sub" style="color:${colOc}">${oc>=1?(camiones>1?camiones+' camiones':'1 camión'):Math.round(libre)+'% libre'}</div></div>
@@ -2992,7 +2995,7 @@ async function guardarEditViaje(){
   vj.nombre=nombre;vj.fecha=fecha;
   const fp=fletesPublicos.find(v=>v.id===editViajeId);if(fp){fp.nombre=nombre;fp.fecha=fecha;}
   document.getElementById('overlayEditViaje').classList.remove('on');
-  renderViajes();renderProxFletes();renderFpDisponibles();renderStats();
+  renderViajes();renderProxFletes();renderFpDisponibles();renderStats();vdRefrescar();
   toast('✅ Viaje actualizado');
 }
 async function eliminarViaje(id){
