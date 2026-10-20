@@ -14,7 +14,7 @@
   --bg:#0d1520;--bg2:#111820;--bg3:#1a2c40;--bg4:#0a1018;
   --border:#1e3245;--border2:#2e4a65;
   --gold:#c9a840;--gold2:#dfc060;
-  --text:#ddd8ce;--text2:#7a9ab8;--text3:#5a7a9a;
+  --text:#e4e0d8;--text2:#92aec9;--text3:#7c99b4;
   --green:#5adf8a;--red:#ff6060;--blue:#5ab8ff;--purple:#c0a0ff;--yellow:#ffc040;
   --nav-h:52px;--bnav-h:64px;--radius:10px;
 }
@@ -107,17 +107,19 @@ tr:hover td{background:var(--bg3)}
 .vlista-wrap{flex:1;display:flex;flex-direction:column;min-height:0}
 .vlista-wrap[style*="none"]{display:none!important}
 .vcards-wrap{flex:1;overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch;padding:8px 8px 20px}
-.vcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:7px;overflow:hidden;flex-shrink:0}
-.vcard-header{padding:10px 12px;display:flex;align-items:flex-start;gap:8px}
+.vcard-header{padding:9px 11px 7px;display:flex;align-items:flex-start;gap:10px}
 .vcard-main{flex:1;min-width:0}
-.vcard-name{font-weight:800;font-size:.88rem;margin-bottom:2px}
-.vcard-loc{font-size:.72rem;color:var(--text2)}
-.vcard-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
-.vcard-price{font-weight:900;color:var(--gold);font-size:.9rem}
+.vcard-name{font-weight:800;font-size:.9rem;margin-bottom:1px}
+.vcard-prod{font-size:.78rem;color:var(--text2);margin:2px 0 3px;line-height:1.25}
+.vcard-loc{font-size:.74rem;color:var(--text3);display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.vcard-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
+.vcard-price{font-weight:900;color:var(--gold);font-size:.95rem}
+.vcard-flete{font-size:.72rem;color:var(--text3);display:flex;align-items:center;gap:3px;white-space:nowrap}
+.vcard-date{font-size:.72rem;color:var(--text3);display:flex;align-items:center;gap:4px;flex:1;white-space:nowrap}
+.vcard-actions{display:flex;gap:5px;flex-shrink:0}
+.vcard-btn{background:transparent;border:1px solid var(--border2);color:var(--text3);border-radius:6px;padding:4px 7px;cursor:pointer;font-family:inherit;display:inline-flex}
+.vcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:7px;overflow:hidden;flex-shrink:0}
 .vcard-footer{padding:7px 12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:7px;background:#0d1824}
-.vcard-date{font-size:.67rem;color:var(--text3);flex:1}
-.vcard-actions{display:flex;gap:5px}
-.vcard-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:5px;padding:4px 9px;font-size:.68rem;cursor:pointer;font-family:inherit}
 .flete-wrap{flex:1;display:flex;overflow:hidden}
 .flete-panel{width:340px;min-width:300px;background:var(--bg);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
 .fp-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
@@ -549,8 +551,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div class="calc-lb" style="font-size:.63rem;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:var(--gold)">Vista previa · se puede editar</div>
       <div class="hoja" id="calc-hoja"></div>
       <div style="display:flex;gap:7px;margin-top:12px;flex-wrap:wrap">
-        <button class="bg" style="flex:1;min-width:150px;padding:13px;font-weight:800" onclick="calcPDF()">📄 Generar PDF</button>
-        <button class="bv" style="flex:1;min-width:150px;padding:13px;font-weight:800" onclick="calcAVenta()">✅ Convertir en venta</button>
+        <button class="bg" style="flex:1;min-width:150px;padding:13px;font-weight:800" onclick="calcPDF()">Generar PDF</button>
+        <button class="bv" style="flex:1;min-width:150px;padding:13px;font-weight:800" onclick="calcAVenta()">Convertir en venta</button>
       </div>
     </div>
   </div>
@@ -640,8 +642,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     </div>
     <div class="flete-panel">
       <div class="fp-tabs">
-        <button class="fp-tab on" id="tab-programados" onclick="switchFpTab('programados')">🚛 Mis viajes</button>
-        <button class="fp-tab" id="tab-disponibles" onclick="switchFpTab('disponibles')">📢 Disponibles</button>
+        <button class="fp-tab on" id="tab-programados" onclick="switchFpTab('programados')"><span data-ico="flete" class="ico-slot" style="width:14px;height:14px;display:inline-flex;vertical-align:-.15em;margin-right:5px"></span>Mis viajes</button>
+        <button class="fp-tab" id="tab-disponibles" onclick="switchFpTab('disponibles')"><span data-ico="publicar" class="ico-slot" style="width:14px;height:14px;display:inline-flex;vertical-align:-.15em;margin-right:5px"></span>Disponibles</button>
       </div>
       <div id="panel-programados" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0">
         <div class="fp-header">
@@ -672,7 +674,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
     </div>
     <div class="sim-panel">
       <div class="sim-header">
-        <div class="sim-title">🧮 Simulador de flete</div>
+        <div class="sim-title"><span data-ico="ruta" class="ico-slot" style="width:15px;height:15px;display:inline-flex;vertical-align:-.15em;margin-right:6px"></span>Simulador de flete</div>
         <input style="width:100%;background:var(--bg3);border:1px solid #1e3a55;color:var(--text);border-radius:7px;padding:8px 11px;font-size:.82rem;font-family:inherit" id="sim-input" placeholder="Escribí una localidad y elegí de la lista..."/>
       </div>
       <div style="flex:1;overflow-y:auto;padding:8px" id="sim-body">
@@ -681,7 +683,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       </div>
       <div class="sim-footer">
         <div style="display:flex;gap:7px">
-          <button class="bv" style="flex:1;padding:10px;font-weight:800" onclick="buscarOpciones()">🔎 Buscar opciones</button>
+          <button class="bv" style="flex:1;padding:10px;font-weight:800" onclick="buscarOpciones()"><span data-ico="buscar" class="ico-slot" style="width:15px;height:15px;display:inline-flex;vertical-align:-.15em;margin-right:6px"></span>Buscar opciones</button>
           <button class="bd" style="padding:10px" onclick="limpiarSim()">Limpiar</button>
         </div>
       </div>
@@ -692,8 +694,8 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 <!-- CLIENTES -->
 <div class="page" id="page-clientes">
   <div class="fp-tabs">
-    <button class="fp-tab on" id="cli-tab-lista" onclick="setCliVista('lista')">📋 Lista</button>
-    <button class="fp-tab" id="cli-tab-mapa" onclick="setCliVista('mapa')">🗺️ Mapa</button>
+    <button class="fp-tab on" id="cli-tab-lista" onclick="setCliVista('lista')"><span data-ico="ventas" class="ico-slot" style="width:14px;height:14px;display:inline-flex;vertical-align:-.15em;margin-right:5px"></span>Lista</button>
+    <button class="fp-tab" id="cli-tab-mapa" onclick="setCliVista('mapa')"><span data-ico="mapa" class="ico-slot" style="width:14px;height:14px;display:inline-flex;vertical-align:-.15em;margin-right:5px"></span>Mapa</button>
   </div>
   <div class="cli-wrap" id="cli-wrap">
     <div class="cli-list" id="cliList"><div class="sp"></div></div>
@@ -888,7 +890,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 <div id="graficoScreen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:7200;flex-direction:column">
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarGrafico()" style="padding:8px 13px">← Volver</button>
-    <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">📊 MES A MES</div>
+    <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px"><span data-ico="grafico" class="ico-slot" style="width:16px;height:16px;display:inline-flex;vertical-align:-.2em;margin-right:7px"></span>MES A MES</div>
   </div>
   <div style="flex:1;overflow-y:auto;padding:16px" id="graficoBody"></div>
 </div>
@@ -896,14 +898,14 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 <div id="configScreen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:7000;flex-direction:column">
   <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
     <button class="bd" onclick="cerrarConfig()" style="padding:8px 13px">← Volver</button>
-    <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">⚙️ CONFIGURACIÓN</div>
+    <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px"><span data-ico="config" class="ico-slot" style="width:17px;height:17px;display:inline-flex;vertical-align:-.2em;margin-right:7px"></span>CONFIGURACIÓN</div>
     <div style="margin-left:auto;font-size:.68rem;color:var(--text3)" id="cfgVersion"></div>
   </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px">
     <div style="max-width:640px;margin:0 auto">
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px">
         <div onclick="toggleCfg('flete')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
-          <div class="inicio-stitle" style="margin:0">🚛 Flete</div>
+          <div class="inicio-stitle" style="margin:0;display:flex;align-items:center;gap:7px"><span data-ico="flete" style="width:15px;height:15px"></span>Flete</div>
           <span id="cfg-arr-flete" style="color:var(--gold);font-size:.8rem">▶</span>
         </div>
         <div id="cfg-body-flete" style="display:none;margin-top:14px">
@@ -934,7 +936,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px" id="cfg-tarifas-card">
         <div onclick="toggleCfg('tarifas')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
-          <div class="inicio-stitle" style="margin:0">📈 Tarifas de flete · lo que dice tu historia</div>
+          <div class="inicio-stitle" style="margin:0;display:flex;align-items:center;gap:7px"><span data-ico="grafico" style="width:15px;height:15px"></span>Tarifas de flete · lo que dice tu historia</div>
           <span id="cfg-arr-tarifas" style="color:var(--gold);font-size:.8rem">▶</span>
         </div>
         <div id="cfg-body-tarifas" style="display:none;margin-top:14px"></div>
@@ -942,7 +944,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px">
         <div onclick="toggleCfg('busc')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
-          <div class="inicio-stitle" style="margin:0">🔎 Buscador de combinaciones</div>
+          <div class="inicio-stitle" style="margin:0;display:flex;align-items:center;gap:7px"><span data-ico="buscar" style="width:15px;height:15px"></span>Buscador de combinaciones</div>
           <span id="cfg-arr-busc" style="color:var(--gold);font-size:.8rem">▶</span>
         </div>
         <div id="cfg-body-busc" style="display:none;margin-top:14px">
@@ -957,7 +959,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px">
         <div onclick="toggleCfg('aviso')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
-          <div class="inicio-stitle" style="margin:0">⏰ Aviso de salida</div>
+          <div class="inicio-stitle" style="margin:0;display:flex;align-items:center;gap:7px"><span data-ico="historial" style="width:15px;height:15px"></span>Aviso de salida</div>
           <span id="cfg-arr-aviso" style="color:var(--gold);font-size:.8rem">▶</span>
         </div>
         <div id="cfg-body-aviso" style="display:none;margin-top:14px">
@@ -969,7 +971,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 
       <div id="cfg-ranking-card" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:12px">
         <div onclick="toggleCfg('rank')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
-          <div class="inicio-stitle" style="margin:0">🏆 Ranking de vendedores</div>
+          <div class="inicio-stitle" style="margin:0;display:flex;align-items:center;gap:7px"><span data-ico="copa" style="width:15px;height:15px"></span>Ranking de vendedores</div>
           <span id="cfg-arr-rank" style="color:var(--gold);font-size:.8rem">▶</span>
         </div>
         <div id="cfg-body-rank" style="display:none;margin-top:14px">
@@ -991,7 +993,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 
       <div id="cfg-precios-card" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:12px">
         <div onclick="toggleCfg('precios')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
-          <div class="inicio-stitle" style="margin:0">💲 Lista de precios</div>
+          <div class="inicio-stitle" style="margin:0;display:flex;align-items:center;gap:7px"><span data-ico="precios" style="width:15px;height:15px"></span>Lista de precios</div>
           <span id="cfg-arr-precios" style="color:var(--gold);font-size:.8rem">▶</span>
         </div>
         <div id="cfg-body-precios" style="display:none;margin-top:14px"><div id="cfg-precios-lista"></div></div>
@@ -999,7 +1001,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 
       <div id="cfg-equipo-card" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:12px">
         <div onclick="toggleCfg('equipo')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
-          <div class="inicio-stitle" style="margin:0">👥 Mis vendedores</div>
+          <div class="inicio-stitle" style="margin:0;display:flex;align-items:center;gap:7px"><span data-ico="equipo" style="width:15px;height:15px"></span>Mis vendedores</div>
           <span id="cfg-arr-equipo" style="color:var(--gold);font-size:.8rem">▶</span>
         </div>
         <div id="cfg-body-equipo" style="display:none;margin-top:14px">
@@ -1019,7 +1021,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:12px">
         <div onclick="toggleCfg('hist')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
-          <div class="inicio-stitle" style="margin:0">📜 Historial de viajes</div>
+          <div class="inicio-stitle" style="margin:0;display:flex;align-items:center;gap:7px"><span data-ico="historial" style="width:15px;height:15px"></span>Historial de viajes</div>
           <span id="cfg-arr-hist" style="color:var(--gold);font-size:.8rem">▶</span>
         </div>
         <div id="cfg-body-hist" style="display:none;margin-top:14px"><div id="cfg-hist-lista"></div></div>
@@ -1044,7 +1046,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v100';
+const VERSION='v101';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -1069,6 +1071,16 @@ const ICO={
   lapiz:SVG('<path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3z"/><line x1="14.5" y1="6.5" x2="17.5" y2="9.5"/>'),
   basura:SVG('<path d="M5 7h14"/><path d="M9 7V5h6v2"/><path d="M6.5 7l.8 12a2 2 0 0 0 2 1.9h5.4a2 2 0 0 0 2-1.9l.8-12"/><line x1="10.5" y1="10.5" x2="10.5" y2="17.5"/><line x1="13.5" y1="10.5" x2="13.5" y2="17.5"/>'),
   buscar:SVG('<circle cx="11" cy="11" r="6"/><line x1="15.5" y1="15.5" x2="20" y2="20"/>'),
+  caja:SVG('<path d="M3.5 7.5 12 3.5l8.5 4v9L12 20.5l-8.5-4z"/><path d="M3.5 7.5 12 11.5l8.5-4"/><line x1="12" y1="11.5" x2="12" y2="20.5"/>'),
+  parada:SVG('<path d="M6 3.5v17"/><path d="M6 4.5h10l-2 3 2 3H6"/>'),
+  dinero:SVG('<line x1="12" y1="3.5" x2="12" y2="20.5"/><path d="M15.8 7.2H10a2.6 2.6 0 0 0 0 5.2h3.4a2.6 2.6 0 0 1 0 5.2H8"/>'),
+  equipo:SVG('<circle cx="9" cy="8.5" r="3"/><path d="M3 19c0-3.1 2.7-4.8 6-4.8s6 1.7 6 4.8"/><path d="M16 5.8a3 3 0 0 1 0 5.4"/><path d="M17.5 14.6c2 .6 3.5 2 3.5 4.4"/>'),
+  precios:SVG('<path d="M4 11V4.5h6.5L20 14l-6.5 6.5L4 11z"/><circle cx="8" cy="8" r="1.3"/>'),
+  historial:SVG('<circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 1.8"/>'),
+  publicar:SVG('<path d="M4 9.5v5h3.5l6 4V5.5l-6 4H4z"/><path d="M17 9a4 4 0 0 1 0 6"/>'),
+  ojo:SVG('<path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.8"/>'),
+  estrella:SVG('<path d="M12 4l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.6-4.8 2.6.9-5.4L4.2 9.7l5.4-.8z"/>'),
+  objetivo:SVG('<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3.6"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>'),
   copa:SVG('<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 5.5H5.5a2.5 2.5 0 0 0 2.5 4"/><path d="M16 5.5h2.5a2.5 2.5 0 0 1-2.5 4"/><line x1="12" y1="13" x2="12" y2="17"/><path d="M9 20h6l-.6-3H9.6z"/>'),
   grafico:SVG('<line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="11" width="3.2" height="7"/><rect x="11" y="6.5" width="3.2" height="11.5"/><rect x="16" y="14" width="3.2" height="4"/>')
 };
@@ -1136,9 +1148,9 @@ function abrirPerfilMenu(ev){
       <div style="font-size:.72rem;color:var(--text3);margin-top:2px">${esc(p.email)||'Agregá tu email'}</div>
       <div style="font-size:.66rem;color:var(--text3);margin-top:5px">${soyVendedor()?'Vendedor':'Dueño'} · ${VERSION}</div>
     </div>
-    <div class="em-item" onclick="abrirPerfilEditar()">👤 Ver / editar perfil</div>
-    <div class="em-item" onclick="abrirDiag()">🩺 Diagnóstico</div>
-    <div class="em-item" onclick="cerrarSesion()" style="color:var(--red)">🚪 Cerrar sesión</div>`;
+    <div class="em-item" onclick="abrirPerfilEditar()">Ver / editar perfil</div>
+    <div class="em-item" onclick="abrirDiag()">Diagnóstico</div>
+    <div class="em-item" onclick="cerrarSesion()" style="color:var(--red)">Cerrar sesión</div>`;
   const r=ev.currentTarget.getBoundingClientRect();
   m.style.display='block';
   m.style.right=Math.max(8,window.innerWidth-r.right)+'px';
@@ -2476,7 +2488,7 @@ function renderFpDisponibles(){
     return`<div class="disp-card">
       <div onclick="abrirViajeDetalle('${vj.id}')" style="cursor:pointer">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px"><div style="font-weight:800;font-size:.88rem;color:var(--gold)">🚛 ${esc(vj.nombre)}</div><span style="font-size:.68rem;font-weight:800;color:${color};flex-shrink:0">${libre}% libre</span></div>
-        <div style="font-size:.72rem;color:var(--text2);margin-bottom:7px">${ico('fecha',12)} ${fFecha(vj.fecha)} <span style="color:${fi.color};font-weight:700">(${fi.sub})</span> · ${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · '+vj.km_real+' km':''}${mios?` · <span style="color:var(--gold);font-weight:700">⭐ ${mios} tuya${mios>1?'s':''}</span>`:''}</div>
+        <div style="font-size:.72rem;color:var(--text2);margin-bottom:7px">${ico('fecha',12)} ${fFecha(vj.fecha)} <span style="color:${fi.color};font-weight:700">(${fi.sub})</span> · ${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · '+vj.km_real+' km':''}${mios?` · <span style="color:var(--gold);font-weight:700">${ico('estrella',11)} ${mios} tuya${mios>1?'s':''}</span>`:''}</div>
         ${prev.map((x,i)=>`<div style="font-size:.72rem;color:var(--text2);padding:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i+1}. ${esc(x.cliente||x.nombre)||'—'} <span style="color:var(--text3)">· ${esc(locCorta(x.localidad))}</span></div>`).join('')}
         ${p.length>3?`<div style="font-size:.7rem;color:var(--text3);padding:2px 0">+ ${p.length-3} parada${p.length-3>1?'s':''} más…</div>`:''}
         <div class="cap-bar-wrap" style="margin-top:8px"><div class="cap-bar-label"><span>👤 ${esc(vdNombreVend(vj.user_id))}</span><span style="color:${color};font-weight:700">${Math.round(oc*100)}% cargado</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>
@@ -2567,9 +2579,9 @@ function vdPintar(vj){
 
   <div class="vd-hero">
     <div class="vd-kpi"><div class="vd-kpi-lbl">${ico('fecha',11)} Sale</div><div class="vd-kpi-val">${vdFechaCorta(vj.fecha)}</div><div class="vd-kpi-sub" style="color:${fi.color}">${fi.sub}</div></div>
-    <div class="vd-kpi"><div class="vd-kpi-lbl">📍 Recorrido</div><div class="vd-kpi-val">${vj.km_real?Math.round(vj.km_real).toLocaleString('es-AR'):'—'}</div><div class="vd-kpi-sub">km</div></div>
-    <div class="vd-kpi"><div class="vd-kpi-lbl">🚏 Paradas</div><div class="vd-kpi-val">${p.length}</div><div class="vd-kpi-sub">${mios.length?mios.length+' tuya'+(mios.length>1?'s':''):'ninguna tuya'}</div></div>
-    <div class="vd-kpi"><div class="vd-kpi-lbl">📦 Camión</div><div class="vd-kpi-val" style="color:${colOc}">${Math.round(oc*100)}%</div><div class="vd-kpi-sub" style="color:${colOc}">${oc>=1?(camiones>1?camiones+' camiones':'1 camión'):Math.round(libre)+'% libre'}</div></div>
+    <div class="vd-kpi"><div class="vd-kpi-lbl">${ico('pin',11)} Recorrido</div><div class="vd-kpi-val">${vj.km_real?Math.round(vj.km_real).toLocaleString('es-AR'):'—'}</div><div class="vd-kpi-sub">km</div></div>
+    <div class="vd-kpi"><div class="vd-kpi-lbl">${ico('parada',11)} Paradas</div><div class="vd-kpi-val">${p.length}</div><div class="vd-kpi-sub">${mios.length?mios.length+' tuya'+(mios.length>1?'s':''):'ninguna tuya'}</div></div>
+    <div class="vd-kpi"><div class="vd-kpi-lbl">${ico('caja',11)} Camión</div><div class="vd-kpi-val" style="color:${colOc}">${Math.round(oc*100)}%</div><div class="vd-kpi-sub" style="color:${colOc}">${oc>=1?(camiones>1?camiones+' camiones':'1 camión'):Math.round(libre)+'% libre'}</div></div>
   </div>
 
   <div class="vd-card" style="padding:12px 14px">
@@ -2579,16 +2591,16 @@ function vdPintar(vj){
 
   <div class="vd-pub">
     <div class="vd-pub-av">${esc((dueno||'?').charAt(0).toUpperCase())}</div>
-    <div style="flex:1;min-width:0"><div class="vd-pub-lbl">📢 Viaje publicado por</div><div class="vd-pub-nom">${esc(dueno)}${esMio?' (es tu viaje)':''}</div></div>
+    <div style="flex:1;min-width:0"><div class="vd-pub-lbl">${ico('publicar',11)} Viaje publicado por</div><div class="vd-pub-nom">${esc(dueno)}${esMio?' (es tu viaje)':''}</div></div>
   </div>
 
   <div class="vd-card">
-    <div class="vd-h">📦 Qué se carga <span class="n">${resumen.reduce((s,[,q])=>s+q,0)} unidad${resumen.reduce((s,[,q])=>s+q,0)!==1?'es':''}</span></div>
+    <div class="vd-h">${ico('caja',13)} Qué se carga <span class="n">${resumen.reduce((s,[,q])=>s+q,0)} unidad${resumen.reduce((s,[,q])=>s+q,0)!==1?'es':''}</span></div>
     ${resumen.length?`<div class="vd-carga">${resumen.map(([nom,q])=>`<div class="vd-cchip"><span class="q">×${q}</span><span class="n">${esc(nom)}</span></div>`).join('')}</div>`:'<div style="color:var(--text3);font-size:.82rem">Sin productos cargados</div>'}
   </div>
 
   <div class="vd-card">
-    <div class="vd-h">🚏 Paradas <span class="n">en orden de bajada</span></div>
+    <div class="vd-h">${ico('parada',13)} Paradas <span class="n">en orden de bajada</span></div>
     ${p.length?p.map((x,i)=>{
       const mio=ventas.some(v=>String(v.id)===String(x.id));
       const uid=_ownerCache[x.id];
@@ -2601,10 +2613,10 @@ function vdPintar(vj){
         <div class="vd-numwrap"><div class="vd-num${mio?' mio':''}">${i+1}</div>${i<p.length-1?'<div class="vd-line"></div>':''}</div>
         <div class="vd-si">
           <div class="vd-cli">${mio?'⭐ ':''}${esc(x.cliente||x.nombre)||'—'}</div>
-          <div class="vd-loc">📍 ${esc(locCorta(x.localidad))||'sin localidad'}</div>
+          <div class="vd-loc">${ico('pin',11)} ${esc(locCorta(x.localidad))||'sin localidad'}</div>
           <div class="vd-prods">${prods.length?prods.map(a=>`<div class="vd-prod">${(a.cantidad&&a.cantidad>1)?`<b>×${a.cantidad}</b> `:''}${esc(vdBaseProd(a))}</div>`).join(''):'<div class="vd-prod" style="opacity:.6">sin producto</div>'}</div>
           <div class="vd-meta">
-            <span class="vd-vend${uid&&uid===authedUser?' yo':''}">👤 ${esc(vend)}</span>
+            <span class="vd-vend${uid&&uid===authedUser?' yo':''}">${ico('user',11)} ${esc(vend)}</span>
             <span class="vd-ocu">ocupa ${esp}%</span>
             ${verPrecio?`<span class="vd-precio">${fPesos(c.cobro)} de flete</span>`:''}
             ${mio?`<button class="vd-quitar" onclick="quitarDelViaje('${vj.id}',${i},'${x.id||''}')">✕ Sacar del viaje</button>`:''}
@@ -2614,7 +2626,7 @@ function vdPintar(vj){
   </div>
 
   ${flete.listo?`<div class="vd-card">
-    <div class="vd-h">💰 Flete</div>
+    <div class="vd-h">${ico('dinero',13)} Flete</div>
     ${esMio?`<div style="display:flex;justify-content:space-between;align-items:center;font-size:.88rem"><span style="color:var(--text2)">Total del viaje</span><span style="color:var(--gold);font-weight:900;font-size:1.15rem">${fPesos(flete.total)}</span></div>`:''}
     ${mios.length?`<div style="display:flex;justify-content:space-between;align-items:center;font-size:.88rem;margin-top:${esMio?'8px':'0'};padding-top:${esMio?'8px':'0'};${esMio?'border-top:1px solid var(--border)':''}"><span style="color:var(--text2)">Lo tuyo en este viaje</span><span style="color:var(--gold);font-weight:900;font-size:1.15rem">${fPesos(miParte)}</span></div>`:''}
     <div style="font-size:.68rem;color:var(--text3);margin-top:9px">${flete.kmReal} km · se cobra la tarifa de cada producto × los km hasta su parada</div>
@@ -2769,25 +2781,25 @@ function renderVentas(){
   document.getElementById('vCount').textContent=`${l.length} venta${l.length!==1?'s':''}`;
   const em='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-msg">Sin resultados</div></div>';
   document.getElementById('vtbody').innerHTML=l.length?l.map(v=>`<tr onclick="verVenta('${v.id}')" style="cursor:pointer"><td><strong>${esc(v.cliente)||'—'}</strong><br><span style="font-size:.68rem;color:var(--text3)">${esc(v.cuit)}</span>${selloVendedor(v,'font-size:.66rem;color:var(--gold);display:block;margin-top:2px')}</td><td>${productosTexto(v)}</td><td>${esc(v.localidad)||'—'}</td><td style="font-size:.74rem;color:var(--text2)">${v.costo_flete?'$'+fNum(v.costo_flete):'—'}</td><td style="color:var(--gold);font-weight:700">${v.precio?'$'+fNum(v.precio):'—'}</td><td><span onclick="menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></td><td style="font-size:.72rem">${fFecha(v.fecha_entrega)}</td><td><div class="act-btns"><button class="ab" onclick="event.stopPropagation();abrirEditar('${v.id}')" title="Editar">${ico('lapiz',15)}</button><button class="ab del" onclick="event.stopPropagation();eliminarVenta('${v.id}')" title="Borrar">${ico('basura',15)}</button></div></td></tr>`).join(''):`<tr><td colspan="8">${em}</td></tr>`;
-  document.getElementById('vcards').innerHTML=l.length?l.map(v=>`<div class="vcard" onclick="verVenta('${v.id}')">
+  document.getElementById('vcards').innerHTML=l.length?l.map(v=>`<div class="vcard" onclick="verVenta('${v.id}')" style="border-left:3px solid ${COL[v.estado]||'var(--border2)'}">
     <div class="vcard-header">
       <div class="vcard-main">
         <div class="vcard-name">${esc(v.cliente)||'—'}</div>
-        <div style="font-size:.76rem;color:var(--text2);margin:4px 0">${productosTexto(v)}</div>
-        <div class="vcard-loc">${ico('pin',13)} ${esc(v.localidad)||'—'}</div>
-        ${selloVendedor(v,'font-size:.68rem;color:var(--gold);display:inline-block;margin-top:4px')}
+        <div class="vcard-prod">${productosTexto(v)}</div>
+        <div class="vcard-loc">${ico('pin',12)} ${esc(locCorta(v.localidad))||'—'}${selloVendedor(v,'color:var(--gold);margin-left:8px')}</div>
       </div>
       <div class="vcard-right">
         <div class="vcard-price">${v.precio?'$'+fNum(v.precio):'—'}</div>
-        <div style="margin-top:5px"><span onclick="event.stopPropagation();menuEstado(event,'${v.id}')">${eTag(v.estado)}</span></div>
-        <div class="vcard-actions" style="margin-top:8px">
-          <button class="vcard-btn" onclick="event.stopPropagation();abrirEditar('${v.id}')" title="Editar">${ico('lapiz',16)}</button>
-          <button class="vcard-btn" onclick="event.stopPropagation();eliminarVenta('${v.id}')" title="Eliminar">${ico('basura',16)}</button>
-        </div>
+        <div class="vcard-flete">${v.costo_flete?ico('flete',12)+' $'+fNum(v.costo_flete):''}</div>
       </div>
     </div>
     <div class="vcard-footer">
-      <div class="vcard-date">${v.fecha_entrega?ico('fecha',12)+' '+fFecha(v.fecha_entrega):'Sin fecha'}${v.costo_flete?` · ${ico('flete',13)} Flete $${fNum(v.costo_flete)}`:''}</div>
+      <span onclick="event.stopPropagation();menuEstado(event,'${v.id}')">${eTag(v.estado)}</span>
+      <div class="vcard-date">${v.fecha_entrega?ico('fecha',12)+' '+fFecha(v.fecha_entrega):'Sin fecha'}</div>
+      <div class="vcard-actions">
+        <button class="vcard-btn" onclick="event.stopPropagation();abrirEditar('${v.id}')" title="Editar">${ico('lapiz',15)}</button>
+        <button class="vcard-btn" onclick="event.stopPropagation();eliminarVenta('${v.id}')" title="Eliminar">${ico('basura',15)}</button>
+      </div>
     </div>
   </div>`).join(''):em;
 }
@@ -2866,7 +2878,7 @@ function renderViajes(){
   const histHtml='';
   // Fletes publicados por otros vendedores donde tengo clientes míos
   const ajenos=fletesPublicos.filter(v=>estadoViaje(v)!=='historial'&&!viajesData.some(m=>String(m.id)===String(v.id))&&parsePar(v.paradas_snap).some(x=>ventas.some(vv=>String(vv.id)===String(x.id))));
-  const ajenosHtml=ajenos.length?`<div class="inicio-stitle" style="margin:14px 2px 8px">🤝 Tus clientes en viajes de otros</div>`+ajenos.map(vj=>{
+  const ajenosHtml=ajenos.length?`<div class="inicio-stitle" style="margin:14px 2px 8px">${ico('equipo',13)} Tus clientes en viajes de otros</div>`+ajenos.map(vj=>{
     const p=parsePar(vj.paradas_snap);
     const mios=p.map((x,i)=>({x,i})).filter(({x})=>ventas.some(vv=>String(vv.id)===String(x.id)));
     return`<div style="background:var(--bg3);border:1px solid #2a8c50;border-radius:9px;margin-bottom:7px">
@@ -2929,12 +2941,12 @@ function renderViajes(){
             :(flete.ocupacion>1?`<div style="color:var(--yellow);font-weight:700;font-size:.66rem">${Math.round(flete.ocupacion*100)}% de una camioneta · el flete es la suma de los silos<br><span onclick="event.stopPropagation();abrirConfigFlete()" style="color:var(--gold);text-decoration:underline;cursor:pointer">Cargá las tarifas y se calcula por vehículo →</span></div>`:`<div style="color:var(--text3);font-size:.63rem">Camioneta ocupada: ${Math.round(flete.ocupacion*100)}%</div>`)}
         </div>`:''}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px">
-          <button class="bg" style="font-size:.7rem;padding:7px;grid-column:span 2;font-weight:800" onclick="abrirViajeDetalle('${vj.id}')">👁️ Ver detalle completo</button>
+          <button class="bg" style="font-size:.7rem;padding:7px;grid-column:span 2;font-weight:800" onclick="abrirViajeDetalle('${vj.id}')">${ico('ojo',14)} Ver detalle completo</button>
           <button class="bd solo-mobile" style="font-size:.68rem;padding:7px" onclick="editarViaje('${vj.id}')">✏️ Editar viaje</button>
           <button class="bd solo-mobile" style="font-size:.68rem;padding:7px;background:#2a1010;border-color:#5a2020;color:#fcc" onclick="eliminarViaje('${vj.id}')">✕ Eliminar</button>
           <button class="bv" style="font-size:.68rem;padding:5px" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes</button>
-          <button class="bp" style="font-size:.68rem;padding:5px" onclick="optimizarViaje('${vj.id}')">🎯 Optimizar</button>
-          <button style="background:${pubBg};border:1px solid ${pubColor};color:${pubTxt};border-radius:7px;font-size:.68rem;padding:5px;cursor:pointer;font-weight:600;font-family:inherit;grid-column:span 2" onclick="togglePublico('${vj.id}',${!vj.publico})">${vj.publico?'✅ Publicado — tocá para ocultar':'📢 Publicar flete disponible'}</button>
+          <button class="bp" style="font-size:.68rem;padding:5px" onclick="optimizarViaje('${vj.id}')">${ico('objetivo',14)} Optimizar</button>
+          <button style="background:${pubBg};border:1px solid ${pubColor};color:${pubTxt};border-radius:7px;font-size:.68rem;padding:5px;cursor:pointer;font-weight:600;font-family:inherit;grid-column:span 2" onclick="togglePublico('${vj.id}',${!vj.publico})">${vj.publico?'✓ Publicado — tocá para ocultar':ico('publicar',14)+' Publicar flete disponible'}</button>
         </div>
       </div>
     </div>`;
@@ -3072,7 +3084,7 @@ function optimizarViaje(id){
   const destPar=paradas[idxDest],rest=paradas.filter((_,i)=>i!==idxDest);
   const destination={lat:parseFloat(destPar.lat),lng:parseFloat(destPar.lng)};
   const waypoints=rest.map(p=>({location:{lat:parseFloat(p.lat),lng:parseFloat(p.lng)},stopover:true}));
-  toast('🎯 Buscando clientes cerca de la ruta...');
+  toast('Buscando clientes cerca de la ruta...');
   new google.maps.DirectionsService().route({origin:{lat:FAB_LAT,lng:FAB_LNG},destination,waypoints,optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{
     if(status!=='OK'){toast('No se pudo calcular la ruta: '+status);return;}
     const path=res.routes[0].overview_path.map(p=>({lat:p.lat(),lng:p.lng()}));
@@ -3343,9 +3355,9 @@ function verVenta(id){
     </div>
     <div style="font-size:.72rem;color:var(--text3);margin-bottom:15px">${[v.cuit?'CUIT: '+esc(v.cuit):'',v.telefono?'📞 '+esc(v.telefono):''].filter(Boolean).join(' · ')||'Sin datos fiscales'}</div>
     ${selloVendedor(v,'font-size:.74rem;color:var(--gold);display:block;margin:-10px 0 14px')?'<div style="margin:-10px 0 14px;font-size:.74rem;color:var(--gold)">Cargada por '+esc(vdNombreVend(v.user_id))+'</div>':''}
-    <div class="inicio-stitle" style="margin-bottom:5px">📍 De dónde es</div>
+    <div class="inicio-stitle" style="margin-bottom:5px;display:flex;align-items:center;gap:6px">${ico('pin',13)} De dónde es</div>
     <div style="font-size:.88rem;margin-bottom:15px">${esc(v.localidad)||'—'}</div>
-    <div class="inicio-stitle" style="margin-bottom:6px">📦 Qué compró</div>
+    <div class="inicio-stitle" style="margin-bottom:6px;display:flex;align-items:center;gap:6px">${ico('caja',13)} Qué compró</div>
     <div style="margin-bottom:15px">${prods.length?prods.map(a=>`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:9px 11px;margin-bottom:5px;font-size:.84rem;font-weight:600">${esc(nombreProd(a))}</div>`).join(''):'<div style="color:var(--text3)">—</div>'}</div>
     ${soyVendedor()?`<div class="rent-card">
       <div class="rent-title">💵 Números</div>
@@ -3884,7 +3896,7 @@ async function abrirDiag(){
     el.style.cssText='display:none;position:fixed;inset:0;background:var(--bg);z-index:7500;flex-direction:column';
     el.innerHTML=`<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--bg4);flex-shrink:0">
         <button class="bd" onclick="cerrarDiag()" style="padding:8px 13px">← Volver</button>
-        <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">🩺 DIAGNÓSTICO</div>
+        <div style="font-weight:900;color:var(--gold);font-size:.95rem;letter-spacing:1.5px">DIAGNÓSTICO</div>
       </div>
       <div style="flex:1;overflow-y:auto;padding:16px" id="diagBody"></div>`;
     document.body.appendChild(el);
