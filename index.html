@@ -1051,7 +1051,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v103';
+const VERSION='v104';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -1620,12 +1620,13 @@ function toggleCfg(k){
 function renderHistorialCfg(){
   const el=document.getElementById('cfg-hist-lista');if(!el)return;
   const hist=viajesData.filter(v=>estadoViaje(v)==='historial').sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
-  if(!hist.length){el.innerHTML='<div style="text-align:center;padding:14px;color:var(--text3);font-size:.76rem">Todavía no hay viajes entregados.<br>Los viajes pasan acá solos 2 días después de su fecha.</div>';return;}
+  if(!hist.length){el.innerHTML='<div style="text-align:center;padding:14px;color:var(--text3);font-size:.76rem">Todavía no hay viajes entregados.<br>Un viaje llega acá cuando lo marcás como entregado.</div>';return;}
   el.innerHTML=hist.map(vj=>{const p=parsePar(vj.paradas_snap);return`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin-bottom:6px">
     <div style="display:flex;align-items:center;gap:8px">
       <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.78rem">🚛 ${esc(vj.nombre)} <span style="font-size:.6rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:1px 7px;margin-left:4px">✅ ENTREGADO</span></div>
       <div style="font-size:.65rem;color:var(--text3);margin-top:2px">${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · '+ico('pin',11)+' '+vj.km_real+' km':''} · ${ico('fecha',11)} ${fFecha(vj.fecha)}</div>
       <div style="font-size:.63rem;color:var(--text3);margin-top:1px">${p.map(x=>esc(x.cliente||x.nombre||'')).filter(Boolean).join(' · ')}</div></div>
+      <button class="vbtn" title="Volver a viajes programados" onclick="marcarViajeEntregado('${vj.id}',false)">↩️</button>
       <button class="vbtn del" onclick="eliminarViaje('${vj.id}').then(()=>renderHistorialCfg())">✕</button>
     </div>
   </div>`;}).join('');
@@ -2596,7 +2597,7 @@ function vdPintar(vj){
   const fi=vdFechaInfo(vj.fecha);
   const flete=calcularFlete(vj);
   const esMio=viajesData.some(v=>String(v.id)===String(vj.id));
-  const entregado=estadoViaje(vj)==='entregado';
+  const entregado=viajeEntregado(vj);
   const dueno=vdNombreVend(vj.user_id);
   const mios=p.filter(x=>ventas.some(v=>String(v.id)===String(x.id)));
   const miParte=flete.listo?p.reduce((s,x,i)=>s+(ventas.some(v=>String(v.id)===String(x.id))?(flete.items[i]?.cobro||0):0),0):0;
@@ -2665,6 +2666,9 @@ function vdPintar(vj){
   </div>`:''}
 
   <div class="vd-acts">
+    ${esMio?(entregado
+      ?`<button class="bd" onclick="marcarViajeEntregado('${vj.id}',false)">↩️ Volver a programados</button>`
+      :`<button class="bp" style="background:#0d2e18;border-color:#2a8c50;color:var(--green)" onclick="marcarViajeEntregado('${vj.id}',true)">✅ Marcar como entregado</button>`):''}
     <button class="bp" onclick="cerrarViajeDetalle();optimizarViaje('${vj.id}')">🎯 ¿Me conviene?</button>
     <button class="bg" onclick="cerrarViajeDetalle();abrirAgregar('${vj.id}')">+ Agregar clientes</button>
   </div>`;
@@ -2897,12 +2901,31 @@ document.addEventListener('click',e=>{
 });
 
 // ── VIAJES ───────────────────────────────────────────────────
-function estadoViaje(vj){
-  if(!vj.fecha)return'activo';
+// Antes el viaje se iba solo al historial 2 dias despues de la fecha, y si uno
+// se atrasaba desaparecia sin haberlo entregado. Ahora se va solo cuando lo
+// marcas vos. La fecha pasada solo lo pinta en rojo.
+function getViajesEntregados(){try{return JSON.parse(localStorage.getItem('remeco_viajes_entregados')||'{}');}catch{return{};}}
+function viajeEntregado(vj){return !!(vj&&(vj.entregado===true||getViajesEntregados()[vj.id]));}
+function viajeVencido(vj){
+  if(!vj||!vj.fecha||viajeEntregado(vj))return 0;
   const hoy=new Date();hoy.setHours(0,0,0,0);
-  const f=new Date(vj.fecha+'T00:00:00');
-  const dias=Math.floor((hoy-f)/86400000);
-  return dias>=2?'historial':dias>=0?'entregado':'activo';
+  const d=Math.floor((hoy-new Date(vj.fecha+'T00:00:00'))/86400000);
+  return d>0?d:0;
+}
+function estadoViaje(vj){return viajeEntregado(vj)?'historial':'activo';}
+async function marcarViajeEntregado(id,val){
+  const vj=viajesData.find(v=>String(v.id)===String(id));
+  if(!vj){toast('Solo podes marcar tus propios viajes');return;}
+  const c=getViajesEntregados();
+  if(val)c[id]=new Date().toISOString().split('T')[0];else delete c[id];
+  localStorage.setItem('remeco_viajes_entregados',JSON.stringify(c));
+  vj.entregado=val;
+  // Si la columna todavia no existe en la base, queda guardado en el telefono
+  // y el programa sigue andando igual.
+  try{await sb.from('viajes').update({entregado:val}).eq('id',id);}catch(e){}
+  renderViajes();renderProxFletes();renderStats();renderHistorialCfg();
+  if(val&&vdViajeId&&String(vdViajeId)===String(id))cerrarViajeDetalle();else vdRefrescar();
+  toast(val?'✅ Viaje entregado':'↩️ Volvio a viajes programados');
 }
 function renderViajes(){
   const _fw=document.querySelector('.flete-wrap');if(_fw)_fw.classList.toggle('map-on',!!viajeAbierto);
@@ -2925,7 +2948,7 @@ function renderViajes(){
         </div>
         <button style="background:var(--gold);color:#111820;border:none;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:.68rem;font-weight:800;flex-shrink:0;font-family:inherit" onclick="event.stopPropagation();abrirViajeDetalle('${vj.id}')">👁️ Entrar</button>
       </div>
-      ${estadoViaje(vj)==='entregado'?'<div style="padding:0 11px;margin-bottom:8px"><span style="font-size:.58rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:2px 8px">✅ ENTREGADO</span></div>':''}
+      ${viajeEntregado(vj)?'<div style="padding:0 11px;margin-bottom:8px"><span style="font-size:.58rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:2px 8px">✅ ENTREGADO</span></div>':''}
       <div id="ajenos-body-${vj.id}" style="display:${ajenosExpandidos&&ajenosExpandidos[vj.id]?'block':'none'};padding:0 11px 11px 11px;border-top:1px solid #1a5a35">
         ${mios.map(({x,i})=>`<div style="display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--text2);margin-bottom:6px;padding-top:5px;border-top:1px dashed var(--border)"><span style="flex:1">⭐ ${esc(x.cliente||x.nombre)||'—'} · ${paradaTexto(x)} · ${esc(locCorta(x.localidad))}</span><button onclick="quitarDelViaje('${vj.id}',${i},'${x.id||''}')" title="Quitar mi cliente" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.8rem;padding:2px 5px;flex-shrink:0">✕</button></div>`).join('')}
         <button class="bg" style="width:100%;padding:9px;font-size:.78rem;font-weight:800;margin-top:8px" onclick="abrirViajeDetalle('${vj.id}')">👁️ Entrar al viaje</button>
@@ -2935,7 +2958,7 @@ function renderViajes(){
   }).join(''):'';
   if(!activos.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:.78rem">No hay viajes programados</div>'+ajenosHtml+histHtml;return;}
   el.innerHTML=activos.map(vj=>{
-    const entregado=estadoViaje(vj)==='entregado';
+    const entregado=viajeEntregado(vj);
     const p=parsePar(vj.paradas_snap);
     const flete=calcularFlete(vj);
     const estaAbierto=viajeAbierto===vj.id;
@@ -2950,6 +2973,7 @@ function renderViajes(){
         <div class="viaje-info">
           <div class="viaje-nombre">🚛 ${esc(vj.nombre)}${entregado?'<span style="font-size:.58rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:1px 7px;margin-left:4px;vertical-align:middle">✅ ENTREGADO</span>':vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div>
           <div class="viaje-meta"><span>${p.length} parada${p.length!==1?'s':''}</span>${vj.km_real?`<span class="viaje-km">📍 ${vj.km_real} km</span>`:''}<span>📅 ${fFecha(vj.fecha)}</span><span style="color:${fi.color};font-weight:700">${fi.sub}</span></div>
+          ${viajeVencido(vj)?`<div style="margin-top:5px"><span style="font-size:.6rem;font-weight:800;color:var(--red);border:1px solid var(--red);border-radius:20px;padding:2px 8px">${viajeVencido(vj)===1?'HACE 1 DÍA':'HACE '+viajeVencido(vj)+' DÍAS'} · ¿ya lo entregaste?</span> <button class="vbtn" style="font-size:.6rem;padding:2px 8px;color:var(--green);border-color:#2a8c50" onclick="event.stopPropagation();marcarViajeEntregado('${vj.id}',true)">Sí, entregado</button></div>`:''}
           ${clientesPrev.length?`<div style="font-size:.66rem;color:var(--text2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${clientesPrev.slice(0,2).join(' · ')}${clientesPrev.length>2?` <span style="color:var(--text3)">+${clientesPrev.length-2} más</span>`:''}</div>`:''}
           ${p.length?`<div style="display:flex;align-items:center;gap:7px;margin-top:5px">
             <div class="cap-bar-track" style="flex:1"><div class="cap-bar-fill" style="width:${Math.min(ocPct,100)}%;background:${colOc}"></div></div>
