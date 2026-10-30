@@ -367,6 +367,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .as-dato:last-child{border-bottom:none}
 .as-dato .k{color:var(--text2)}
 .as-dato .v{font-weight:800;color:var(--gold);white-space:nowrap}
+.as-pensando{color:var(--text3);font-style:italic}
 .as-accs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .as-acc{background:var(--bg3);border:1px solid var(--gold);color:var(--gold);border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:700;font-family:inherit;cursor:pointer}
 .as-acc:active{background:var(--gold);color:#111820}
@@ -1054,7 +1055,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v107';
+const VERSION='v108';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -2737,6 +2738,51 @@ function asRanking(lista,clave,titulo,label){
       <div class="as-barra"><i style="width:${Math.round(a.fact/max*100)}%"></i></div>
     </div>`).join('');
 }
+// ── LA IA DE VERDAD ──────────────────────────────────────────
+// Lo que el asistente ya sabe contestar solo, lo contesta solo: es gratis e
+// instantaneo. Solo lo que no entiende va a la IA, que se paga por consulta.
+// La clave vive en la funcion "asistente" de Supabase, nunca en esta pagina.
+const IA_URL=SURL+'/functions/v1/asistente';
+let IA_ANDA=null; // null = todavia no se probo
+// Resumen chico de los datos. Se manda solo lo necesario para contestar.
+function asContexto(){
+  const chico=v=>({cliente:v.cliente||'',localidad:v.localidad||'',
+    producto:productosDe(v).map(a=>(a.cantidad>1?a.cantidad+'x ':'')+vdBaseProd(a)).join(' + '),
+    precio:parseFloat(v.precio)||0,costo_flete:parseFloat(v.costo_flete)||0,
+    estado:v.estado||'',entrega:v.fecha_entrega||null,cargada:(v.created_at||'').split('T')[0]});
+  const asig=ventasAsignadas();
+  return{
+    hoy:new Date().toISOString().split('T')[0],
+    quien:(getPerfil().nombre||'').trim()||null,
+    fabrica:'Metalúrgica Remeco, Colonia Menonita, La Pampa',
+    tarifa_camion_por_km:PRECIO_KM,
+    ventas:ventas.slice(0,200).map(v=>({...chico(v),en_viaje:!ventaLibre(v,asig)})),
+    viajes:[...viajesData].slice(0,60).map(vj=>{const p=parsePar(vj.paradas_snap);return{
+      nombre:vj.nombre||'',sale:vj.fecha||null,km:vj.km_real||null,
+      entregado:viajeEntregado(vj),publicado:!!vj.publico,
+      ocupacion_camion:Math.round(calcOcupacion(p)*100)+'%',
+      paradas:p.map(x=>x.cliente||x.nombre||'').filter(Boolean)};}),
+    ultimos_pasos:ACTIVIDAD.slice(0,40).map(f=>({
+      cuando:f.fecha,quien:actQuien(f),que:f.titulo,detalle:f.detalle||''}))
+  };
+}
+async function asIA(pregunta){
+  try{
+    const{data}=await sb.auth.getSession();
+    const token=data&&data.session&&data.session.access_token;
+    if(!token)return null;
+    const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),25000);
+    const r=await fetch(IA_URL,{method:'POST',signal:ctrl.signal,
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'apikey':SKEY},
+      body:JSON.stringify({pregunta:pregunta,contexto:asContexto()})});
+    clearTimeout(t);
+    if(!r.ok){IA_ANDA=false;return null;}
+    const j=await r.json();
+    if(!j||!j.respuesta){IA_ANDA=false;return null;}
+    IA_ANDA=true;
+    return esc(j.respuesta).replace(/\n/g,'<br>');
+  }catch(e){IA_ANDA=false;return null;}
+}
 // ── REGISTRO DE PASOS ────────────────────────────────────────
 // Cada cosa que se hace en el programa queda anotada: quien, que y cuando.
 // Se guarda en la tabla "actividad" y tambien en el telefono, asi funciona
@@ -2952,8 +2998,12 @@ function asResponder(txt){
   const lista=ventas.filter(per.f);
   const nota='<div class="as-nota">Son solo tus ventas. La fecha que uso es la de carga de cada venta.</div>';
 
-  if(/^(hola|buenas|buen dia|che)/.test(q)||/que (sabes|podes|puedo)|ayuda|opciones|para que serv/.test(q))
+  if(/^(hola|buenas|buen dia|che)\b/.test(q)||/que (sabes|podes|puedo)|ayuda|opciones|para que serv/.test(q))
     return asAyuda();
+  // Si la pregunta pide criterio y no un dato suelto, no la contesto yo con
+  // una tabla cualquiera: la mando a la IA, que para eso esta.
+  if(/convien|deberia|convendria|recomend|opin|estrateg|por que|porque|compar|vale la pena|me sirve|aconsej|analiza|me explic|como hago para|tendria que/.test(q))
+    return null;
   if(/que (paso|pasa|hice|hiciste|hizo|se hizo)|actividad|movimiento|ultimos? pasos|registro|quien (cargo|borro|cambio|hizo)|log\b/.test(q))
     return asActividad(q);
   if(/pendiente|que (hago|tengo|falta)|atrasad|urgente|al dia|resolver|hoy/.test(q))
@@ -2989,7 +3039,7 @@ function asResponder(txt){
   if(/factur|gana|vend|venta|cuanto|resumen|como (voy|vengo)|total/.test(q))
     return asResumen(lista,per.label)+nota;
 
-  return'<div>No entendí la pregunta.</div>'+asAyuda();
+  return null; // no lo entendio: lo intenta la IA, y si no esta prendida muestra la ayuda
 }
 function asAyuda(){
   return`<div class="as-tit">Lo que te puedo contestar</div>
@@ -3014,13 +3064,20 @@ function asBurbuja(html,quien){
   d.innerHTML='<div class="as-burb">'+html+'</div>';
   h.appendChild(d);h.scrollTop=h.scrollHeight;
 }
-function asPreguntar(txt){
+async function asPreguntar(txt){
   const inp=document.getElementById('asInput');
   const pregunta=(typeof txt==='string'?txt:inp.value).trim();
   if(!pregunta)return;
   inp.value='';
   asBurbuja(esc(pregunta),'yo');
-  setTimeout(()=>asBurbuja(asResponder(pregunta),'bot'),120);
+  const propia=asResponder(pregunta);
+  if(propia!==null){setTimeout(()=>asBurbuja(propia,'bot'),120);return;}
+  if(IA_ANDA===false){asBurbuja('<div>No entendí la pregunta.</div>'+asAyuda(),'bot');return;}
+  asBurbuja('<span class="as-pensando">Pensando…</span>','bot');
+  const h=document.getElementById('asHist'),burb=h.lastElementChild;
+  const r=await asIA(pregunta);
+  burb.querySelector('.as-burb').innerHTML=r||('<div>No entendí la pregunta.</div>'+asAyuda());
+  h.scrollTop=h.scrollHeight;
 }
 function asIniciar(){
   const h=document.getElementById('asHist');
