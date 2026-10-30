@@ -1051,7 +1051,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v104';
+const VERSION='v105';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -2432,6 +2432,7 @@ function viajesPorConfirmar(){
   const confs=getConfSalida();
   return viajesData.filter(vj=>{
     if(!vj.fecha)return false;
+    if(viajeEntregado(vj))return false;      // ya lo entregaste, no hay nada que confirmar
     if(confs[vj.id]===vj.fecha)return false; // ya dijo que esa fecha va
     const dias=Math.round((new Date(vj.fecha+'T00:00:00')-hoy)/86400000);
     return dias<=DIAS_AVISO&&dias>=-10; // se viene, o ya pasó y quedó sin resolver
@@ -2923,7 +2924,7 @@ async function marcarViajeEntregado(id,val){
   // Si la columna todavia no existe en la base, queda guardado en el telefono
   // y el programa sigue andando igual.
   try{await sb.from('viajes').update({entregado:val}).eq('id',id);}catch(e){}
-  renderViajes();renderProxFletes();renderStats();renderHistorialCfg();
+  renderViajes();renderProxFletes();renderRecordatorios();renderAvisos();renderStats();renderHistorialCfg();
   if(val&&vdViajeId&&String(vdViajeId)===String(id))cerrarViajeDetalle();else vdRefrescar();
   toast(val?'✅ Viaje entregado':'↩️ Volvio a viajes programados');
 }
