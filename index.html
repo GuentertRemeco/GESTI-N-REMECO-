@@ -367,6 +367,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .as-dato:last-child{border-bottom:none}
 .as-dato .k{color:var(--text2)}
 .as-dato .v{font-weight:800;color:var(--gold);white-space:nowrap}
+.as-pensando{color:var(--text3);font-style:italic}
 .as-accs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .as-acc{background:var(--bg3);border:1px solid var(--gold);color:var(--gold);border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:700;font-family:inherit;cursor:pointer}
 .as-acc:active{background:var(--gold);color:#111820}
@@ -1054,7 +1055,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v106';
+const VERSION='v109';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -2308,6 +2309,7 @@ function cargarProdItems(v){
 
 // ── DATOS ────────────────────────────────────────────────────
 async function cargarDatos(){
+  cargarActividad();
   // Se pide la fila entera a proposito: si se agrega una columna nueva y la
   // base todavia no la tiene, nombrarla haria fallar toda la consulta y el
   // usuario quedaria sin empresa y sin rol.
@@ -2424,6 +2426,7 @@ async function cambiarFechaSalida(id,nueva){
   const{data:upd,error}=await sb.from('viajes').update({fecha:nueva}).eq('id',id).select();
   if(error){toast('Error: '+error.message);return;}
   if(!upd||!upd.length){alert('⚠️ No se guardó (permisos de "viajes" en Supabase).');return;}
+  registrar('fecha','Movió la salida de "'+(vj.nombre||'—')+'"','de '+fFecha(vj.fecha)+' a '+fFecha(nueva),id);
   vj.fecha=nueva;
   const fp=fletesPublicos.find(v=>v.id===id);if(fp)fp.fecha=nueva;
   const c=getConfSalida();c[id]=nueva;localStorage.setItem('remeco_conf_salida',JSON.stringify(c));
@@ -2735,6 +2738,124 @@ function asRanking(lista,clave,titulo,label){
       <div class="as-barra"><i style="width:${Math.round(a.fact/max*100)}%"></i></div>
     </div>`).join('');
 }
+// "Load failed" (Safari), "Failed to fetch" (Chrome), "NetworkError" (Firefox)
+// son todos lo mismo: la peticion no llego al servidor. No es un problema de
+// los datos ni de los permisos, es la conexion.
+function esCaidaDeRed(e){
+  const m=String((e&&e.message)||e||'');
+  return /load failed|failed to fetch|networkerror|network request failed|fetch failed|timeout|aborted/i.test(m);
+}
+function esperar(ms){return new Promise(r=>setTimeout(r,ms));}
+// ── LA IA DE VERDAD ──────────────────────────────────────────
+// Lo que el asistente ya sabe contestar solo, lo contesta solo: es gratis e
+// instantaneo. Solo lo que no entiende va a la IA, que se paga por consulta.
+// La clave vive en la funcion "asistente" de Supabase, nunca en esta pagina.
+const IA_URL=SURL+'/functions/v1/asistente';
+let IA_ANDA=null; // null = todavia no se probo
+// Resumen chico de los datos. Se manda solo lo necesario para contestar.
+function asContexto(){
+  const chico=v=>({cliente:v.cliente||'',localidad:v.localidad||'',
+    producto:productosDe(v).map(a=>(a.cantidad>1?a.cantidad+'x ':'')+vdBaseProd(a)).join(' + '),
+    precio:parseFloat(v.precio)||0,costo_flete:parseFloat(v.costo_flete)||0,
+    estado:v.estado||'',entrega:v.fecha_entrega||null,cargada:(v.created_at||'').split('T')[0]});
+  const asig=ventasAsignadas();
+  return{
+    hoy:new Date().toISOString().split('T')[0],
+    quien:(getPerfil().nombre||'').trim()||null,
+    fabrica:'Metalúrgica Remeco, Colonia Menonita, La Pampa',
+    tarifa_camion_por_km:PRECIO_KM,
+    ventas:ventas.slice(0,200).map(v=>({...chico(v),en_viaje:!ventaLibre(v,asig)})),
+    viajes:[...viajesData].slice(0,60).map(vj=>{const p=parsePar(vj.paradas_snap);return{
+      nombre:vj.nombre||'',sale:vj.fecha||null,km:vj.km_real||null,
+      entregado:viajeEntregado(vj),publicado:!!vj.publico,
+      ocupacion_camion:Math.round(calcOcupacion(p)*100)+'%',
+      paradas:p.map(x=>x.cliente||x.nombre||'').filter(Boolean)};}),
+    ultimos_pasos:ACTIVIDAD.slice(0,40).map(f=>({
+      cuando:f.fecha,quien:actQuien(f),que:f.titulo,detalle:f.detalle||''}))
+  };
+}
+async function asIA(pregunta){
+  try{
+    const{data}=await sb.auth.getSession();
+    const token=data&&data.session&&data.session.access_token;
+    if(!token)return null;
+    const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),25000);
+    const r=await fetch(IA_URL,{method:'POST',signal:ctrl.signal,
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'apikey':SKEY},
+      body:JSON.stringify({pregunta:pregunta,contexto:asContexto()})});
+    clearTimeout(t);
+    if(!r.ok){IA_ANDA=false;return null;}
+    const j=await r.json();
+    if(!j||!j.respuesta){IA_ANDA=false;return null;}
+    IA_ANDA=true;
+    return esc(j.respuesta).replace(/\n/g,'<br>');
+  }catch(e){IA_ANDA=false;return null;}
+}
+// ── REGISTRO DE PASOS ────────────────────────────────────────
+// Cada cosa que se hace en el programa queda anotada: quien, que y cuando.
+// Se guarda en la tabla "actividad" y tambien en el telefono, asi funciona
+// aunque todavia no se haya corrido el SQL.
+const ACT_MAX=300;
+let ACTIVIDAD=[];
+function actLocal(){try{return JSON.parse(localStorage.getItem('remeco_actividad')||'[]');}catch{return[];}}
+function registrar(tipo,titulo,detalle,ref){
+  const fila={fecha:new Date().toISOString(),tipo:tipo,titulo:titulo||'',detalle:detalle||'',
+              ref_id:ref!=null?String(ref):null,user_id:authedUser||null};
+  try{const l=actLocal();l.unshift(fila);localStorage.setItem('remeco_actividad',JSON.stringify(l.slice(0,ACT_MAX)));}catch(e){}
+  ACTIVIDAD.unshift(fila);if(ACTIVIDAD.length>ACT_MAX)ACTIVIDAD.length=ACT_MAX;
+  try{const d={...fila};if(miEmpresa)d.empresa_id=miEmpresa;
+      Promise.resolve(sb.from('actividad').insert([d])).catch(()=>{});}catch(e){}
+}
+async function cargarActividad(){
+  try{const r=await sb.from('actividad').select('*').order('fecha',{ascending:false}).limit(ACT_MAX);
+      if(!r.error&&r.data&&r.data.length){ACTIVIDAD=r.data;return;}}catch(e){}
+  ACTIVIDAD=actLocal();
+}
+const ACT_ICO={venta:'ventas',estado:'historial',viaje:'flete',parada:'parada',fecha:'fecha',
+               entregado:'copa',publicar:'publicar',config:'config',presupuesto:'calc'};
+function actQuien(f){
+  if(f.user_id&&authedUser&&String(f.user_id)===String(authedUser))return'Vos';
+  return f.user_id?vdNombreVend(f.user_id):'Vos';
+}
+function actCuando(iso){
+  const d=new Date(iso),hoy=new Date();hoy.setHours(0,0,0,0);
+  const dia=new Date(d);dia.setHours(0,0,0,0);
+  const dif=Math.round((hoy-dia)/86400000);
+  const hora=d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false});
+  return dif===0?hora:dif===1?'ayer '+hora:dif<7?fFecha(d.toISOString().split('T')[0])+' '+hora
+       :fFecha(d.toISOString().split('T')[0]);
+}
+// Devuelve los pasos de un periodo: hoy, la semana, o todo lo guardado
+function actFiltrar(q){
+  const hoy=new Date();hoy.setHours(0,0,0,0);
+  if(/\bhoy\b/.test(q))return{l:ACTIVIDAD.filter(f=>new Date(f.fecha)>=hoy),label:'hoy'};
+  if(/ayer/.test(q)){const a=new Date(hoy);a.setDate(a.getDate()-1);
+    return{l:ACTIVIDAD.filter(f=>{const d=new Date(f.fecha);return d>=a&&d<hoy;}),label:'ayer'};}
+  if(/semana/.test(q)){const a=new Date(hoy);a.setDate(a.getDate()-7);
+    return{l:ACTIVIDAD.filter(f=>new Date(f.fecha)>=a),label:'esta semana'};}
+  if(/mes/.test(q)){const a=new Date(hoy);a.setMonth(a.getMonth()-1);
+    return{l:ACTIVIDAD.filter(f=>new Date(f.fecha)>=a),label:'este mes'};}
+  return{l:ACTIVIDAD,label:'lo último'};
+}
+function asActividad(q){
+  const{l,label}=actFiltrar(q);
+  // Si nombra a alguien del equipo, deja solo lo de esa persona
+  let quien=null;
+  [...new Set(ACTIVIDAD.map(f=>actQuien(f)))].forEach(n=>{
+    if(n&&n.length>=4&&q.includes(sinTildes(n))&&n!=='Vos')quien=n;
+  });
+  const filas=quien?l.filter(f=>actQuien(f)===quien):l;
+  if(!filas.length)return`<div>No tengo pasos anotados ${quien?'de <b>'+esc(quien)+'</b> ':''}en <b>${esc(label)}</b>.</div>
+    <div class="as-nota">Empiezo a anotar desde que se instaló esta versión: cargar o editar una venta, cambiarle el estado, armar o publicar un viaje, agregar clientes, marcar una entrega.</div>`;
+  return`<div class="as-tit">${quien?esc(quien)+' · ':''}${esc(label)} · ${filas.length} paso${filas.length!==1?'s':''}</div>`
+    +filas.slice(0,20).map(f=>`<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+       <span style="color:var(--gold);flex-shrink:0;margin-top:2px">${ico(ACT_ICO[f.tipo]||'historial',13)}</span>
+       <div style="flex:1;min-width:0">
+         <div style="font-size:.82rem">${esc(f.titulo)}</div>
+         <div style="font-size:.66rem;color:var(--text3)">${esc(actQuien(f))} · ${esc(actCuando(f.fecha))}${f.detalle?' · '+esc(f.detalle):''}</div>
+       </div></div>`).join('')
+    +(filas.length>20?`<div class="as-nota">Te muestro los últimos 20 de ${filas.length}.</div>`:'');
+}
 // ── Botones de accion dentro de una respuesta ────────────────
 function asAcc(label,js){return`<button class="as-acc" onclick="${js}">${esc(label)}</button>`;}
 function asAccs(arr){return arr.filter(Boolean).length?`<div class="as-accs">${arr.filter(Boolean).join('')}</div>`:'';}
@@ -2885,8 +3006,14 @@ function asResponder(txt){
   const lista=ventas.filter(per.f);
   const nota='<div class="as-nota">Son solo tus ventas. La fecha que uso es la de carga de cada venta.</div>';
 
-  if(/^(hola|buenas|buen dia|che)/.test(q)||/que (sabes|podes|puedo)|ayuda|opciones|para que serv/.test(q))
+  if(/^(hola|buenas|buen dia|che)\b/.test(q)||/que (sabes|podes|puedo)|ayuda|opciones|para que serv/.test(q))
     return asAyuda();
+  // Si la pregunta pide criterio y no un dato suelto, no la contesto yo con
+  // una tabla cualquiera: la mando a la IA, que para eso esta.
+  if(/convien|deberia|convendria|recomend|opin|estrateg|por que|porque|compar|vale la pena|me sirve|aconsej|analiza|me explic|como hago para|tendria que/.test(q))
+    return null;
+  if(/que (paso|pasa|hice|hiciste|hizo|se hizo)|actividad|movimiento|ultimos? pasos|registro|quien (cargo|borro|cambio|hizo)|log\b/.test(q))
+    return asActividad(q);
   if(/pendiente|que (hago|tengo|falta)|atrasad|urgente|al dia|resolver|hoy/.test(q))
     return asPendientes();
   if(/fabric|produc(ir|cion)|primero|cola|taller/.test(q))
@@ -2920,13 +3047,14 @@ function asResponder(txt){
   if(/factur|gana|vend|venta|cuanto|resumen|como (voy|vengo)|total/.test(q))
     return asResumen(lista,per.label)+nota;
 
-  return'<div>No entendí la pregunta.</div>'+asAyuda();
+  return null; // no lo entendio: lo intenta la IA, y si no esta prendida muestra la ayuda
 }
 function asAyuda(){
   return`<div class="as-tit">Lo que te puedo contestar</div>
     <div style="line-height:1.85;font-size:.82rem">
       · <b>¿Qué tengo pendiente?</b> — atrasos, ventas sin viaje, lo que sale esta semana<br>
       · <b>¿Qué fabrico primero?</b> — la cola ordenada por fecha de entrega<br>
+      · <b>¿Qué pasó hoy?</b> · <b>¿Qué se hizo esta semana?</b> — cada paso que se hizo en el programa<br>
       · <b>El nombre de un cliente</b> — todo lo que le vendiste y si está en un viaje<br>
       · <b>El nombre de un viaje</b> — paradas, km, cuánto falta para llenarlo<br>
       · <b>Flete de un autoconsumo 12 TN a 600 km</b> — cuánto cobrarle<br>
@@ -2936,7 +3064,7 @@ function asAyuda(){
     </div>
     ${asAccs([asAcc('¿Qué tengo pendiente?',"asPreguntar('¿Qué tengo pendiente?')"),asAcc('¿Qué fabrico primero?',"asPreguntar('¿Qué fabrico primero?')")])}`;
 }
-const AS_SUGES=['¿Qué tengo pendiente?','¿Qué fabrico primero?','¿Cuánto facturé este mes?','Flete de un autoconsumo 12 TN a 600 km','¿En qué provincia vendo más?','Mis mejores clientes','¿En qué época se vende más?'];
+const AS_SUGES=['¿Qué tengo pendiente?','¿Qué pasó hoy?','¿Qué fabrico primero?','¿Cuánto facturé este mes?','Flete de un autoconsumo 12 TN a 600 km','¿En qué provincia vendo más?','Mis mejores clientes','¿En qué época se vende más?'];
 function asBurbuja(html,quien){
   const h=document.getElementById('asHist');
   const d=document.createElement('div');
@@ -2944,19 +3072,26 @@ function asBurbuja(html,quien){
   d.innerHTML='<div class="as-burb">'+html+'</div>';
   h.appendChild(d);h.scrollTop=h.scrollHeight;
 }
-function asPreguntar(txt){
+async function asPreguntar(txt){
   const inp=document.getElementById('asInput');
   const pregunta=(typeof txt==='string'?txt:inp.value).trim();
   if(!pregunta)return;
   inp.value='';
   asBurbuja(esc(pregunta),'yo');
-  setTimeout(()=>asBurbuja(asResponder(pregunta),'bot'),120);
+  const propia=asResponder(pregunta);
+  if(propia!==null){setTimeout(()=>asBurbuja(propia,'bot'),120);return;}
+  if(IA_ANDA===false){asBurbuja('<div>No entendí la pregunta.</div>'+asAyuda(),'bot');return;}
+  asBurbuja('<span class="as-pensando">Pensando…</span>','bot');
+  const h=document.getElementById('asHist'),burb=h.lastElementChild;
+  const r=await asIA(pregunta);
+  burb.querySelector('.as-burb').innerHTML=r||('<div>No entendí la pregunta.</div>'+asAyuda());
+  h.scrollTop=h.scrollHeight;
 }
 function asIniciar(){
   const h=document.getElementById('asHist');
   if(h&&!h.children.length){
     const n=(getPerfil().nombre||'').split(' ')[0];
-    asBurbuja(`Hola${n?' '+esc(n):''} 👋 Soy tu asistente. Miro <b>tus ventas y tus viajes</b>: te digo qué tenés pendiente, qué fabricar primero, cuánto cobrarle de flete a un cliente, o todo lo que le vendiste a alguien. Escribí el nombre de un cliente o de un viaje y te cuento.<br><br>Tocá una sugerencia de abajo o preguntame lo que quieras.`,'bot');
+    asBurbuja(`Hola${n?' '+esc(n):''} 👋 Soy tu asistente. Miro <b>tus ventas, tus viajes y cada paso que se hace en el programa</b>: te digo qué tenés pendiente, qué se hizo hoy y quién lo hizo, qué fabricar primero, cuánto cobrarle de flete a un cliente, o todo lo que le vendiste a alguien. Escribí el nombre de un cliente o de un viaje y te cuento.<br><br>Tocá una sugerencia de abajo o preguntame lo que quieras.`,'bot');
   }
   const c=document.getElementById('asChips');
   if(c&&!c.children.length)c.innerHTML=AS_SUGES.map(s=>`<button class="as-chip" onclick="asPreguntar('${s.replace(/'/g,"\\'")}')">${esc(s)}</button>`).join('');
@@ -3047,6 +3182,8 @@ async function setEstadoRapido(id,est,fleteReal){
   const{error}=await sb.from('ventas').update(cambios).eq('id',id);
   if(error){toast('Error: '+error.message);return;}
   const v=ventas.find(x=>x.id===id);
+  registrar('estado',((v&&v.cliente)||'Una venta')+' pasó a "'+est+'"',
+            (fleteReal!=null&&fleteReal>=0)?'flete real '+fPesos(fleteReal):'',id);
   if(v){v.estado=est;if(cambios.costo_flete!=null)v.costo_flete=cambios.costo_flete;}
   renderVentas();renderStats();renderPendientes();renderAvisos();renderClientes();
   // El color del cliente en el mapa depende del estado, así que se repinta
@@ -3086,6 +3223,8 @@ async function marcarViajeEntregado(id,val){
   // Si la columna todavia no existe en la base, queda guardado en el telefono
   // y el programa sigue andando igual.
   try{await sb.from('viajes').update({entregado:val}).eq('id',id);}catch(e){}
+  registrar('entregado',(val?'Marcó entregado el viaje "':'Devolvió a programados el viaje "')+(vj.nombre||'—')+'"',
+            vj.fecha?'salía '+fFecha(vj.fecha):'',id);
   renderViajes();renderProxFletes();renderRecordatorios();renderAvisos();renderStats();renderHistorialCfg();
   if(val&&vdViajeId&&String(vdViajeId)===String(id))cerrarViajeDetalle();else vdRefrescar();
   toast(val?'✅ Viaje entregado':'↩️ Volvio a viajes programados');
@@ -3209,6 +3348,7 @@ async function guardarEditViaje(){
   const{data:upd,error}=await sb.from('viajes').update({nombre,fecha}).eq('id',editViajeId).select();
   if(error){toast('Error: '+error.message);return;}
   if(!upd||!upd.length){alert('⚠️ No se guardó (permisos de "viajes" en Supabase).');return;}
+  registrar('viaje','Editó el viaje "'+nombre+'"',(vj.fecha!==fecha?'nueva fecha '+fFecha(fecha):''),editViajeId);
   vj.nombre=nombre;vj.fecha=fecha;
   const fp=fletesPublicos.find(v=>v.id===editViajeId);if(fp){fp.nombre=nombre;fp.fecha=fecha;}
   document.getElementById('overlayEditViaje').classList.remove('on');
@@ -3217,7 +3357,9 @@ async function guardarEditViaje(){
 }
 async function eliminarViaje(id){
   if(!confirm('¿Eliminar este viaje?'))return;
+  const _vj=viajesData.find(v=>String(v.id)===String(id));
   const{error}=await sb.from('viajes').delete().eq('id',id);
+  if(!error)registrar('viaje','Borró el viaje "'+((_vj&&_vj.nombre)||'—')+'"','',id);
   if(error){toast('Error: '+error.message);return;}
   viajesData=viajesData.filter(v=>v.id!==id);if(viajeAbierto===id){viajeAbierto=null;clearFleteMarkers();setFletePlaceholder(true);}
   renderViajes();renderProxFletes();renderStats();toast('Viaje eliminado');
@@ -3226,7 +3368,9 @@ async function togglePublico(id,val){
   const{data:upd,error}=await sb.from('viajes').update({publico:val}).eq('id',id).select();
   if(error){toast('Error: '+error.message);return;}
   if(!upd||!upd.length){alert('⚠️ No se guardó (permisos RLS de "viajes"). Corré el SQL de permisos en Supabase.');return;}
-  const vj=viajesData.find(v=>v.id===id);if(vj)vj.publico=val;
+  const vj=viajesData.find(v=>v.id===id);
+  registrar('publicar',(val?'Publicó el flete "':'Ocultó el flete "')+((vj&&vj.nombre)||'—')+'"','',id);
+  if(vj)vj.publico=val;
   if(val){if(vj&&!fletesPublicos.some(v=>v.id===id))fletesPublicos.push(vj);}
   else fletesPublicos=fletesPublicos.filter(v=>v.id!==id);
   renderViajes();renderProxFletes();renderFpDisponibles();
@@ -3243,6 +3387,7 @@ async function quitarDelViaje(vjId,idx,paradaId){
   const{data:upd,error}=await sb.from('viajes').update({paradas_snap:paradas,pedido_ids}).eq('id',vjId).select();
   if(error){toast('Error: '+error.message);return;}
   if(!upd||!upd.length){alert('⚠️ No se guardó (permisos RLS de "viajes").');return;}
+  registrar('parada','Sacó a '+((quitado&&(quitado.cliente||quitado.nombre))||'un cliente')+' del viaje "'+(vj.nombre||'—')+'"','',vjId);
   vj.paradas_snap=paradas;vj.pedido_ids=pedido_ids;
   renderViajes();renderFpDisponibles();renderProxFletes();vdRefrescar();setTimeout(()=>mostrarRutaViaje(vjId),100);toast('Cliente quitado del viaje');
 }
@@ -3390,6 +3535,8 @@ async function confirmarAgregar(){
   cerrarAgregar();viajeAbierto=agregarViajeId;setFletePlaceholder(false);
   renderViajes();renderProxFletes();renderStats();
   setTimeout(()=>mostrarRutaViaje(agregarViajeId),200);
+  registrar('parada','Agregó '+nuevas.length+' cliente'+(nuevas.length>1?'s':'')+' al viaje "'+(vj.nombre||'—')+'"',
+            nuevas.map(v=>v.cliente||'').filter(Boolean).join(' · '),agregarViajeId);
   toast(`✓ ${nuevas.length} cliente${nuevas.length>1?'s':''} agregado${nuevas.length>1?'s':''} al viaje`);
 }
 function cerrarAgregar(){document.getElementById('overlayAgregar').classList.remove('on');}
@@ -3485,6 +3632,13 @@ async function guardarVenta(){
   let payload={...data},sinGuardar=[],r=await enviar(payload);
   for(let i=0;i<5&&r.error;i++){
     const m=String(r.error.message||'');
+    // Se corto la conexion: no se toca nada del payload, se vuelve a intentar
+    if(esCaidaDeRed(m)){
+      if(i>=2)break;
+      mostrarErr('Se cortó la conexión. Reintentando… ('+(i+1)+' de 3)');
+      await esperar(1500*(i+1));
+      r=await enviar(payload);continue;
+    }
     const col=(m.match(/Could not find the '([^']+)' column/i)||m.match(/column "?([a-z_]+)"? of relation/i)||[])[1];
     if(!col||!(col in payload))break;
     delete payload[col];sinGuardar.push(col);
@@ -3497,7 +3651,9 @@ async function guardarVenta(){
     console.error('[Remeco] No se pudo guardar la venta:',error);
     const m=String(error.message||'');
     // El error de la base viene en ingles: lo traducimos al problema real
-    const txt=/row-level security|policy/i.test(m)
+    const txt=esCaidaDeRed(m)
+      ? 'No llegó a la base: se cortó la conexión.\n\nTus datos NO se perdieron, siguen acá cargados. Probá de nuevo en un rato tocando Guardar.\n\nSi sigue igual y el resto del programa tampoco carga datos, puede ser que el proyecto de Supabase se haya pausado por falta de uso: entrá a supabase.com y fijate si dice "Paused", que se despausa con un botón.'
+      : /row-level security|policy/i.test(m)
       ? (miEmpresa?'La base rechazó la venta: tu usuario no tiene permiso para cargar ventas en esta empresa.'
                   :'Tu usuario todavía no está asignado a una empresa, por eso la base no deja guardar. Avisale al dueño.')
       : /Could not find the '([^']+)' column|column .* does not exist/i.test(m)
@@ -3506,13 +3662,17 @@ async function guardarVenta(){
     mostrarErr(txt+'\n\n('+m+')');
     return;
   }
+  registrar('venta',(editId?'Editó la venta de ':'Cargó una venta de ')+(data.cliente||'—'),
+            [data.localidad?locCorta(data.localidad):'',data.precio?fPesos(data.precio):''].filter(Boolean).join(' · '),editId||null);
   toast((editId?'Venta actualizada ✓':'Venta guardada ✓')+aviso,aviso?9000:2800);
   cerrarModal();await cargarDatos();
 }
 async function eliminarVenta(id){
   if(!confirm('¿Eliminar esta venta?'))return;
+  const _v=ventas.find(x=>String(x.id)===String(id));
   const{error}=await sb.from('ventas').delete().eq('id',id);
   if(error){toast('Error: '+error.message);return;}
+  registrar('venta','Borró la venta de '+((_v&&_v.cliente)||'—'),_v&&_v.localidad?locCorta(_v.localidad):'',id);
   // Sacarlo también de los viajes donde estaba agregado
   let sacado=0;
   for(const vj of viajesData){
@@ -3532,6 +3692,7 @@ async function guardarNuevoViaje(){
   if(!n){toast('El nombre es requerido');return;}
   const{error}=await sb.from('viajes').insert([{nombre:n,fecha:f||null,pedido_ids:[],paradas_snap:[],publico:false,user_id:authedUser}]);
   if(error){toast('Error: '+error.message);return;}
+  registrar('viaje','Armó el viaje "'+n+'"',f?'sale '+fFecha(f):'sin fecha');
   toast('Viaje creado ✓');cerrarNuevoViaje();ir('flete');
   const{data}=await sb.from('viajes').select('*').eq('user_id',authedUser).order('fecha');
   viajesData=data||[];renderViajes();renderProxFletes();renderStats();
