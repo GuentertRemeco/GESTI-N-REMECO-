@@ -367,6 +367,9 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .as-dato:last-child{border-bottom:none}
 .as-dato .k{color:var(--text2)}
 .as-dato .v{font-weight:800;color:var(--gold);white-space:nowrap}
+.as-accs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.as-acc{background:var(--bg3);border:1px solid var(--gold);color:var(--gold);border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:700;font-family:inherit;cursor:pointer}
+.as-acc:active{background:var(--gold);color:#111820}
 .as-tit{font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:7px}
 .as-barra{height:6px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:3px}
 .as-barra i{display:block;height:100%;background:var(--gold);border-radius:4px}
@@ -1051,7 +1054,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v105';
+const VERSION='v106';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -2732,11 +2735,165 @@ function asRanking(lista,clave,titulo,label){
       <div class="as-barra"><i style="width:${Math.round(a.fact/max*100)}%"></i></div>
     </div>`).join('');
 }
+// ── Botones de accion dentro de una respuesta ────────────────
+function asAcc(label,js){return`<button class="as-acc" onclick="${js}">${esc(label)}</button>`;}
+function asAccs(arr){return arr.filter(Boolean).length?`<div class="as-accs">${arr.filter(Boolean).join('')}</div>`:'';}
+// Busca un cliente nombrado en la pregunta. Pide 4 letras para no pisar
+// palabras comunes, y se queda con el nombre mas largo que aparezca.
+function asBuscarCliente(q){
+  let mejor=null;
+  [...new Set(ventas.map(v=>(v.cliente||'').trim()).filter(x=>x.length>=4))].forEach(n=>{
+    if(q.includes(sinTildes(n))&&(!mejor||n.length>mejor.length))mejor=n;
+  });
+  if(mejor)return mejor;
+  // Si no coincide entero, prueba por la primera palabra del nombre
+  [...new Set(ventas.map(v=>(v.cliente||'').trim().split(/\s+/)[0]).filter(x=>x.length>=4))].forEach(n=>{
+    if(new RegExp('\\b'+sinTildes(n)+'\\b').test(q)&&(!mejor||n.length>mejor.length))mejor=n;
+  });
+  return mejor;
+}
+function asBuscarViaje(q){
+  let mejor=null;
+  [...viajesData,...fletesPublicos].forEach(vj=>{
+    const n=(vj.nombre||'').trim();
+    if(n.length>=4&&q.includes(sinTildes(n))&&(!mejor||n.length>mejor.nombre.length))mejor=vj;
+  });
+  return mejor;
+}
+function asBuscarModelo(q){
+  let mejor=null;
+  const prueba=(prod,m)=>{
+    const t=sinTildes(m).replace(/\s+/g,' ');
+    if(q.includes(t)&&(!mejor||t.length>mejor.t.length))mejor={prod,modelo:m,t};
+  };
+  AUTO_MODELOS.forEach(m=>prueba('Autoconsumo',m));
+  AEREO_MODELOS.forEach(m=>{prueba('Silo Aéreo',m);prueba('Silo Aéreo',m.replace('TN',' TN'));});
+  return mejor;
+}
+// ── Que tengo que resolver hoy ───────────────────────────────
+function asPendientes(){
+  const hoy=new Date().toISOString().split('T')[0];
+  const vivas=ventas.filter(v=>v.estado!=='Entregado');
+  const vencidas=vivas.filter(v=>v.fecha_entrega&&v.fecha_entrega<hoy);
+  const sinFecha=vivas.filter(v=>!v.fecha_entrega);
+  const asig=ventasAsignadas();
+  const sinViaje=vivas.filter(v=>ventaLibre(v,asig));
+  const atrasados=viajesData.filter(v=>viajeVencido(v)>0);
+  const proximos=viajesData.filter(v=>{const d=diasHasta(v.fecha);return !viajeEntregado(v)&&d!=null&&d>=0&&d<=7;});
+  const nada=!vencidas.length&&!sinFecha.length&&!sinViaje.length&&!atrasados.length&&!proximos.length;
+  if(nada)return`<div>Por ahora no tenés nada pendiente. Está todo al día 👌</div>`;
+  const fila=(n,txt,col,acc)=>n?`<div class="as-dato"><span class="k">${esc(txt)}</span><span class="v" style="color:${col}">${n}</span></div>`+(acc||''):'';
+  return`<div class="as-tit">Lo que tenés para resolver</div>
+    ${fila(atrasados.length,'Viajes con la fecha pasada','var(--red)')}
+    ${fila(vencidas.length,'Entregas pasadas de fecha','var(--red)')}
+    ${fila(sinViaje.length,'Ventas sin viaje','var(--yellow)')}
+    ${fila(sinFecha.length,'Ventas sin fecha de entrega','var(--yellow)')}
+    ${fila(proximos.length,'Viajes que salen esta semana','var(--green)')}
+    ${asAccs([
+      atrasados.length?asAcc('Ver los viajes',"ir('flete')"):'',
+      sinViaje.length?asAcc('Ver ventas sin viaje',"asFiltrarSinViaje()"):'',
+      vencidas.length||sinFecha.length?asAcc('Ir al Inicio',"ir('inicio')"):''
+    ])}`;
+}
+function asFiltrarSinViaje(){
+  filterViaje='sin';
+  document.querySelectorAll('.chip[data-viaje]').forEach(c=>c.classList.add('on'));
+  ir('ventas');renderVentas();
+}
+// ── Que fabrico primero ──────────────────────────────────────
+function asFabricar(){
+  const l=ventas.filter(v=>v.estado!=='Entregado'&&v.estado!=='En camino')
+    .sort((a,b)=>{const x=diasHasta(a.fecha_entrega),y=diasHasta(b.fecha_entrega);
+      if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return x-y;});
+  if(!l.length)return'<div>No tenés nada en cola para fabricar.</div>';
+  return`<div class="as-tit">Lo primero que tenés que fabricar</div>`
+    +l.slice(0,6).map(v=>{
+      const d=diasHasta(v.fecha_entrega);
+      const col=d==null?'var(--text3)':d<0?'var(--red)':d<=7?'var(--yellow)':'var(--green)';
+      return`<div class="as-dato" style="cursor:pointer" onclick="verVenta('${v.id}')">
+        <span class="k">${esc(v.cliente)||'—'} · ${productosTexto(v)}</span>
+        <span class="v" style="color:${col}">${d==null?'sin fecha':d<0?Math.abs(d)+' días tarde':d===0?'hoy':'en '+d+' días'}</span></div>`;
+    }).join('')
+    +asAccs([asAcc('Ver la vista de Producción',"ir('ventas');setVentasVista('produccion')")]);
+}
+// ── Cuanto cobro de flete ────────────────────────────────────
+function asFlete(q){
+  const mk=q.match(/(\d[\d.]*)\s*km/);
+  if(!mk)return null;
+  const km=parseFloat(mk[1].replace(/\./g,''));
+  if(!(km>0))return null;
+  const mod=asBuscarModelo(q);
+  const prov=PROVINCIAS.find(p=>q.includes(sinTildes(p)))||'';
+  if(!mod){
+    return`<div class="as-tit">Flete por ${km.toLocaleString('es-AR')} km</div>
+      <div class="as-dato"><span class="k">Camión completo</span><span class="v">${fPesos(km*PRECIO_KM)}</span></div>
+      <div class="as-nota">Son ${km.toLocaleString('es-AR')} km × ${fPesos(PRECIO_KM)}/km. Decime también el modelo (por ejemplo <b>"flete de un autoconsumo 12 TN a ${km} km"</b>) y te digo cuánto cobrarle a ese cliente solo.</div>`;
+  }
+  const tar=tarifaUnidad(mod.prod,mod.modelo,prov);
+  const entran=getMaxPorCamion(mod.prod,mod.modelo,'camion')||getMaxPorCamion(mod.prod,mod.modelo,'camioneta');
+  return`<div class="as-tit">${esc(mod.prod)} ${esc(mod.modelo)} · ${km.toLocaleString('es-AR')} km</div>
+    <div class="as-dato"><span class="k">Le cobrás</span><span class="v">${fPesos(aMiles(tar*km))}</span></div>
+    <div class="as-dato"><span class="k">Tarifa de ese modelo</span><span class="v">${fPesos(tar)}/km</span></div>
+    ${entran?`<div class="as-dato"><span class="k">Entran por carga</span><span class="v">${entran}</span></div>`:''}
+    <div class="as-dato"><span class="k">Camión completo</span><span class="v">${fPesos(km*PRECIO_KM)}</span></div>
+    <div class="as-nota">${prov?'Tarifa de '+esc(prov)+'. ':''}Nunca te cobra más que el camión entero.</div>
+    ${asAccs([asAcc('Armar el presupuesto',"ir('calc')"),asAcc('Simular la ruta',"ir('simular')")])}`;
+}
+// ── Todo sobre un cliente ────────────────────────────────────
+function asCliente(nombre){
+  const l=ventas.filter(v=>(v.cliente||'').trim()===nombre||(v.cliente||'').trim().split(/\s+/)[0]===nombre);
+  if(!l.length)return null;
+  const fact=l.reduce((s,v)=>s+(parseFloat(v.precio)||0),0);
+  const gan=l.reduce((s,v)=>s+ventaGan(v),0);
+  const ult=[...l].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];
+  const asig=ventasAsignadas();
+  const pend=l.filter(v=>v.estado!=='Entregado');
+  const enViaje=[...viajesData,...fletesPublicos].filter(vj=>parsePar(vj.paradas_snap).some(x=>l.some(v=>String(v.id)===String(x.id))));
+  return`<div class="as-tit">${esc(l[0].cliente||nombre)}</div>
+    <div class="as-dato"><span class="k">Le vendiste</span><span class="v">${l.length} vez${l.length!==1?'es':''}</span></div>
+    <div class="as-dato"><span class="k">Facturado</span><span class="v">${fPesos(fact)}</span></div>
+    <div class="as-dato"><span class="k">Ganancia</span><span class="v" style="color:var(--green)">${fPesos(gan)}</span></div>
+    <div class="as-dato"><span class="k">Dónde está</span><span class="v">${esc(locCorta(ult.localidad))||'—'}</span></div>
+    <div class="as-dato"><span class="k">Última compra</span><span class="v">${productosTexto(ult)}</span></div>
+    ${pend.length?`<div class="as-dato"><span class="k">Sin entregar</span><span class="v" style="color:var(--yellow)">${pend.length}</span></div>`:''}
+    ${enViaje.length?`<div class="as-dato"><span class="k">En el viaje</span><span class="v">${esc(enViaje[0].nombre)}</span></div>`
+      :pend.length?`<div class="as-dato"><span class="k">Viaje</span><span class="v" style="color:var(--yellow)">todavía en ninguno</span></div>`:''}
+    ${asAccs([asAcc('Abrir la venta',`verVenta('${ult.id}')`),enViaje.length?asAcc('Ver el viaje',`abrirViajeDetalle('${enViaje[0].id}')`):''])}`;
+}
+// ── Todo sobre un viaje ──────────────────────────────────────
+function asViaje(vj){
+  const p=parsePar(vj.paradas_snap);
+  const oc=calcOcupacion(p);
+  const flete=calcularFlete(vj);
+  const d=diasHasta(vj.fecha);
+  const venc=viajeVencido(vj);
+  const colOc=oc>=1?'var(--red)':oc>=.75?'var(--yellow)':'var(--green)';
+  return`<div class="as-tit">${esc(vj.nombre)}</div>
+    <div class="as-dato"><span class="k">Sale</span><span class="v" style="color:${venc?'var(--red)':'var(--gold)'}">${fFecha(vj.fecha)}${venc?' · hace '+venc+' día'+(venc!==1?'s':''):d!=null&&d>=0?' · en '+d+' días':''}</span></div>
+    <div class="as-dato"><span class="k">Paradas</span><span class="v">${p.length}</span></div>
+    ${vj.km_real?`<div class="as-dato"><span class="k">Recorrido</span><span class="v">${Math.round(vj.km_real).toLocaleString('es-AR')} km</span></div>`:''}
+    <div class="as-dato"><span class="k">Camión</span><span class="v" style="color:${colOc}">${Math.round(oc*100)}%${oc<1?' · queda lugar':''}</span></div>
+    ${flete.listo?`<div class="as-dato"><span class="k">Flete</span><span class="v">${fPesos(flete.total)}</span></div>`:''}
+    ${p.length?`<div class="as-nota">Paradas: ${p.map(x=>esc(x.cliente||x.nombre||'')).filter(Boolean).join(' · ')}</div>`:''}
+    ${asAccs([asAcc('Abrir el viaje',`abrirViajeDetalle('${vj.id}')`),
+      oc<1?asAcc('Buscar con quién completarlo',`abrirAgregar('${vj.id}')`):'',
+      venc?asAcc('Marcarlo entregado',`marcarViajeEntregado('${vj.id}',true)`):''])}`;
+}
 function asResponder(txt){
   const q=sinTildes(txt);
   const per=asPeriodo(q);
   const lista=ventas.filter(per.f);
   const nota='<div class="as-nota">Son solo tus ventas. La fecha que uso es la de carga de cada venta.</div>';
+
+  if(/^(hola|buenas|buen dia|che)/.test(q)||/que (sabes|podes|puedo)|ayuda|opciones|para que serv/.test(q))
+    return asAyuda();
+  if(/pendiente|que (hago|tengo|falta)|atrasad|urgente|al dia|resolver|hoy/.test(q))
+    return asPendientes();
+  if(/fabric|produc(ir|cion)|primero|cola|taller/.test(q))
+    return asFabricar();
+  if(/flete|cobr|km/.test(q)){const r=asFlete(q);if(r)return r;}
+  {const vj=asBuscarViaje(q);if(vj)return asViaje(vj);}
+  {const cl=asBuscarCliente(q);if(cl){const r=asCliente(cl);if(r)return r;}}
 
   if(/provincia|region|zona|donde .*(vend|factur)/.test(q))
     return asRanking(lista,v=>provinciaDe(v.localidad),'Por provincia',per.label)+nota;
@@ -2763,18 +2920,23 @@ function asResponder(txt){
   if(/factur|gana|vend|venta|cuanto|resumen|como (voy|vengo)|total/.test(q))
     return asResumen(lista,per.label)+nota;
 
-  return`<div>No entendí la pregunta. Probá con alguna de estas:</div>
-    <div style="margin-top:8px;line-height:1.9;font-size:.82rem">
-      · <b>¿Cuánto facturé en enero?</b><br>
-      · <b>¿Qué ganancia tuve este año?</b><br>
-      · <b>¿En qué provincia vendo más?</b><br>
-      · <b>¿En qué época del año se vende más?</b><br>
-      · <b>¿Qué producto se vende más?</b><br>
-      · <b>¿Quiénes son mis mejores clientes?</b><br>
-      · <b>¿Cómo vengo con los viajes?</b>
-    </div>`;
+  return'<div>No entendí la pregunta.</div>'+asAyuda();
 }
-const AS_SUGES=['¿Cuánto facturé este mes?','¿En qué provincia vendo más?','¿En qué época se vende más?','¿Qué producto se vende más?','Mis mejores clientes','¿Cuánto facturé en enero?'];
+function asAyuda(){
+  return`<div class="as-tit">Lo que te puedo contestar</div>
+    <div style="line-height:1.85;font-size:.82rem">
+      · <b>¿Qué tengo pendiente?</b> — atrasos, ventas sin viaje, lo que sale esta semana<br>
+      · <b>¿Qué fabrico primero?</b> — la cola ordenada por fecha de entrega<br>
+      · <b>El nombre de un cliente</b> — todo lo que le vendiste y si está en un viaje<br>
+      · <b>El nombre de un viaje</b> — paradas, km, cuánto falta para llenarlo<br>
+      · <b>Flete de un autoconsumo 12 TN a 600 km</b> — cuánto cobrarle<br>
+      · <b>¿Cuánto facturé en enero?</b> · <b>¿Qué ganancia tuve este año?</b><br>
+      · <b>¿En qué provincia vendo más?</b> · <b>¿Qué producto se vende más?</b><br>
+      · <b>¿En qué época se vende más?</b> · <b>Mis mejores clientes</b>
+    </div>
+    ${asAccs([asAcc('¿Qué tengo pendiente?',"asPreguntar('¿Qué tengo pendiente?')"),asAcc('¿Qué fabrico primero?',"asPreguntar('¿Qué fabrico primero?')")])}`;
+}
+const AS_SUGES=['¿Qué tengo pendiente?','¿Qué fabrico primero?','¿Cuánto facturé este mes?','Flete de un autoconsumo 12 TN a 600 km','¿En qué provincia vendo más?','Mis mejores clientes','¿En qué época se vende más?'];
 function asBurbuja(html,quien){
   const h=document.getElementById('asHist');
   const d=document.createElement('div');
@@ -2794,7 +2956,7 @@ function asIniciar(){
   const h=document.getElementById('asHist');
   if(h&&!h.children.length){
     const n=(getPerfil().nombre||'').split(' ')[0];
-    asBurbuja(`Hola${n?' '+esc(n):''} 👋 Soy tu asistente. Puedo mirar <b>tus ventas</b> y contarte cuánto facturaste, qué ganancia tuviste, en qué provincia vendés más o en qué época del año se mueve el negocio.<br><br>Preguntame lo que quieras, o tocá una de las sugerencias de abajo.`,'bot');
+    asBurbuja(`Hola${n?' '+esc(n):''} 👋 Soy tu asistente. Miro <b>tus ventas y tus viajes</b>: te digo qué tenés pendiente, qué fabricar primero, cuánto cobrarle de flete a un cliente, o todo lo que le vendiste a alguien. Escribí el nombre de un cliente o de un viaje y te cuento.<br><br>Tocá una sugerencia de abajo o preguntame lo que quieras.`,'bot');
   }
   const c=document.getElementById('asChips');
   if(c&&!c.children.length)c.innerHTML=AS_SUGES.map(s=>`<button class="as-chip" onclick="asPreguntar('${s.replace(/'/g,"\\'")}')">${esc(s)}</button>`).join('');
