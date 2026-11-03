@@ -1055,7 +1055,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v109';
+const VERSION='v110';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -3419,10 +3419,19 @@ function setClientesEnViaje(vj){
 }
 function noEstaEnViaje(v,enViaje){return !enViaje.ids.has(String(v.id))&&!enViaje.nombres.has((v.cliente||'').trim().toLowerCase());}
 // Ventas que YA están en algún viaje (propio o publicado): no se ofrecen para agregar
+// Un viaje esta terminado si lo marcaste entregado, o si su fecha ya paso
+// hace mas de dos dias. Sirve solo para soltar el descarte por nombre: el
+// viaje sigue apareciendo en la lista hasta que lo marques.
+function viajeTerminado(vj){
+  if(viajeEntregado(vj))return true;
+  if(!vj||!vj.fecha)return false;
+  const hoy=new Date();hoy.setHours(0,0,0,0);
+  return Math.floor((hoy-new Date(vj.fecha+'T00:00:00'))/86400000)>=2;
+}
 function ventasAsignadas(){
   const ids=new Set(),nombres=new Set();
   [...viajesData,...fletesPublicos].forEach(vj=>{
-    const viejo=estadoViaje(vj)==='historial';
+    const viejo=viajeTerminado(vj);
     parsePar(vj.paradas_snap).forEach(x=>{
       if(x.id!=null)ids.add(String(x.id));
       // Por nombre se descarta solo si la parada no tiene id y el viaje sigue
@@ -3476,7 +3485,8 @@ function abrirAgregar(vjId){
   document.getElementById('agregar-buscar').value='';
   document.getElementById('agregar-hint').textContent='Seleccioná las ventas para agregar al viaje';
   const enViaje=setClientesEnViaje(vj),asig=ventasAsignadas();
-  agregarVentasDisponibles=ventas.filter(v=>paraAgregar(v)&&noEstaEnViaje(v,enViaje)&&ventaLibre(v,asig));
+  agregarVentasDisponibles=ventas.filter(v=>paraAgregar(v)&&noEstaEnViaje(v,enViaje)&&ventaLibre(v,asig))
+    .map(v=>{v._otro=null;return v;});
   renderListaAgregar(agregarVentasDisponibles,false);
   document.getElementById('overlayAgregar').classList.add('on');
 }
@@ -3487,7 +3497,7 @@ function renderListaAgregar(lista,mostrarDist){
     const sel=agregarVentasSeleccionadas.has(v.id);
     let info='';
     if(mostrarDist&&v._dist!=null){info=(v._dist<=RADIO_COSTADO)?` · <strong style="color:var(--gold)">${v._dist} km al costado</strong>`:` · <span class="tag-ade">${v._ade} km adelante</span>`;}
-    return`<div class="checkrow${sel?' sel':''}" onclick="toggleSelAgregar('${v.id}')"><input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelAgregar('${v.id}')"/><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.8rem">${esc(v.cliente)||'—'}</div><div style="font-size:.67rem;color:var(--text3);margin-top:1px">${paradaTexto(v)} · ${esc(v.localidad)}${info}</div>${eTag(v.estado)}</div></div>`;
+    return`<div class="checkrow${sel?' sel':''}" onclick="toggleSelAgregar('${v.id}')"><input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelAgregar('${v.id}')"/><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.8rem">${esc(v.cliente)||'—'}</div><div style="font-size:.67rem;color:var(--text3);margin-top:1px">${paradaTexto(v)} · ${esc(v.localidad)}${info}</div>${eTag(v.estado)}${v._otro?`<span style="font-size:.6rem;font-weight:800;color:var(--yellow);border:1px solid var(--yellow);border-radius:20px;padding:1px 7px;margin-left:5px">en "${esc(v._otro)}"</span>`:''}</div></div>`;
   }).join('');
 }
 function toggleSelAgregar(id){
@@ -3498,12 +3508,25 @@ function toggleSelAgregar(id){
   if(q)lista=lista.filter(v=>(v.cliente||'').toLowerCase().includes(q)||(v.localidad||'').toLowerCase().includes(q));
   renderListaAgregar(lista,mostrarDist);
 }
+// En que otro viaje esta cargada esta venta (si esta en alguno)
+function otroViajeDe(v){
+  return [...viajesData,...fletesPublicos].find(vj=>
+    String(vj.id)!==String(agregarViajeId)&&!viajeEntregado(vj)&&
+    (parsePar(vj.pedido_ids||[]).some(p=>String(p)===String(v.id))||
+     parsePar(vj.paradas_snap).some(x=>String(x.id)===String(v.id))))||null;
+}
 function mostrarTodosAgregar(){
   const vj=buscarViaje(agregarViajeId);
-  document.getElementById('agregar-hint').textContent='Todos los clientes pendientes';
   document.getElementById('agregar-buscar').value='';
-  const enViaje=setClientesEnViaje(vj),asig=ventasAsignadas();
-  agregarVentasDisponibles=ventas.filter(v=>paraAgregar(v)&&noEstaEnViaje(v,enViaje)&&ventaLibre(v,asig));
+  const enViaje=setClientesEnViaje(vj);
+  // Todos los pendientes que no esten YA en este viaje. Los que estan en otro
+  // se muestran igual, avisando en cual: a veces hay que moverlos de viaje.
+  agregarVentasDisponibles=ventas.filter(v=>paraAgregar(v)&&noEstaEnViaje(v,enViaje))
+    .map(v=>{const o=otroViajeDe(v);v._otro=o?(o.nombre||'otro viaje'):null;return v;});
+  const enOtro=agregarVentasDisponibles.filter(v=>v._otro).length;
+  document.getElementById('agregar-hint').innerHTML=
+    `Todos los clientes pendientes: <strong>${agregarVentasDisponibles.length}</strong>`
+    +(enOtro?` · ${enOtro} ya ${enOtro===1?'está':'están'} en otro viaje`:'');
   renderListaAgregar(agregarVentasDisponibles,false);
 }
 async function confirmarAgregar(){
