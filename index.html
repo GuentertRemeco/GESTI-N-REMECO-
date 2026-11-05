@@ -368,6 +368,9 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .as-dato .k{color:var(--text2)}
 .as-dato .v{font-weight:800;color:var(--gold);white-space:nowrap}
 .as-pensando{color:var(--text3);font-style:italic}
+.as-est{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--border);font-size:.72rem;flex-shrink:0}
+.as-est b{font-weight:800}
+.as-est button{background:none;border:1px solid currentColor;color:inherit;border-radius:20px;padding:2px 9px;font-size:.66rem;font-weight:700;font-family:inherit;cursor:pointer;margin-left:auto;flex-shrink:0}
 .as-accs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .as-acc{background:var(--bg3);border:1px solid var(--gold);color:var(--gold);border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:700;font-family:inherit;cursor:pointer}
 .as-acc:active{background:var(--gold);color:#111820}
@@ -720,6 +723,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 <!-- ASISTENTE -->
 <div class="page" id="page-asistente">
   <div class="as-wrap">
+    <div id="asEstado"></div>
     <div class="as-hist" id="asHist"></div>
     <div class="as-chips" id="asChips"></div>
     <div class="as-barra-inp">
@@ -1055,7 +1059,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v112';
+const VERSION='v114';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -2722,21 +2726,34 @@ function asResumen(lista,label){
     <div class="as-dato"><span class="k">Costo de fletes</span><span class="v">${fPesos(flete)}</span></div>`;
 }
 // Ranking generico: agrupa por lo que devuelva clave() y ordena por facturación
-function asRanking(lista,clave,titulo,label){
+// "¿Que se vende mas?" puede ser por plata o por cuantas veces se vendio.
+// Son dos respuestas distintas y hay que preguntarselo a la pregunta.
+function pideCantidad(q){
+  return /cantidad|unidades|cuantos|cuantas|mas veces|veces se|numero de ventas|cuanta gente|no en factur|no por factur|no en plata|no por plata|mas vendid/.test(q);
+}
+function asRanking(lista,clave,titulo,label,porCantidad){
   const m={};
-  lista.forEach(v=>{const k=clave(v)||'—';if(!m[k])m[k]={fact:0,cant:0,gan:0};m[k].fact+=parseFloat(v.precio)||0;m[k].cant++;m[k].gan+=ventaGan(v);});
-  const filas=Object.entries(m).sort((a,b)=>b[1].fact-a[1].fact);
+  lista.forEach(v=>{const k=clave(v)||'—';if(!m[k])m[k]={fact:0,cant:0,gan:0};
+    m[k].fact+=parseFloat(v.precio)||0;m[k].cant+=cantidadDe(v);m[k].gan+=ventaGan(v);});
+  const filas=Object.entries(m).sort((a,b)=>porCantidad?(b[1].cant-a[1].cant)||(b[1].fact-a[1].fact):b[1].fact-a[1].fact);
   if(!filas.length)return`<div>No tengo datos para eso en <b>${esc(label)}</b>.</div>`;
-  const max=filas[0][1].fact||1;
-  return`<div class="as-tit">${esc(titulo)} · ${esc(label)}</div>`+filas.slice(0,8).map(([k,a],i)=>`
+  const max=(porCantidad?filas[0][1].cant:filas[0][1].fact)||1;
+  return`<div class="as-tit">${esc(titulo)} · ${esc(label)}${porCantidad?' · por cantidad':''}</div>`+filas.slice(0,8).map(([k,a],i)=>`
     <div style="padding:6px 0">
       <div style="display:flex;justify-content:space-between;gap:10px">
         <span>${i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':`${i+1}. `}${esc(k)}</span>
-        <span style="font-weight:800;color:var(--gold);white-space:nowrap">${fPesos(a.fact)}</span>
+        <span style="font-weight:800;color:var(--gold);white-space:nowrap">${porCantidad?a.cant+' unidad'+(a.cant!==1?'es':''):fPesos(a.fact)}</span>
       </div>
-      <div style="font-size:.68rem;color:var(--text3)">${a.cant} venta${a.cant!==1?'s':''} · ganancia ${fPesos(a.gan)}</div>
-      <div class="as-barra"><i style="width:${Math.round(a.fact/max*100)}%"></i></div>
+      <div style="font-size:.68rem;color:var(--text3)">${porCantidad?fPesos(a.fact)+' facturados ':a.cant+' unidad'+(a.cant!==1?'es':'')} · ganancia ${fPesos(a.gan)}</div>
+      <div class="as-barra"><i style="width:${Math.round((porCantidad?a.cant:a.fact)/max*100)}%"></i></div>
     </div>`).join('');
+}
+// Cuantos silos lleva la venta, no cuantas ventas: dos silos en una sola
+// venta son dos silos fabricados.
+function cantidadDe(v){
+  const p=productosDe(v);
+  if(!p.length)return 1;
+  return p.reduce((s,a)=>s+(parseInt(a.cantidad)||1),0);
 }
 // "Load failed" (Safari), "Failed to fetch" (Chrome), "NetworkError" (Firefox)
 // son todos lo mismo: la peticion no llego al servidor. No es un problema de
@@ -3038,18 +3055,18 @@ function asResponder(txt){
   {const cl=asBuscarCliente(q);if(cl){const r=asCliente(cl);if(r)return r;}}
 
   if(/provincia|region|zona|donde .*(vend|factur)/.test(q))
-    return asRanking(lista,v=>provinciaDe(v.localidad),'Por provincia',per.label)+nota;
+    return asRanking(lista,v=>provinciaDe(v.localidad),'Por provincia',per.label,pideCantidad(q))+nota;
   if(/localidad|pueblo|ciudad|cliente.*(mas|mejor)|mejores? cliente/.test(q))
-    return asRanking(lista,v=>/cliente/.test(q)?(v.cliente||'—'):(locCorta(v.localidad)||'—'),/cliente/.test(q)?'Mejores clientes':'Por localidad',per.label)+nota;
+    return asRanking(lista,v=>/cliente/.test(q)?(v.cliente||'—'):(locCorta(v.localidad)||'—'),/cliente/.test(q)?'Mejores clientes':'Por localidad',per.label,pideCantidad(q))+nota;
   if(/producto|modelo|silo|autoconsumo|que.*(vend|sale) mas/.test(q))
-    return asRanking(lista,v=>{const a=productosDe(v)[0];return a?vdBaseProd(a):'—';},'Por producto',per.label)+nota;
+    return asRanking(lista,v=>{const a=productosDe(v)[0];return a?vdBaseProd(a):'—';},'Por producto',per.label,pideCantidad(q))+nota;
   if(/epoca|mes.*(mas|mejor)|estacion|temporada|cuando/.test(q)){
     const base=/todo el tiempo/.test(per.label)?ventas:lista;
-    return asRanking(base,v=>MESES_NOM[ventaFecha(v).getMonth()],'Por mes del año',/todo el tiempo/.test(per.label)?'todo el tiempo':per.label)
+    return asRanking(base,v=>MESES_NOM[ventaFecha(v).getMonth()],'Por mes del año',/todo el tiempo/.test(per.label)?'todo el tiempo':per.label,pideCantidad(q))
       +'<div class="as-nota">Junta todos los años, para ver en qué meses se mueve más.</div>';
   }
   if(/estado|produccion|camino|entregad|pendiente/.test(q))
-    return asRanking(lista,v=>v.estado||'—','Por estado',per.label)+nota;
+    return asRanking(lista,v=>v.estado||'—','Por estado',per.label,pideCantidad(q))+nota;
   if(/viaje|flete|km|camion/.test(q)){
     const act=viajesData.filter(v=>estadoViaje(v)!=='historial');
     const km=viajesData.reduce((s,v)=>s+(parseFloat(v.km_real)||0),0);
@@ -3087,6 +3104,24 @@ function asBurbuja(html,quien){
   d.innerHTML='<div class="as-burb">'+html+'</div>';
   h.appendChild(d);h.scrollTop=h.scrollHeight;
 }
+// Un cartel que dice si la IA esta conectada, para no tener que adivinar
+// mirando las respuestas.
+function asPintarEstado(){
+  const el=document.getElementById('asEstado');if(!el)return;
+  if(IA_ANDA===true)
+    el.innerHTML=`<div class="as-est" style="color:var(--green);background:#0d2e18"><span>${ico('robot',14)}</span><span><b>IA conectada.</b> Preguntame cualquier cosa.</span></div>`;
+  else if(IA_ANDA===false)
+    el.innerHTML=`<div class="as-est" style="color:var(--yellow);background:#2a2410"><span>${ico('robot',14)}</span><span><b>IA apagada.</b> Contesto solo lo que sé de memoria.</span><button onclick="asProbarIA()">Probar de nuevo</button></div>`;
+  else
+    el.innerHTML=`<div class="as-est" style="color:var(--text3);background:var(--bg2)"><span>${ico('robot',14)}</span><span>IA sin probar.</span><button onclick="asProbarIA()">Probar</button></div>`;
+}
+async function asProbarIA(){
+  const el=document.getElementById('asEstado');
+  if(el)el.innerHTML=`<div class="as-est" style="color:var(--text3);background:var(--bg2)"><span>${ico('robot',14)}</span><span>Probando…</span></div>`;
+  const r=await asIA('Contestá solamente la palabra: listo');
+  asPintarEstado();
+  if(!r)toast('No contestó. Mirá el Diagnóstico para ver qué falta.',6000);
+}
 async function asPreguntar(txt){
   const inp=document.getElementById('asInput');
   const pregunta=(typeof txt==='string'?txt:inp.value).trim();
@@ -3100,6 +3135,7 @@ async function asPreguntar(txt){
   const h=document.getElementById('asHist'),burb=h.lastElementChild;
   const r=await asIA(pregunta);
   burb.querySelector('.as-burb').innerHTML=r||('<div>No entendí la pregunta.</div>'+asAyuda());
+  asPintarEstado();
   h.scrollTop=h.scrollHeight;
 }
 function asIniciar(){
@@ -3108,6 +3144,7 @@ function asIniciar(){
     const n=(getPerfil().nombre||'').split(' ')[0];
     asBurbuja(`Hola${n?' '+esc(n):''} 👋 Soy tu asistente. Miro <b>tus ventas, tus viajes y cada paso que se hace en el programa</b>: te digo qué tenés pendiente, qué se hizo hoy y quién lo hizo, qué fabricar primero, cuánto cobrarle de flete a un cliente, o todo lo que le vendiste a alguien. Escribí el nombre de un cliente o de un viaje y te cuento.<br><br>Tocá una sugerencia de abajo o preguntame lo que quieras.`,'bot');
   }
+  asPintarEstado();
   const c=document.getElementById('asChips');
   if(c&&!c.children.length)c.innerHTML=AS_SUGES.map(s=>`<button class="as-chip" onclick="asPreguntar('${s.replace(/'/g,"\\'")}')">${esc(s)}</button>`).join('');
 }
