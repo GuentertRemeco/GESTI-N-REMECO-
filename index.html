@@ -1055,7 +1055,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v110';
+const VERSION='v111';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -4356,7 +4356,52 @@ async function abrirDiag(){
     }
   }catch(e){paso('Podés guardar una venta',false,String(e.message||e));}
 
-  const falla=pasos.find(p=>!p.ok);
+
+  // 6) La IA del asistente: dice que falta, no solo que no anda
+  try{
+    const{data:ses}=await sb.auth.getSession();
+    const tok=ses&&ses.session&&ses.session.access_token;
+    if(!tok)paso('La IA del asistente',false,'No hay sesión para consultarla.');
+    else{
+      const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),20000);
+      let r=null,err=null;
+      try{
+        r=await fetch(IA_URL,{method:'POST',signal:ctrl.signal,
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok,'apikey':SKEY},
+          body:JSON.stringify({pregunta:'Contestá solamente: listo',contexto:{prueba:true}})});
+      }catch(e){err=e;}
+      clearTimeout(t);
+      if(err){
+        paso('La IA del asistente',false,esCaidaDeRed(err)
+          ?'No se pudo llegar. Revisá la conexión.'
+          :String(err.message||err));
+      }else if(r.status===404){
+        paso('La IA del asistente',false,
+          'La función "asistente" todavía no está subida.\n\nSupabase → Edge Functions → Deploy a new function, nombre: asistente.\n\nMientras tanto el asistente anda igual con lo que sabe de memoria.');
+      }else if(r.status===401||r.status===403){
+        paso('La IA del asistente',false,
+          'Supabase no dejó entrar la consulta ('+r.status+'). Fijate que la función no tenga desactivada la verificación de sesión.');
+      }else{
+        let j={};try{j=await r.json();}catch(e){}
+        if(r.ok&&j.respuesta){
+          paso('La IA del asistente',true,'Prendida y contestando.'+(j.modelo?'\nModelo: '+j.modelo:''));
+        }else if(/ANTHROPIC_API_KEY/i.test(j.error||'')){
+          paso('La IA del asistente',false,
+            'La función está subida pero le falta la clave.\n\nSupabase → Edge Functions → Secrets → ANTHROPIC_API_KEY');
+        }else if(/credit|balance|quota|insufficient/i.test(j.error||'')){
+          paso('La IA del asistente',false,
+            'La clave anda pero la cuenta no tiene saldo.\n\nconsole.anthropic.com → Billing → cargar saldo.');
+        }else if(/authentication|invalid.*api.*key|401/i.test(j.error||'')){
+          paso('La IA del asistente',false,
+            'La clave no es válida o está mal copiada.\n\nSacá una nueva en console.anthropic.com → API Keys y volvé a cargarla en Secrets.');
+        }else{
+          paso('La IA del asistente',false,'Contestó '+r.status+': '+(j.error||'sin detalle'));
+        }
+      }
+    }
+  }catch(e){paso('La IA del asistente',false,String(e.message||e));}
+
+  const falla=pasos.find(p=>!p.ok&&p.t!=='La IA del asistente');
   body.innerHTML=`<div style="font-size:.82rem;color:var(--text2);margin-bottom:14px">${VERSION} · ${soyVendedor()?'Vendedor':'Dueño'}</div>`
     +pasos.map(p=>`<div style="background:var(--bg3);border:1px solid ${p.ok?'var(--border)':'var(--red)'};border-radius:9px;padding:11px 13px;margin-bottom:8px">
         <div style="font-weight:800;font-size:.86rem">${p.ok?'✅':'❌'} ${esc(p.t)}</div>
@@ -4365,7 +4410,9 @@ async function abrirDiag(){
     +(falla?`<div style="background:#2a1010;border:1px solid var(--red);border-radius:9px;padding:12px;margin-top:12px;font-size:.8rem">
         <b>Lo primero que falla:</b> ${esc(falla.t)}.<br>Sacale una foto a esta pantalla y mandámela.</div>`
       :`<div style="background:#0d2e18;border:1px solid var(--green);border-radius:9px;padding:12px;margin-top:12px;font-size:.8rem">
-        Todo en orden: desde esta cuenta se pueden guardar ventas.</div>`);
+        Todo en orden: desde esta cuenta se pueden guardar ventas.</div>`)
+    +(pasos.some(p=>p.t==='La IA del asistente'&&!p.ok)?`<div style="background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:12px;margin-top:8px;font-size:.78rem;color:var(--text2)">
+        La IA del asistente es opcional. Sin ella el asistente sigue contestando lo que sabe de memoria.</div>`:'');
 }
 
 // ── LA TARIFA DE FLETE APRENDE DE LAS ENTREGAS ───────────────
