@@ -1055,7 +1055,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v111';
+const VERSION='v112';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -2750,7 +2750,22 @@ function esperar(ms){return new Promise(r=>setTimeout(r,ms));}
 // Lo que el asistente ya sabe contestar solo, lo contesta solo: es gratis e
 // instantaneo. Solo lo que no entiende va a la IA, que se paga por consulta.
 // La clave vive en la funcion "asistente" de Supabase, nunca en esta pagina.
-const IA_URL=SURL+'/functions/v1/asistente';
+const IA_URL_DEF=SURL+'/functions/v1/asistente';
+function iaUrl(){
+  const g=(CFG_RAW&&CFG_RAW['ia_url'])||localStorage.getItem('remeco_ia_url')||'';
+  return g.trim()||IA_URL_DEF;
+}
+// Se guarda en config para que valga en todos los dispositivos, y en el
+// telefono por las dudas de que la tabla config no deje escribir.
+async function guardarIaUrl(u){
+  u=(u||'').trim();
+  if(u&&!/^https:\/\/[^ ]+\/functions\/v1\/[^ /]+$/.test(u))
+    return{ok:false,msg:'Esa no parece la dirección de una función. Tiene que terminar en /functions/v1/algo'};
+  if(u)localStorage.setItem('remeco_ia_url',u);else localStorage.removeItem('remeco_ia_url');
+  CFG_RAW['ia_url']=u;
+  try{await sb.from('config').upsert([{clave:'ia_url',valor:u}],{onConflict:'clave'});}catch(e){}
+  return{ok:true};
+}
 let IA_ANDA=null; // null = todavia no se probo
 // Resumen chico de los datos. Se manda solo lo necesario para contestar.
 function asContexto(){
@@ -2780,7 +2795,7 @@ async function asIA(pregunta){
     const token=data&&data.session&&data.session.access_token;
     if(!token)return null;
     const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),25000);
-    const r=await fetch(IA_URL,{method:'POST',signal:ctrl.signal,
+    const r=await fetch(iaUrl(),{method:'POST',signal:ctrl.signal,
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'apikey':SKEY},
       body:JSON.stringify({pregunta:pregunta,contexto:asContexto()})});
     clearTimeout(t);
@@ -4366,7 +4381,7 @@ async function abrirDiag(){
       const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),20000);
       let r=null,err=null;
       try{
-        r=await fetch(IA_URL,{method:'POST',signal:ctrl.signal,
+        r=await fetch(iaUrl(),{method:'POST',signal:ctrl.signal,
           headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok,'apikey':SKEY},
           body:JSON.stringify({pregunta:'Contestá solamente: listo',contexto:{prueba:true}})});
       }catch(e){err=e;}
@@ -4377,7 +4392,7 @@ async function abrirDiag(){
           :String(err.message||err));
       }else if(r.status===404){
         paso('La IA del asistente',false,
-          'La función "asistente" todavía no está subida.\n\nSupabase → Edge Functions → Deploy a new function, nombre: asistente.\n\nMientras tanto el asistente anda igual con lo que sabe de memoria.');
+          'No hay ninguna función en esa dirección:\n'+iaUrl()+'\n\nSi tu función tiene otro nombre, copiá su dirección de Supabase → Edge Functions (el botoncito de copiar al lado de la URL) y pegala en el recuadro de abajo.');
       }else if(r.status===401||r.status===403){
         paso('La IA del asistente',false,
           'Supabase no dejó entrar la consulta ('+r.status+'). Fijate que la función no tenga desactivada la verificación de sesión.');
@@ -4411,10 +4426,26 @@ async function abrirDiag(){
         <b>Lo primero que falla:</b> ${esc(falla.t)}.<br>Sacale una foto a esta pantalla y mandámela.</div>`
       :`<div style="background:#0d2e18;border:1px solid var(--green);border-radius:9px;padding:12px;margin-top:12px;font-size:.8rem">
         Todo en orden: desde esta cuenta se pueden guardar ventas.</div>`)
+    +`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:12px;margin-top:10px">
+        <div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:7px">Dirección de la función del asistente</div>
+        <input id="diag-ia-url" value="${esc(iaUrl())}" spellcheck="false" style="width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:8px 10px;font-size:.72rem;font-family:inherit"/>
+        <div style="display:flex;gap:7px;margin-top:8px">
+          <button class="bg" style="padding:7px 13px;font-size:.75rem" onclick="diagGuardarIa()">Guardar y probar</button>
+          <button class="bd" style="padding:7px 13px;font-size:.75rem" onclick="document.getElementById('diag-ia-url').value='${esc(IA_URL_DEF)}'">Volver a la de siempre</button>
+        </div>
+        <div style="font-size:.66rem;color:var(--text3);margin-top:7px">Si al crear la función Supabase le puso un nombre inventado, copiá acá su dirección desde Edge Functions.</div>
+      </div>`
     +(pasos.some(p=>p.t==='La IA del asistente'&&!p.ok)?`<div style="background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:12px;margin-top:8px;font-size:.78rem;color:var(--text2)">
         La IA del asistente es opcional. Sin ella el asistente sigue contestando lo que sabe de memoria.</div>`:'');
 }
 
+async function diagGuardarIa(){
+  const el=document.getElementById('diag-ia-url');if(!el)return;
+  const r=await guardarIaUrl(el.value);
+  if(!r.ok){toast(r.msg,6000);return;}
+  toast('Guardada. Probando…');
+  abrirDiag();
+}
 // ── LA TARIFA DE FLETE APRENDE DE LAS ENTREGAS ───────────────
 // Cada venta entregada guarda lo que el flete costo de verdad (costo_flete) y
 // los km hasta el cliente. Con eso se mide el costo real por km de cada tipo
