@@ -1059,7 +1059,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v114';
+const VERSION='v115';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -2783,7 +2783,8 @@ async function guardarIaUrl(u){
   try{await sb.from('config').upsert([{clave:'ia_url',valor:u}],{onConflict:'clave'});}catch(e){}
   return{ok:true};
 }
-let IA_ANDA=null; // null = todavia no se probo
+let IA_ANDA=(function(){const v=localStorage.getItem('remeco_ia_ok');
+  return v==='1'?true:v==='0'?false:null;})(); // null = nunca se probo
 // Resumen chico de los datos. Se manda solo lo necesario para contestar.
 function asContexto(){
   const chico=v=>({cliente:v.cliente||'',localidad:v.localidad||'',
@@ -2816,12 +2817,16 @@ async function asIA(pregunta){
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'apikey':SKEY},
       body:JSON.stringify({pregunta:pregunta,contexto:asContexto()})});
     clearTimeout(t);
-    if(!r.ok){IA_ANDA=false;return null;}
+    if(!r.ok){iaEstado(false);return null;}
     const j=await r.json();
-    if(!j||!j.respuesta){IA_ANDA=false;return null;}
-    IA_ANDA=true;
+    if(!j||!j.respuesta){iaEstado(false);return null;}
+    iaEstado(true);
     return esc(j.respuesta).replace(/\n/g,'<br>');
-  }catch(e){IA_ANDA=false;return null;}
+  }catch(e){iaEstado(false);return null;}
+}
+function iaEstado(ok){
+  IA_ANDA=ok;
+  try{localStorage.setItem('remeco_ia_ok',ok?'1':'0');}catch(e){}
 }
 // ── REGISTRO DE PASOS ────────────────────────────────────────
 // Cada cosa que se hace en el programa queda anotada: quien, que y cuando.
@@ -3110,6 +3115,8 @@ function asPintarEstado(){
   const el=document.getElementById('asEstado');if(!el)return;
   if(IA_ANDA===true)
     el.innerHTML=`<div class="as-est" style="color:var(--green);background:#0d2e18"><span>${ico('robot',14)}</span><span><b>IA conectada.</b> Preguntame cualquier cosa.</span></div>`;
+  else if(IA_ANDA===false&&localStorage.getItem('remeco_ia_ok')==='0')
+    el.innerHTML=`<div class="as-est" style="color:var(--yellow);background:#2a2410"><span>${ico('robot',14)}</span><span><b>IA apagada.</b> Contesto solo lo que sé de memoria.</span><button onclick="asProbarIA()">Probar de nuevo</button></div>`;
   else if(IA_ANDA===false)
     el.innerHTML=`<div class="as-est" style="color:var(--yellow);background:#2a2410"><span>${ico('robot',14)}</span><span><b>IA apagada.</b> Contesto solo lo que sé de memoria.</span><button onclick="asProbarIA()">Probar de nuevo</button></div>`;
   else
