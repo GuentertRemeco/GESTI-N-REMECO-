@@ -1059,7 +1059,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v117';
+const VERSION='v118';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -1670,6 +1670,8 @@ async function renderRankingInicio(){
   let data=null;
   try{const r=await sb.rpc('ranking_ventas',{desde:new Date(now.getFullYear(),now.getMonth(),1).toISOString()});if(!r.error)data=r.data;}catch(e){}
   if(!Array.isArray(data)||!data.length){el.innerHTML='';return;}
+  const conVentas=data.filter(f=>(parseInt(f.ventas)||0)>0);
+  if(conVentas.length<2){el.innerHTML='';return;}
   const yoIdx=data.findIndex(f=>f.soy_yo);
   const lider=parseInt(data[0]&&data[0].ventas)||0;
   const mias=yoIdx>=0?(parseInt(data[yoIdx].ventas)||0):0;
