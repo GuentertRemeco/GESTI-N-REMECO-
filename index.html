@@ -1059,7 +1059,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v115';
+const VERSION='v116';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -2790,7 +2790,10 @@ function asContexto(){
   const chico=v=>({cliente:v.cliente||'',localidad:v.localidad||'',
     producto:productosDe(v).map(a=>(a.cantidad>1?a.cantidad+'x ':'')+vdBaseProd(a)).join(' + '),
     precio:parseFloat(v.precio)||0,costo_flete:parseFloat(v.costo_flete)||0,
-    estado:v.estado||'',entrega:v.fecha_entrega||null,cargada:(v.created_at||'').split('T')[0]});
+    estado:v.estado||'',entrega:v.fecha_entrega||null,cargada:(v.created_at||'').split('T')[0],
+    costo_producto:parseFloat(v.costo_producto)||0,
+    telefono:v.telefono||'',cuit:v.cuit||'',
+    notas:(v.notas||'').slice(0,300)});
   const asig=ventasAsignadas();
   return{
     hoy:new Date().toISOString().split('T')[0],
@@ -3048,6 +3051,10 @@ function asResponder(txt){
   // Si la pregunta pide criterio y no un dato suelto, no la contesto yo con
   // una tabla cualquiera: la mando a la IA, que para eso esta.
   if(/convien|deberia|convendria|recomend|opin|estrateg|por que|porque|compar|vale la pena|me sirve|aconsej|analiza|me explic|como hago para|tendria que/.test(q))
+    return null;
+  // Una busqueda de texto (en las notas, el telefono, el cuit) no la se
+  // hacer yo: la contesta la IA, que tiene esos campos.
+  if(/\bnotas?\b|comentario|observacion|que diga|que digan|que contenga|aclaracion|telefono|cuit/.test(q))
     return null;
   if(/que (paso|pasa|hice|hiciste|hizo|se hizo)|actividad|movimiento|ultimos? pasos|registro|quien (cargo|borro|cambio|hizo)|log\b/.test(q))
     return asActividad(q);
