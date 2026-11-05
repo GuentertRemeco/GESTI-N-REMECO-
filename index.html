@@ -368,6 +368,9 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 .as-dato .k{color:var(--text2)}
 .as-dato .v{font-weight:800;color:var(--gold);white-space:nowrap}
 .as-pensando{color:var(--text3);font-style:italic}
+.as-est{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--border);font-size:.72rem;flex-shrink:0}
+.as-est b{font-weight:800}
+.as-est button{background:none;border:1px solid currentColor;color:inherit;border-radius:20px;padding:2px 9px;font-size:.66rem;font-weight:700;font-family:inherit;cursor:pointer;margin-left:auto;flex-shrink:0}
 .as-accs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .as-acc{background:var(--bg3);border:1px solid var(--gold);color:var(--gold);border-radius:20px;padding:5px 12px;font-size:.72rem;font-weight:700;font-family:inherit;cursor:pointer}
 .as-acc:active{background:var(--gold);color:#111820}
@@ -720,6 +723,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
 <!-- ASISTENTE -->
 <div class="page" id="page-asistente">
   <div class="as-wrap">
+    <div id="asEstado"></div>
     <div class="as-hist" id="asHist"></div>
     <div class="as-chips" id="asChips"></div>
     <div class="as-barra-inp">
@@ -1055,7 +1059,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v113';
+const VERSION='v114';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -3100,6 +3104,24 @@ function asBurbuja(html,quien){
   d.innerHTML='<div class="as-burb">'+html+'</div>';
   h.appendChild(d);h.scrollTop=h.scrollHeight;
 }
+// Un cartel que dice si la IA esta conectada, para no tener que adivinar
+// mirando las respuestas.
+function asPintarEstado(){
+  const el=document.getElementById('asEstado');if(!el)return;
+  if(IA_ANDA===true)
+    el.innerHTML=`<div class="as-est" style="color:var(--green);background:#0d2e18"><span>${ico('robot',14)}</span><span><b>IA conectada.</b> Preguntame cualquier cosa.</span></div>`;
+  else if(IA_ANDA===false)
+    el.innerHTML=`<div class="as-est" style="color:var(--yellow);background:#2a2410"><span>${ico('robot',14)}</span><span><b>IA apagada.</b> Contesto solo lo que sé de memoria.</span><button onclick="asProbarIA()">Probar de nuevo</button></div>`;
+  else
+    el.innerHTML=`<div class="as-est" style="color:var(--text3);background:var(--bg2)"><span>${ico('robot',14)}</span><span>IA sin probar.</span><button onclick="asProbarIA()">Probar</button></div>`;
+}
+async function asProbarIA(){
+  const el=document.getElementById('asEstado');
+  if(el)el.innerHTML=`<div class="as-est" style="color:var(--text3);background:var(--bg2)"><span>${ico('robot',14)}</span><span>Probando…</span></div>`;
+  const r=await asIA('Contestá solamente la palabra: listo');
+  asPintarEstado();
+  if(!r)toast('No contestó. Mirá el Diagnóstico para ver qué falta.',6000);
+}
 async function asPreguntar(txt){
   const inp=document.getElementById('asInput');
   const pregunta=(typeof txt==='string'?txt:inp.value).trim();
@@ -3113,6 +3135,7 @@ async function asPreguntar(txt){
   const h=document.getElementById('asHist'),burb=h.lastElementChild;
   const r=await asIA(pregunta);
   burb.querySelector('.as-burb').innerHTML=r||('<div>No entendí la pregunta.</div>'+asAyuda());
+  asPintarEstado();
   h.scrollTop=h.scrollHeight;
 }
 function asIniciar(){
@@ -3121,6 +3144,7 @@ function asIniciar(){
     const n=(getPerfil().nombre||'').split(' ')[0];
     asBurbuja(`Hola${n?' '+esc(n):''} 👋 Soy tu asistente. Miro <b>tus ventas, tus viajes y cada paso que se hace en el programa</b>: te digo qué tenés pendiente, qué se hizo hoy y quién lo hizo, qué fabricar primero, cuánto cobrarle de flete a un cliente, o todo lo que le vendiste a alguien. Escribí el nombre de un cliente o de un viaje y te cuento.<br><br>Tocá una sugerencia de abajo o preguntame lo que quieras.`,'bot');
   }
+  asPintarEstado();
   const c=document.getElementById('asChips');
   if(c&&!c.children.length)c.innerHTML=AS_SUGES.map(s=>`<button class="as-chip" onclick="asPreguntar('${s.replace(/'/g,"\\'")}')">${esc(s)}</button>`).join('');
 }
