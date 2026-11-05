@@ -1059,7 +1059,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v116';
+const VERSION='v117';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -2479,10 +2479,12 @@ function renderRecordatorios(){
 function renderAvisos(){
   const el=document.getElementById('avisosBox');if(!el)return;
   const hoy=new Date().toISOString().split('T')[0];
+  const dias=f=>Math.round((new Date(hoy+'T00:00:00')-new Date(f+'T00:00:00'))/86400000);
   const vivas=ventas.filter(v=>v.estado!=='Entregado');
-  const vencidas=vivas.filter(v=>v.fecha_entrega&&v.fecha_entrega<hoy);
+  const vencidas=vivas.filter(v=>v.estado!=='En camino'&&v.fecha_entrega&&v.fecha_entrega<hoy);
+  const enCamino=vivas.filter(v=>v.estado==='En camino'&&v.fecha_entrega&&dias(v.fecha_entrega)>=7);
   const sinFecha=vivas.filter(v=>!v.fecha_entrega);
-  if(!vencidas.length&&!sinFecha.length){el.innerHTML='';return;}
+  if(!vencidas.length&&!enCamino.length&&!sinFecha.length){el.innerHTML='';return;}
   const fila=(v,col,txt)=>`<div onclick="verVenta('${v.id}')" style="display:flex;align-items:center;gap:9px;padding:6px 0;border-top:1px solid var(--border);cursor:pointer">
       <span style="width:7px;height:7px;border-radius:50%;background:${col};flex-shrink:0"></span>
       <div style="flex:1;min-width:0">
@@ -2497,9 +2499,11 @@ function renderAvisos(){
     </div>`:'';
   el.innerHTML=
     bloque('Entregas pasadas de fecha','fecha','var(--red)',vencidas.slice(0,5).map(v=>{
-      const d=Math.round((new Date(hoy+'T00:00:00')-new Date(v.fecha_entrega+'T00:00:00'))/86400000);
+      const d=dias(v.fecha_entrega);
       return fila(v,'var(--red)',d===1?'1 día tarde':d+' días tarde');
     }))+
+    bloque('En camino hace rato · ¿ya las entregaste?','flete','var(--text2)',enCamino.slice(0,5).map(v=>
+      fila(v,'var(--blue)','salió hace '+dias(v.fecha_entrega)+' días')))+
     bloque('Ventas sin fecha de entrega','objetivo','var(--yellow)',sinFecha.slice(0,5).map(v=>fila(v,'var(--yellow)','poner fecha')));
 }
 function renderPendientes(){
@@ -2935,7 +2939,7 @@ function asBuscarModelo(q){
 function asPendientes(){
   const hoy=new Date().toISOString().split('T')[0];
   const vivas=ventas.filter(v=>v.estado!=='Entregado');
-  const vencidas=vivas.filter(v=>v.fecha_entrega&&v.fecha_entrega<hoy);
+  const vencidas=vivas.filter(v=>v.estado!=='En camino'&&v.fecha_entrega&&v.fecha_entrega<hoy);
   const sinFecha=vivas.filter(v=>!v.fecha_entrega);
   const asig=ventasAsignadas();
   const sinViaje=vivas.filter(v=>ventaLibre(v,asig));
