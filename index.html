@@ -1059,7 +1059,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v118';
+const VERSION='v119';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -2789,6 +2789,7 @@ async function guardarIaUrl(u){
   try{await sb.from('config').upsert([{clave:'ia_url',valor:u}],{onConflict:'clave'});}catch(e){}
   return{ok:true};
 }
+let AS_CHARLA=[]; // las ultimas idas y vueltas, para que entienda un 'y eso?'
 let IA_ANDA=(function(){const v=localStorage.getItem('remeco_ia_ok');
   return v==='1'?true:v==='0'?false:null;})(); // null = nunca se probo
 // Resumen chico de los datos. Se manda solo lo necesario para contestar.
@@ -2813,7 +2814,10 @@ function asContexto(){
       ocupacion_camion:Math.round(calcOcupacion(p)*100)+'%',
       paradas:p.map(x=>x.cliente||x.nombre||'').filter(Boolean)};}),
     ultimos_pasos:ACTIVIDAD.slice(0,40).map(f=>({
-      cuando:f.fecha,quien:actQuien(f),que:f.titulo,detalle:f.detalle||''}))
+      cuando:f.fecha,quien:actQuien(f),que:f.titulo,detalle:f.detalle||''})),
+    // Lo que se vino hablando recien, para que una repregunta corta
+    // ("¿y la fecha?") se entienda sin volver a nombrar al cliente.
+    conversacion_reciente:AS_CHARLA.slice(-6)
   };
 }
 async function asIA(pregunta){
@@ -3058,6 +3062,16 @@ function asResponder(txt){
   // una tabla cualquiera: la mando a la IA, que para eso esta.
   if(/convien|deberia|convendria|recomend|opin|estrateg|por que|porque|compar|vale la pena|me sirve|aconsej|analiza|me explic|como hago para|tendria que/.test(q))
     return null;
+  // Un numero largo es un telefono o un cuit: yo no se buscar por ahi.
+  if(/\d[\d\s().-]{5,}\d/.test(q)&&!/\bkm\b|\$|tn\b/.test(q))return null;
+  // "este cliente", "esa venta": senalan algo de lo que ya se hablo.
+  if(/\b(este|ese|esta|esa|dicho|mismo)\s+(cliente|venta|viaje|flete|silo|pedido)\b/.test(q))return null;
+  // Si lo ultimo lo contesto la IA y esto es una repregunta corta o
+  // encadenada, sigue siendo de ella: yo no se de quien se esta hablando.
+  const ult=AS_CHARLA[AS_CHARLA.length-1];
+  if(ult&&ult.lo_contesto==='la IA'&&
+     (/^(y|pero|ok|entonces|ah|eso|ese|esa|esos|y el|y la)\b/.test(q)||q.split(/\s+/).length<=7))
+    return null;
   // Una busqueda de texto (en las notas, el telefono, el cuit) no la se
   // hacer yo: la contesta la IA, que tiene esos campos.
   if(/\bnotas?\b|comentario|observacion|que diga|que digan|que contenga|aclaracion|telefono|cuit/.test(q))
@@ -3078,12 +3092,12 @@ function asResponder(txt){
     return asRanking(lista,v=>/cliente/.test(q)?(v.cliente||'—'):(locCorta(v.localidad)||'—'),/cliente/.test(q)?'Mejores clientes':'Por localidad',per.label,pideCantidad(q))+nota;
   if(/producto|modelo|silo|autoconsumo|que.*(vend|sale) mas/.test(q))
     return asRanking(lista,v=>{const a=productosDe(v)[0];return a?vdBaseProd(a):'—';},'Por producto',per.label,pideCantidad(q))+nota;
-  if(/epoca|mes.*(mas|mejor)|estacion|temporada|cuando/.test(q)){
+  if(/epoca|mes.*(mas|mejor)|estacion|temporada|que mes|en que meses|mes del ano/.test(q)){
     const base=/todo el tiempo/.test(per.label)?ventas:lista;
     return asRanking(base,v=>MESES_NOM[ventaFecha(v).getMonth()],'Por mes del año',/todo el tiempo/.test(per.label)?'todo el tiempo':per.label,pideCantidad(q))
       +'<div class="as-nota">Junta todos los años, para ver en qué meses se mueve más.</div>';
   }
-  if(/estado|produccion|camino|entregad|pendiente/.test(q))
+  if(/por estado|segun (el )?estado|estado de las ventas|como (vienen|van) los estados|cuantas (hay )?(en|estan)/.test(q))
     return asRanking(lista,v=>v.estado||'—','Por estado',per.label,pideCantidad(q))+nota;
   if(/viaje|flete|km|camion/.test(q)){
     const act=viajesData.filter(v=>estadoViaje(v)!=='historial');
@@ -3149,11 +3163,16 @@ async function asPreguntar(txt){
   inp.value='';
   asBurbuja(esc(pregunta),'yo');
   const propia=asResponder(pregunta);
-  if(propia!==null){setTimeout(()=>asBurbuja(propia,'bot'),120);return;}
+  if(propia!==null){
+    AS_CHARLA.push({pregunta:pregunta,lo_contesto:'el programa, con una tabla'});
+    setTimeout(()=>asBurbuja(propia,'bot'),120);return;}
   if(IA_ANDA===false){asBurbuja('<div>No entendí la pregunta.</div>'+asAyuda(),'bot');return;}
   asBurbuja('<span class="as-pensando">Pensando…</span>','bot');
   const h=document.getElementById('asHist'),burb=h.lastElementChild;
   const r=await asIA(pregunta);
+  AS_CHARLA.push({pregunta:pregunta,lo_contesto:r?'la IA':'nadie',
+                  respuesta:r?r.replace(/<[^>]+>/g,'').slice(0,500):''});
+  if(AS_CHARLA.length>12)AS_CHARLA.splice(0,AS_CHARLA.length-12);
   burb.querySelector('.as-burb').innerHTML=r||('<div>No entendí la pregunta.</div>'+asAyuda());
   asPintarEstado();
   h.scrollTop=h.scrollHeight;
