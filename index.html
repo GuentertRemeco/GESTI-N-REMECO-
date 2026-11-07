@@ -664,7 +664,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
         </div>
         <div class="fp-body" id="fpBody"><div class="sp"></div></div>
         <div style="padding:8px 12px;border-top:1px solid var(--border);background:var(--bg4)">
-          <button class="bg" style="width:100%;padding:9px" onclick="exportarTodos()">📋 Exportar para WhatsApp</button>
+          <button class="bg" style="width:100%;padding:9px" onclick="exportarTodos()"><span data-ico="publicar" class="ico-slot" style="width:15px;height:15px"></span> Exportar para WhatsApp</button>
         </div>
       </div>
       <div id="panel-disponibles" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0">
@@ -894,7 +894,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
       <div class="vd-title" id="vdTitulo">Viaje</div>
       <div class="vd-title-sub" id="vdSub"></div>
     </div>
-    <button class="bg" id="vdMapaBtn" style="padding:8px 12px;flex-shrink:0" onclick="vdVerMapa()">🗺️ Recorrido</button>
+    <button class="bg" id="vdMapaBtn" style="padding:8px 12px;flex-shrink:0" onclick="vdVerMapa()"><span data-ico="mapa" class="ico-slot" style="width:15px;height:15px"></span> Recorrido</button>
   </div>
   <div class="vd-body"><div class="vd-inner" id="vdBody"></div></div>
 </div>
@@ -1059,7 +1059,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v119';
+const VERSION='v120';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -1631,7 +1631,7 @@ function renderHistorialCfg(){
   if(!hist.length){el.innerHTML='<div style="text-align:center;padding:14px;color:var(--text3);font-size:.76rem">Todavía no hay viajes entregados.<br>Un viaje llega acá cuando lo marcás como entregado.</div>';return;}
   el.innerHTML=hist.map(vj=>{const p=parsePar(vj.paradas_snap);return`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin-bottom:6px">
     <div style="display:flex;align-items:center;gap:8px">
-      <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.78rem">🚛 ${esc(vj.nombre)} <span style="font-size:.6rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:1px 7px;margin-left:4px">✅ ENTREGADO</span></div>
+      <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.78rem">${ico('flete',13)} ${esc(vj.nombre)} <span style="font-size:.6rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:1px 7px;margin-left:4px">✅ ENTREGADO</span></div>
       <div style="font-size:.65rem;color:var(--text3);margin-top:2px">${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · '+ico('pin',11)+' '+vj.km_real+' km':''} · ${ico('fecha',11)} ${fFecha(vj.fecha)}</div>
       <div style="font-size:.63rem;color:var(--text3);margin-top:1px">${p.map(x=>esc(x.cliente||x.nombre||'')).filter(Boolean).join(' · ')}</div></div>
       <button class="vbtn" title="Volver a viajes programados" onclick="marcarViajeEntregado('${vj.id}',false)">↩️</button>
@@ -2496,17 +2496,20 @@ function renderAvisos(){
       <div style="font-size:.66rem;color:${col};font-weight:800;flex-shrink:0">${txt}</div>
     </div>`;
   const bloque=(titulo,icono,color,filas)=>filas.length?`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:0 11px 7px;margin-bottom:13px">
-      <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:${color};padding:9px 0 2px;display:flex;align-items:center;gap:5px">${ico(icono,12)} ${titulo}</div>
+      <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:${color};padding:9px 0 2px;display:flex;align-items:center;gap:5px">${ico(icono,12)} ${titulo}<span style="margin-left:auto;color:var(--text3);font-weight:700">${filas.length}</span></div>
       ${filas.join('')}
     </div>`:'';
-  el.innerHTML=
-    bloque('Entregas pasadas de fecha','fecha','var(--red)',vencidas.slice(0,5).map(v=>{
-      const d=dias(v.fecha_entrega);
-      return fila(v,'var(--red)',d===1?'1 día tarde':d+' días tarde');
-    }))+
-    bloque('En camino hace rato · ¿ya las entregaste?','flete','var(--text2)',enCamino.slice(0,5).map(v=>
-      fila(v,'var(--blue)','salió hace '+dias(v.fecha_entrega)+' días')))+
-    bloque('Ventas sin fecha de entrega','objetivo','var(--yellow)',sinFecha.slice(0,5).map(v=>fila(v,'var(--yellow)','poner fecha')));
+  // Todo junto en un solo cartel, lo mas urgente arriba. Antes eran tres
+  // cajas apiladas que empujaban la facturacion abajo de la pantalla.
+  const todo=[
+    ...vencidas.map(v=>({v,col:'var(--red)',txt:(d=>d===1?'1 día tarde':d+' días tarde')(dias(v.fecha_entrega)),ord:0})),
+    ...enCamino.map(v=>({v,col:'var(--blue)',txt:'salió hace '+dias(v.fecha_entrega)+' días',ord:1})),
+    ...sinFecha.map(v=>({v,col:'var(--yellow)',txt:'poner fecha',ord:2}))
+  ].sort((a,b)=>a.ord-b.ord);
+  const MUESTRO=4,resto=todo.length-MUESTRO;
+  el.innerHTML=bloque('Para resolver','objetivo','var(--gold)',
+    todo.slice(0,MUESTRO).map(x=>fila(x.v,x.col,x.txt))
+    .concat(resto>0?[`<div onclick="ir('ventas')" style="padding:7px 0 2px;border-top:1px solid var(--border);font-size:.7rem;color:var(--text3);cursor:pointer">y ${resto} ${resto===1?'cosa':'cosas'} más · ver todas →</div>`]:[]));
 }
 function renderPendientes(){
   const p=ventas.filter(v=>v.estado!=='Entregado').slice(0,4);
@@ -2537,13 +2540,13 @@ function renderFpDisponibles(){
     const prev=p.slice(0,3);
     return`<div class="disp-card">
       <div onclick="abrirViajeDetalle('${vj.id}')" style="cursor:pointer">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px"><div style="font-weight:800;font-size:.88rem;color:var(--gold)">🚛 ${esc(vj.nombre)}</div><span style="font-size:.68rem;font-weight:800;color:${color};flex-shrink:0">${libre}% libre</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px"><div style="font-weight:800;font-size:.88rem;color:var(--gold)">${ico('flete',13)} ${esc(vj.nombre)}</div><span style="font-size:.68rem;font-weight:800;color:${color};flex-shrink:0">${libre}% libre</span></div>
         <div style="font-size:.72rem;color:var(--text2);margin-bottom:7px">${ico('fecha',12)} ${fFecha(vj.fecha)} <span style="color:${fi.color};font-weight:700">(${fi.sub})</span> · ${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · '+vj.km_real+' km':''}${mios?` · <span style="color:var(--gold);font-weight:700">${ico('estrella',11)} ${mios} tuya${mios>1?'s':''}</span>`:''}</div>
         ${prev.map((x,i)=>`<div style="font-size:.72rem;color:var(--text2);padding:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i+1}. ${esc(x.cliente||x.nombre)||'—'} <span style="color:var(--text3)">· ${esc(locCorta(x.localidad))}</span></div>`).join('')}
         ${p.length>3?`<div style="font-size:.7rem;color:var(--text3);padding:2px 0">+ ${p.length-3} parada${p.length-3>1?'s':''} más…</div>`:''}
         <div class="cap-bar-wrap" style="margin-top:8px"><div class="cap-bar-label"><span>👤 ${esc(vdNombreVend(vj.user_id))}</span><span style="color:${color};font-weight:700">${Math.round(oc*100)}% cargado</span></div><div class="cap-bar-track"><div class="cap-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>
       </div>
-      <button class="bg" style="width:100%;padding:10px;font-size:.82rem;font-weight:800;margin-top:10px" onclick="abrirViajeDetalle('${vj.id}')">👁️ Entrar al viaje</button>
+      <button class="bg" style="width:100%;padding:10px;font-size:.82rem;font-weight:800;margin-top:10px" onclick="abrirViajeDetalle('${vj.id}')">${ico('ojo',14)} Entrar al viaje</button>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
         <button class="bp" style="padding:7px;font-size:.72rem" onclick="optimizarViaje('${vj.id}')">🎯 ¿Me conviene?</button>
         <button class="bv" style="padding:7px;font-size:.72rem" onclick="abrirAgregar('${vj.id}')">+ Agregar clientes</button>
@@ -2635,7 +2638,7 @@ function vdPintar(vj){
   </div>
 
   <div class="vd-card" style="padding:12px 14px">
-    <div class="cap-bar-label" style="margin-bottom:6px"><span>Ocupación del camión</span><span style="color:${colOc};font-weight:800">${oc>=1?'⚠️ no entra en uno solo':Math.round(libre)+'% de lugar libre'}</span></div>
+    <div class="cap-bar-label" style="margin-bottom:6px"><span>Ocupación del camión</span><span style="color:${colOc};font-weight:800">${oc>=1?ico('objetivo',12)+' no entra en uno solo':Math.round(libre)+'% de lugar libre'}</span></div>
     <div class="cap-bar-track"><div class="cap-bar-fill" style="width:${Math.min(oc*100,100)}%;background:${colOc}"></div></div>
   </div>
 
@@ -3335,16 +3338,16 @@ function renderViajes(){
         <div style="flex:1;min-width:0">
           <div style="font-weight:700;font-size:.8rem;display:flex;align-items:center;gap:6px;margin-bottom:4px">
             <span style="color:var(--gold);font-size:.7rem;transition:transform .2s;display:inline-block;transform:rotate(${ajenosExpandidos&&ajenosExpandidos[vj.id]?'90':'0'}deg)" id="ajenos-arr-${vj.id}">▶</span>
-            🚛 ${esc(vj.nombre)} <span class="flete-pub-badge">PUB</span>
+            ${ico('flete',13)} ${esc(vj.nombre)} <span class="flete-pub-badge">PUB</span>
           </div>
           <div style="font-size:.65rem;color:var(--text3)">${p.length} parada${p.length!==1?'s':''}${vj.km_real?' · 📍 '+vj.km_real+' km':''} · 📅 ${fFecha(vj.fecha)} · <span style="color:var(--gold);font-weight:700">⭐ ${mios.length} tuya${mios.length>1?'s':''}</span></div>
         </div>
-        <button style="background:var(--gold);color:#111820;border:none;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:.68rem;font-weight:800;flex-shrink:0;font-family:inherit" onclick="event.stopPropagation();abrirViajeDetalle('${vj.id}')">👁️ Entrar</button>
+        <button style="background:var(--gold);color:#111820;border:none;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:.68rem;font-weight:800;flex-shrink:0;font-family:inherit" onclick="event.stopPropagation();abrirViajeDetalle('${vj.id}')">${ico('ojo',13)} Entrar</button>
       </div>
       ${viajeEntregado(vj)?'<div style="padding:0 11px;margin-bottom:8px"><span style="font-size:.58rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:2px 8px">✅ ENTREGADO</span></div>':''}
       <div id="ajenos-body-${vj.id}" style="display:${ajenosExpandidos&&ajenosExpandidos[vj.id]?'block':'none'};padding:0 11px 11px 11px;border-top:1px solid #1a5a35">
         ${mios.map(({x,i})=>`<div style="display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--text2);margin-bottom:6px;padding-top:5px;border-top:1px dashed var(--border)"><span style="flex:1">⭐ ${esc(x.cliente||x.nombre)||'—'} · ${paradaTexto(x)} · ${esc(locCorta(x.localidad))}</span><button onclick="quitarDelViaje('${vj.id}',${i},'${x.id||''}')" title="Quitar mi cliente" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.8rem;padding:2px 5px;flex-shrink:0">✕</button></div>`).join('')}
-        <button class="bg" style="width:100%;padding:9px;font-size:.78rem;font-weight:800;margin-top:8px" onclick="abrirViajeDetalle('${vj.id}')">👁️ Entrar al viaje</button>
+        <button class="bg" style="width:100%;padding:9px;font-size:.78rem;font-weight:800;margin-top:8px" onclick="abrirViajeDetalle('${vj.id}')">${ico('ojo',14)} Entrar al viaje</button>
         <button class="bd" style="width:100%;padding:6px;font-size:.7rem;margin-top:5px" onclick="verRutaPublicado('${vj.id}')">🗺️ Ver recorrido en el mapa</button>
       </div>
     </div>`;
@@ -3364,8 +3367,8 @@ function renderViajes(){
       <div class="viaje-header" onclick="toggleViaje('${vj.id}')" style="cursor:pointer">
         <span style="font-size:.8rem;color:${estaAbierto?'var(--gold)':'var(--text3)'};transition:transform .2s;display:inline-block;align-self:flex-start;margin-top:2px;transform:rotate(${estaAbierto?'90':'0'}deg)">▶</span>
         <div class="viaje-info">
-          <div class="viaje-nombre">🚛 ${esc(vj.nombre)}${entregado?'<span style="font-size:.58rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:1px 7px;margin-left:4px;vertical-align:middle">✅ ENTREGADO</span>':vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div>
-          <div class="viaje-meta"><span>${p.length} parada${p.length!==1?'s':''}</span>${vj.km_real?`<span class="viaje-km">📍 ${vj.km_real} km</span>`:''}<span>📅 ${fFecha(vj.fecha)}</span><span style="color:${fi.color};font-weight:700">${fi.sub}</span></div>
+          <div class="viaje-nombre">${ico('flete',14)} ${esc(vj.nombre)}${entregado?'<span style="font-size:.58rem;font-weight:800;color:var(--green);border:1px solid #2a8c50;border-radius:20px;padding:1px 7px;margin-left:4px;vertical-align:middle">✅ ENTREGADO</span>':vj.publico?'<span class="flete-pub-badge">PUB</span>':''}</div>
+          <div class="viaje-meta"><span>${p.length} parada${p.length!==1?'s':''}</span>${vj.km_real?`<span class="viaje-km">${ico('pin',11)} ${vj.km_real} km</span>`:''}<span>${ico('fecha',11)} ${fFecha(vj.fecha)}</span><span style="color:${fi.color};font-weight:700">${fi.sub}</span></div>
           ${viajeVencido(vj)?`<div style="margin-top:5px"><span style="font-size:.6rem;font-weight:800;color:var(--red);border:1px solid var(--red);border-radius:20px;padding:2px 8px">${viajeVencido(vj)===1?'HACE 1 DÍA':'HACE '+viajeVencido(vj)+' DÍAS'} · ¿ya lo entregaste?</span> <button class="vbtn" style="font-size:.6rem;padding:2px 8px;color:var(--green);border-color:#2a8c50" onclick="event.stopPropagation();marcarViajeEntregado('${vj.id}',true)">Sí, entregado</button></div>`:''}
           ${clientesPrev.length?`<div style="font-size:.66rem;color:var(--text2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${clientesPrev.slice(0,2).join(' · ')}${clientesPrev.length>2?` <span style="color:var(--text3)">+${clientesPrev.length-2} más</span>`:''}</div>`:''}
           ${p.length?`<div style="display:flex;align-items:center;gap:7px;margin-top:5px">
@@ -3375,7 +3378,7 @@ function renderViajes(){
           </div>`:''}
         </div>
         <div style="display:flex;gap:3px;flex-shrink:0;align-self:flex-start">
-          <button class="vbtn" style="background:var(--gold);border:1px solid var(--gold);color:#111820;font-weight:800" title="Ver detalle completo" onclick="event.stopPropagation();abrirViajeDetalle('${vj.id}')">👁️</button>
+          <button class="vbtn" style="color:var(--gold);border-color:var(--gold)" title="Entrar al viaje" onclick="event.stopPropagation();abrirViajeDetalle('${vj.id}')">${ico('ojo',15)}</button>
           <button class="vbtn solo-desktop" style="background:var(--bg3);border:1px solid var(--border2);color:var(--gold)" onclick="event.stopPropagation();editarViaje('${vj.id}')">✏️</button>
           <button class="vbtn del solo-desktop" style="margin-left:5px" onclick="event.stopPropagation();eliminarViaje('${vj.id}')">✕</button>
         </div>
