@@ -1424,9 +1424,25 @@ function esAutoconsumo(producto,modelo){
 // ancho sale de la descripcion de la lista de precios, que vino de los
 // presupuestos en PDF.
 let CAP_GRUPOS={};
+// La lista de precios guarda "12tn" y las ventas "12 TN": comparando los
+// nombres tal cual no coincidia ninguno, y todo lo que depende del diametro
+// -la tabla de carga, las tarifas por ancho- quedaba sin efecto.
+function normModelo(x){return sinTildes(String(x||'').split(' · ')[0]).replace(/[^a-z0-9]/g,'');}
+function filaPrecio(producto,modelo){
+  if(!Array.isArray(PRECIOS)||!PRECIOS.length)return null;
+  const b=normModelo(modelo);if(!b)return null;
+  const tipo=esAutoconsumo(producto,modelo)?'comedero':'aereo';
+  const lista=PRECIOS.filter(x=>!x.tipo||x.tipo===tipo);
+  const igual=lista.find(x=>normModelo(x.modelo)===b);
+  if(igual)return igual;
+  // Si no esta igual, se busca por el tonelaje: los de la misma tonelada
+  // miden lo mismo (un 12 TN alero grande mide como el 12 TN).
+  const n=(b.match(/^(\d+)tn/)||[])[1];
+  if(!n)return null;
+  return lista.find(x=>(normModelo(x.modelo).match(/^(\d+)tn/)||[])[1]===n)||null;
+}
 function anchoDeModelo(producto,modelo){
-  const base=String(modelo||'').split(' · ')[0].trim().toLowerCase();
-  const p=PRECIOS.find(x=>String(x.modelo).trim().toLowerCase()===base);
+  const p=filaPrecio(producto,modelo);
   const d=p&&p.descripciones;
   const txt=d?(d['35']||Object.values(d)[0]||''):'';
   const m=String(txt).match(/base\s+([\d.,]+)\s*mts/i)||String(txt).match(/cilindro\s+([\d.,]+)\s*mts/i)
@@ -1438,8 +1454,7 @@ function anchoDeModelo(producto,modelo){
 // Cuantos entran de ese modelo en ese vehiculo
 function getMaxPorCamion(producto,modelo,veh){
   veh=veh||'camioneta';
-  const ancho=anchoDeModelo(producto,modelo);
-  const g=ancho&&CAP_GRUPOS[ancho];
+  const g=CAP_GRUPOS[claveCapacidad(producto,modelo)];
   if(g&&g[veh]>0)return g[veh];
   // Sin la tabla cargada, la cuenta de siempre: por toneladas
   const esAuto=esAutoconsumo(producto,modelo);
@@ -1464,14 +1479,22 @@ function ocupacionItem(obj,veh){return productosDe(obj).reduce((s,a)=>s+(a.canti
 function calcOcupacion(paradas,veh){return paradas.reduce((s,p)=>s+ocupacionItem(p,veh),0);}
 // Los anchos que aparecen en la lista de precios, para armar la tabla
 function gruposDeAncho(){
-  const g={};
+  const g={},sueltos=[];
   (PRECIOS||[]).forEach(p=>{
     const prod=p.tipo==='aereo'?'Silo Aéreo':'Autoconsumo';
     const a=anchoDeModelo(prod,p.modelo);
-    if(!a)return;
+    // Los modelos sin medida en la lista de precios (120tn para arriba) van
+    // cada uno por su cuenta, con su propia clave, para poder cargarlos.
+    if(!a){sueltos.push({ancho:claveCapacidad(prod,p.modelo),modelos:[p.modelo],sinMedida:true});return;}
     (g[a]=g[a]||[]).push(p.modelo);
   });
-  return Object.keys(g).sort((x,y)=>parseFloat(x)-parseFloat(y)).map(a=>({ancho:a,modelos:g[a]}));
+  return Object.keys(g).sort((x,y)=>parseFloat(x)-parseFloat(y))
+    .map(a=>({ancho:a,modelos:g[a]})).concat(sueltos);
+}
+// Con que clave se guarda la capacidad: el ancho si lo tiene, y si no el
+// modelo, para que ninguno quede sin poder cargarse.
+function claveCapacidad(producto,modelo){
+  return anchoDeModelo(producto,modelo)||modeloClave(producto,modelo);
 }
 // Tarifa $/km por unidad, según cuántas entran en un camión completo
 let TARIFA_KM={'1':3500,'2':2500,'3':1850,'5':1120,'6':930,'8':810,'20':800};
@@ -2108,10 +2131,10 @@ function renderCapacidades(){
       const ref=(PRECIOS||[]).find(z=>z.modelo===x.modelos[0]);
       const prod=(ref&&ref.tipo==='comedero')?'Autoconsumo':'Silo Aéreo';
       const porDefecto=c.camioneta||getMaxPorCamion(prod,x.modelos[0],'camioneta');
-      const inp=(veh,val)=>`<input type="number" min="0" step="1" value="${val||''}" data-ancho="${x.ancho}" data-veh="${veh}" class="cap-inp" style="width:62px;background:var(--bg);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:7px;font-size:.8rem;font-family:inherit;text-align:center"/>`;
+      const inp=(veh,val)=>`<input type="number" min="0" step="0.5" value="${val||''}" data-ancho="${x.ancho}" data-veh="${veh}" class="cap-inp" style="width:62px;background:var(--bg);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:7px;font-size:.8rem;font-family:inherit;text-align:center"/>`;
       return`<div style="display:flex;gap:6px;align-items:center;margin-bottom:5px">
         <div style="flex:1;min-width:0">
-          <div style="font-size:.8rem;font-weight:700">${x.ancho} mts</div>
+          <div style="font-size:.8rem;font-weight:700">${x.sinMedida?esc(x.modelos[0]):x.ancho+' mts'}</div>
           <div style="font-size:.62rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.modelos.join(' · '))}</div>
         </div>${inp('camioneta',porDefecto)}${inp('camion',c.camion)}</div>`;
     }).join('')
@@ -2120,7 +2143,7 @@ function renderCapacidades(){
 async function guardarCapacidades(){
   const nuevo={};
   document.querySelectorAll('.cap-inp').forEach(e=>{
-    const n=parseInt(e.value)||0;if(n<=0)return;
+    const n=parseFloat(String(e.value).replace(',','.'))||0;if(n<=0)return;
     const a=e.dataset.ancho;(nuevo[a]=nuevo[a]||{})[e.dataset.veh]=n;
   });
   CAP_GRUPOS=nuevo;
@@ -2143,9 +2166,9 @@ function razonCamion(){
 function anchosSinCamion(paradas){
   const faltan=new Set();
   paradas.forEach(p=>productosDe(p).forEach(a=>{
-    const an=anchoDeModelo(a.producto,a.modelo);
-    const g=an&&CAP_GRUPOS[an];
-    if(!(g&&g.camion>0))faltan.add(an||((a.producto||'')+' '+(a.modelo||'')));
+    const k=claveCapacidad(a.producto,a.modelo);
+    const g=CAP_GRUPOS[k];
+    if(!(g&&g.camion>0))faltan.add(anchoDeModelo(a.producto,a.modelo)||String(a.modelo||''));
   }));
   return [...faltan];
 }
@@ -2172,7 +2195,7 @@ function planVehiculo(paradas){
   // Si el camion no esta cargado no hay con que comparar: con varias
   // camionetas eso puede estar costando el doble sin que nadie lo vea.
   elegido.faltaCamion=!(cfgNum('km_camion',0)>0)||!(hayTablaCamion()||cfgNum('cargas_por_camion',0)>0);
-  elegido.sinCamion=cfgNum('cargas_por_camion',0)>0?[]:anchosSinCamion(paradas).map(a=>/^\d/.test(a)?a+' mts':a);
+  elegido.sinCamion=cfgNum('cargas_por_camion',0)>0?[]:anchosSinCamion(paradas).map(a=>/^\d+[.,]\d+$/.test(a)?a+' mts':a);
   return elegido;
 }
 // Cuanto falta para completar la carga, dicho en silos y no en porcentaje:
