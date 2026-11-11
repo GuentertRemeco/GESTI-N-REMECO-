@@ -1061,7 +1061,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v125';
+const VERSION='v126';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -1123,6 +1123,12 @@ const AEREO_MODELOS=['6TN','10TN','16TN','22TN','28TN','30TN','40TN','50TN','60T
 const AUTO_MODELOS=['2 TN 12 bocas','2 TN 18 bocas','4 TN','7 TN','7 TN con alero al medio','12 TN','12 TN alero grande','12 TN con alero al medio','12 TN cambio de base','18 TN alero al medio','18 TN cambio de base'];
 const CAP_AEREO={'6':8,'10':8,'16':6,'22':6,'28':6,'30':3,'40':3,'50':3,'60':3,'62':3,'72':3,'80':2,'100':2,'120':2,'140':2,'150':1,'175':1,'200':1};
 const CAP_AUTO={'2':8,'4':8,'7':6,'12':5,'18':5};
+const CAP_AEREO_CAMION={'6':12,'10':12,'16':9,'22':9,'28':9,'30':4.5,'40':4.5,'50':4.5,'60':4.5,'62':3.5,'72':3.5,'80':3,'100':3,'120':3,'140':3,'150':1,'175':1,'200':1};
+const CAP_AUTO_CAMION={'2':16,'4':16,'7':12,'12':10,'18':10};
+// Estos todavia no los confirmo el camionero
+const CAMION_ESTIMADO={auto:['2','4'],aereo:['6','10','16','22','28']};
+const KM_CAMION_DEF=4500;
+function kmCamion(){return cfgNum('km_camion',0)||KM_CAMION_DEF;}
 let PRECIO_KM=parseFloat(localStorage.getItem('remeco_precio_km'))||3500;
 // Piso de carga facturable: el camión se cobra como mínimo a este % lleno (para cargas parciales)
 let PISO_CARGA=(parseFloat(localStorage.getItem('remeco_piso'))||60)/100;
@@ -1459,7 +1465,8 @@ function getMaxPorCamion(producto,modelo,veh){
   if(g&&g[veh]>0)return g[veh];
   // Sin la tabla cargada, la cuenta de siempre: por toneladas
   const esAuto=esAutoconsumo(producto,modelo);
-  const tabla=esAuto?CAP_AUTO:CAP_AEREO;
+  const camDef=veh==='camion'&&!(cfgNum('cargas_por_camion',0)>0);
+  const tabla=camDef?(esAuto?CAP_AUTO_CAMION:CAP_AEREO_CAMION):(esAuto?CAP_AUTO:CAP_AEREO);
   const num=parseFloat((modelo||'').match(/\d+(?:\.\d+)?/)?.[0]||0);
   let base;
   if(!num)base=esAuto?20:8;
@@ -1471,8 +1478,6 @@ function getMaxPorCamion(producto,modelo,veh){
   if(veh==='camion'){
     const f=cfgNum('cargas_por_camion',0);
     if(f>0)return base*f;
-    const r=razonCamion();
-    return r>1?Math.max(1,Math.round(base*r)):base;
   }
   return base;
 }
@@ -1615,7 +1620,7 @@ function abrirConfig(){
   document.getElementById('cfg-desvio').value=DESVIO_MAX;
   document.getElementById('cfg-dias-aviso').value=DIAS_AVISO;
   document.getElementById('cfg-km-camioneta').value=cfgNum('km_camioneta',0)||'';
-  document.getElementById('cfg-km-camion').value=cfgNum('km_camion',0)||'';
+  document.getElementById('cfg-km-camion').value=kmCamion();
   document.getElementById('cfg-cargas-camion').value=cfgNum('cargas_por_camion',0)||'';
   document.getElementById('cfg-ajuste-aereo').value=cfgNum('ajuste_aereo',0)||'';
   document.getElementById('cfg-ajuste-comedero').value=cfgNum('ajuste_comedero',0)||'';
@@ -2137,7 +2142,7 @@ function renderCapacidades(){
         <div style="flex:1;min-width:0">
           <div style="font-size:.8rem;font-weight:700">${x.sinMedida?esc(x.modelos[0]):x.ancho+' mts'}</div>
           <div style="font-size:.62rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.modelos.join(' · '))}</div>
-        </div>${inp('camioneta',porDefecto)}${inp('camion',c.camion)}</div>`;
+        </div>${inp('camioneta',porDefecto)}${inp('camion',c.camion||getMaxPorCamion(prod,x.modelos[0],'camion'))}</div>`;
     }).join('')
     +`<p class="mmhint" style="margin:8px 0 0">Cuántos silos de ese ancho entran en cada vehículo. La columna de la camioneta ya viene con los números que usás hoy; falta la del camión. Lo que dejes vacío sigue con la cuenta de siempre.</p>`;
 }
@@ -2153,7 +2158,7 @@ function textoTablaCarga(){
     const prod=(ref&&ref.tipo==='comedero')?'Autoconsumo':'Silo Aéreo';
     const cta=c.camioneta||getMaxPorCamion(prod,x.modelos[0],'camioneta');
     t+=`\n*${x.ancho} mts* — ${x.modelos.join(', ')}\n`;
-    t+=`   camioneta: ${cta}   ·   camión: ${c.camion>0?c.camion:'___'}\n`;
+    t+=`   camioneta: ${cta}   ·   camión: ${c.camion>0?c.camion:getMaxPorCamion(prod,x.modelos[0],'camion')+' (a confirmar)'}\n`;
   });
   t+='\nGracias!';
   return t;
@@ -2194,21 +2199,24 @@ function anchosSinCamion(paradas){
   paradas.forEach(p=>productosDe(p).forEach(a=>{
     const k=claveCapacidad(a.producto,a.modelo);
     const g=CAP_GRUPOS[k];
-    if(!(g&&g.camion>0))faltan.add(anchoDeModelo(a.producto,a.modelo)||String(a.modelo||''));
+    if(g&&g.camion>0)return;
+    const tn=(String(a.modelo||'').match(/\d+/)||[])[0];
+    const lista=esAutoconsumo(a.producto,a.modelo)?CAMION_ESTIMADO.auto:CAMION_ESTIMADO.aereo;
+    if(lista.includes(tn))faltan.add(anchoDeModelo(a.producto,a.modelo)||String(a.modelo||''));
   }));
   return [...faltan];
 }
 function hayTablaCamion(){return Object.values(CAP_GRUPOS).some(g=>g&&g.camion>0);}
 function planVehiculo(paradas){
-  const kmCamioneta=cfgNum('km_camioneta',0),kmCamion=cfgNum('km_camion',0);
+  const kmCamioneta=cfgNum('km_camioneta',0)||PRECIO_KM,kmCam=kmCamion();
   const ops=[];
   if(kmCamioneta>0){
     const oc=calcOcupacion(paradas,'camioneta');
     if(oc>0)ops.push({veh:'camioneta',nombre:'camioneta + tráiler',oc,unidades:Math.max(1,Math.ceil(oc-1e-9)),porKm:kmCamioneta});
   }
-  if(kmCamion>0&&(hayTablaCamion()||cfgNum('cargas_por_camion',0)>0)){
+  if(kmCam>0){
     const oc=calcOcupacion(paradas,'camion');
-    if(oc>0)ops.push({veh:'camion',nombre:'camión',oc,unidades:Math.max(1,Math.ceil(oc-1e-9)),porKm:kmCamion});
+    if(oc>0)ops.push({veh:'camion',nombre:'camión',oc,unidades:Math.max(1,Math.ceil(oc-1e-9)),porKm:kmCam});
   }
   if(!ops.length)return null;
   ops.forEach(o=>{o.porKmTotal=o.unidades*o.porKm;o.llenado=o.oc/o.unidades;});
@@ -2220,7 +2228,7 @@ function planVehiculo(paradas){
   elegido.opciones=ops;
   // Si el camion no esta cargado no hay con que comparar: con varias
   // camionetas eso puede estar costando el doble sin que nadie lo vea.
-  elegido.faltaCamion=!(cfgNum('km_camion',0)>0)||!(hayTablaCamion()||cfgNum('cargas_por_camion',0)>0);
+  elegido.faltaCamion=false;
   elegido.sinCamion=cfgNum('cargas_por_camion',0)>0?[]:anchosSinCamion(paradas).map(a=>/^\d+[.,]\d+$/.test(a)?a+' mts':a);
   return elegido;
 }
