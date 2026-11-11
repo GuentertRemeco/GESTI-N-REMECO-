@@ -943,6 +943,7 @@ button{border:none;cursor:pointer;border-radius:7px;font-size:.78rem;font-weight
           <div id="cfg-tarifas-modelo"></div>
           <div class="inicio-stitle" style="margin:14px 0 8px">Cuántos entran, por ancho de silo</div>
           <div id="cfg-capacidades"></div>
+          <button class="bd" style="width:100%;margin-top:8px;padding:9px;font-size:.78rem" onclick="pasarTablaAlCamionero()">Pasarle la tabla al camionero (WhatsApp)</button>
           <p class="mmhint">Con estos tres números el flete del viaje deja de salir de la suma de los silos y pasa a ser lo que cobra el fletero: primero se busca llenar la camioneta, y si la carga la pasa, se compara con el camión y gana el que salga más barato.</p>
           <p class="mmhint" style="margin-bottom:0">El precio por km se usa en todos los viajes y el simulador. La carga mínima define cuánto se cobra un flete que va poco lleno: aunque un silo ocupe poco, el camión se factura como mínimo a ese % (ej: 60%).</p>
         </div>
@@ -1060,7 +1061,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v122';
+const VERSION='v123';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -2139,6 +2140,31 @@ function renderCapacidades(){
         </div>${inp('camioneta',porDefecto)}${inp('camion',c.camion)}</div>`;
     }).join('')
     +`<p class="mmhint" style="margin:8px 0 0">Cuántos silos de ese ancho entran en cada vehículo. La columna de la camioneta ya viene con los números que usás hoy; falta la del camión. Lo que dejes vacío sigue con la cuenta de siempre.</p>`;
+}
+// La tabla en texto, para mandarsela al camionero y que la complete el.
+function textoTablaCarga(){
+  const g=gruposDeAncho();
+  if(!g.length)return'';
+  let t='*Remeco · cuántos entran por carga*\n\n';
+  t+='Che, completame la última columna: cuántos de cada medida entran en el camión. La de la camioneta ya está.\n';
+  g.forEach(x=>{
+    const c=CAP_GRUPOS[x.ancho]||{};
+    const ref=(PRECIOS||[]).find(z=>z.modelo===x.modelos[0]);
+    const prod=(ref&&ref.tipo==='comedero')?'Autoconsumo':'Silo Aéreo';
+    const cta=c.camioneta||getMaxPorCamion(prod,x.modelos[0],'camioneta');
+    t+=`\n*${x.ancho} mts* — ${x.modelos.join(', ')}\n`;
+    t+=`   camioneta: ${cta}   ·   camión: ${c.camion>0?c.camion:'___'}\n`;
+  });
+  t+='\nGracias!';
+  return t;
+}
+function pasarTablaAlCamionero(){
+  const t=textoTablaCarga();
+  if(!t){toast('La tabla se arma con la lista de precios, que todavía no tiene las medidas.',6000);return;}
+  if(navigator.share){navigator.share({text:t}).catch(()=>{});return;}
+  navigator.clipboard.writeText(t)
+    .then(()=>toast('Tabla copiada — pegala en el WhatsApp del camionero',5000))
+    .catch(()=>alert(t));
 }
 async function guardarCapacidades(){
   const nuevo={};
