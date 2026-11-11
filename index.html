@@ -1061,7 +1061,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v127';
+const VERSION='v128';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -4259,13 +4259,10 @@ function _mostrarRutaViaje(id){
   const aLoc=p=>{if(p.lat&&p.lng)return{lat:parseFloat(p.lat),lng:parseFloat(p.lng)};if(p.localidad)return p.localidad+', Argentina';return null;};
   const conLoc=paradas.map(p=>({parada:p,loc:aLoc(p),coords:(p.lat&&p.lng)?{lat:parseFloat(p.lat),lng:parseFloat(p.lng)}:null})).filter(x=>x.loc);
   if(!conLoc.length){if(st){st.textContent='⚠️ Las paradas no tienen localidad ni coordenadas';st.style.background='#2a1010';st.style.color='var(--red)';}return;}
-  let idxDest=conLoc.length-1,maxD=-1;
-  conLoc.forEach((x,i)=>{if(x.coords){const d=distKm(FAB_LAT,FAB_LNG,x.coords.lat,x.coords.lng);if(d>maxD){maxD=d;idxDest=i;}}});
-  const destItem=conLoc[idxDest],restItems=conLoc.filter((_,i)=>i!==idxDest);
-  const destination=destItem.loc,waypoints=restItems.map(x=>({location:x.loc,stopover:true}));
-  if(st){st.textContent='🗺️ Calculando ruta más corta...';st.style.background='#1a2c40';st.style.color='var(--gold)';}
-  new google.maps.DirectionsService().route({origin:{lat:FAB_LAT,lng:FAB_LNG},destination,waypoints,optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{
-    if(status==='OK'){
+  if(st){st.textContent='Calculando la ruta más corta...';st.style.background='#1a2c40';st.style.color='var(--gold)';}
+  rutaMasCorta(conLoc).then(({res,idx})=>{
+    const destItem=conLoc[idx],restItems=conLoc.filter((_,i)=>i!==idx);
+    {
       directionsRenderer.setDirections(res);directionsRenderer.setRouteIndex(0);
       const km=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.distance.value,0)/1000);
       const mins=Math.round(res.routes[0].legs.reduce((s,l)=>s+l.duration.value,0)/60);
@@ -4289,8 +4286,8 @@ function _mostrarRutaViaje(id){
       if(st2){st2.textContent=`✓ ${km} km de ida · ${tiempoStr}`;st2.style.background='#0d2e18';st2.style.color='var(--green)';}
       // Guardar solo si el viaje es propio (no tocar viajes publicados por otra cuenta)
       if(viajesData.some(v=>v.id===id))sb.from('viajes').update({km_real:km,paradas_snap:paradasOrden}).eq('id',id).then(()=>{const kmSpan=document.querySelector(`#vjcard-${id} .viaje-km`);if(kmSpan)kmSpan.textContent=`📍 ${km} km`;});
-    } else {if(ri){ri.textContent='No se pudo calcular la ruta ('+status+')';ri.style.display='block';}if(st){st.textContent='⚠️ Error: '+status;st.style.background='#2a1010';st.style.color='var(--red)';}}
-  });
+    }
+  }).catch(status=>{if(ri){ri.textContent='No se pudo calcular la ruta ('+status+')';ri.style.display='block';}if(st){st.textContent='⚠️ Error: '+status;st.style.background='#2a1010';st.style.color='var(--red)';}});
 }
 // ── SIMULADOR DE FLETE (unificado) ───────────────────────────
 function initMapaSim(){
@@ -4306,6 +4303,24 @@ function initMapaSim(){
 }
 function clearOpcionesSim(){const o=document.getElementById('sim-opciones');if(o)o.innerHTML='';cerrarMapaSim();if(simDirRenderer)simDirRenderer.setDirections({routes:[]});if(simDirRenderer2)simDirRenderer2.setMap(null);clearSimMarkers();}
 function cerrarMapaSim(){const fw=document.querySelector('.simular-wrap');if(fw)fw.classList.remove('map-on');const info=document.getElementById('sim-ruta-info');if(info)info.style.display='none';if(simMap)setTimeout(()=>{try{google.maps.event.trigger(simMap,'resize');}catch(e){}},60);}
+// Prueba terminar el viaje en cada parada y se queda con el recorrido mas
+// corto. Con muchas paradas prueba solo las 4 mas lejanas, para no hacerle
+// demasiadas consultas a Google.
+async function rutaMasCorta(items){
+  const cand=items.map((x,i)=>({i,d:x.coords?distKm(FAB_LAT,FAB_LNG,x.coords.lat,x.coords.lng):-1}))
+    .sort((a,b)=>b.d-a.d).slice(0,4).map(c=>c.i);
+  let mejor=null,falla='ZERO_RESULTS';
+  for(const i of cand){
+    try{
+      const rest=items.filter((_,k)=>k!==i);
+      const res=await routeDir({lat:FAB_LAT,lng:FAB_LNG},items[i].loc||items[i].coords,rest.map(x=>({location:x.loc||x.coords,stopover:true})));
+      const m=res.routes[0].legs.reduce((t,l)=>t+l.distance.value,0);
+      if(!mejor||m<mejor.m)mejor={m,res,idx:i};
+    }catch(e){falla=e;}
+  }
+  if(!mejor)throw falla;
+  return mejor;
+}
 function routeDir(origin,destination,waypoints){
   return new Promise((resolve,reject)=>{
     new google.maps.DirectionsService().route({origin,destination,waypoints:waypoints||[],optimizeWaypoints:true,provideRouteAlternatives:false,travelMode:google.maps.TravelMode.DRIVING,region:'ar'},(res,status)=>{status==='OK'?resolve(res):reject(status);});
@@ -4332,9 +4347,9 @@ async function armarOpcionRuta(existingStops,userSilos){
     ...userSilos.map(s=>{const pr={productos:[{producto:s.prod,modelo:s.modelo,cantidad:s.cantidad||1}]};return{coords:{lat:s.lat,lng:s.lng},esp:ocupacionItem(pr),tar:tarifaItem(pr),isNew:true,label:`${s.nombre} · ${s.modelo}${(s.cantidad||1)>1?' ×'+s.cantidad:''}`};})
   ];
   if(!stops.length)return null;
-  let di=0,mx=-1;stops.forEach((s,i)=>{const d=distKm(FAB_LAT,FAB_LNG,s.coords.lat,s.coords.lng);if(d>mx){mx=d;di=i;}});
+  const mejor=await rutaMasCorta(stops);
+  const di=mejor.idx,res=mejor.res;
   const destStop=stops[di],rest=stops.filter((_,i)=>i!==di);
-  const res=await routeDir({lat:FAB_LAT,lng:FAB_LNG},destStop.coords,rest.map(s=>({location:s.coords,stopover:true})));
   const legs=res.routes[0].legs,km=Math.round(legs.reduce((s,l)=>s+l.distance.value,0)/1000);
   const order=res.routes[0].waypoint_order||[];
   let ordered=order.length?order.map(i=>rest[i]):[...rest];ordered.push(destStop);
