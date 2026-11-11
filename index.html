@@ -1061,7 +1061,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v128';
+const VERSION='v129';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -3492,7 +3492,7 @@ function renderViajes(){
         </div>
       </div>
       <div class="viaje-body${estaAbierto?' open':''}" id="vbody-${vj.id}">
-        ${estaAbierto?'<div class="ruta-cargando" id="ruta-status-'+vj.id+'">🗺️ Calculando ruta más corta...</div>':''}
+        ${estaAbierto?'<div class="ruta-cargando" id="ruta-status-'+vj.id+'">Calculando la ruta más corta...</div>'+opcionesRutaHtml(vj.id):''}
         ${p.length?p.map((x,i)=>{const c=flete.items[i]||{cobro:0,pct:0,located:false};const cobroHtml=flete.listo?`<div style="text-align:right;white-space:nowrap;margin-right:4px"><div style="color:var(--gold);font-weight:800;font-size:.74rem">${fPesos(c.cobro)}</div><div style="color:var(--text3);font-size:.6rem">${Math.round(c.pct*100)}%${c.located?'':' · s/ubic'}</div></div>`:'';return`<div class="vp-item"><div class="vp-num">${i+1}</div><div class="vp-info"><div class="vp-cli">${esc(x.cliente||x.nombre)||'—'}</div><div class="vp-sub">${paradaTexto(x)} · ${esc(x.localidad)}</div></div>${cobroHtml}<button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.75rem;padding:3px" onclick="quitarDelViaje('${vj.id}',${i},'${x.id||''}')">✕</button></div>`;}).join(''):'<div style="font-size:.72rem;color:var(--text3);padding:6px 0;text-align:center">Sin paradas — tocá "Agregar clientes"</div>'}
         ${barraCapacidad(p)}
         ${p.length?`<div style="background:var(--bg3);border:1px solid #1e3a55;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:.72rem">
@@ -4260,7 +4260,17 @@ function _mostrarRutaViaje(id){
   const conLoc=paradas.map(p=>({parada:p,loc:aLoc(p),coords:(p.lat&&p.lng)?{lat:parseFloat(p.lat),lng:parseFloat(p.lng)}:null})).filter(x=>x.loc);
   if(!conLoc.length){if(st){st.textContent='⚠️ Las paradas no tienen localidad ni coordenadas';st.style.background='#2a1010';st.style.color='var(--red)';}return;}
   if(st){st.textContent='Calculando la ruta más corta...';st.style.background='#1a2c40';st.style.color='var(--gold)';}
-  rutaMasCorta(conLoc).then(({res,idx})=>{
+  rutaMasCorta(conLoc).then(mejor=>{
+    // Las opciones: un recorrido por cada parada final que se probo
+    const lista=mejor.todas.map(t=>{
+      const rest=conLoc.filter((_,i)=>i!==t.idx),wo=t.res.routes[0].waypoint_order||[];
+      const ord=(wo.length?wo.map(i=>rest[i]):rest).concat([conLoc[t.idx]]);
+      return{clave:claveParada(conLoc[t.idx].parada),km:Math.round(t.m/1000),t,
+             orden:ord.map(x=>locCorta(x.parada.localidad||'').split(',')[0]||x.parada.cliente||'—')};});
+    // Si eligio una a mano y sigue existiendo, va esa; si no, la mas corta
+    const pref=rutaElegida(id),usada=(pref&&lista.find(x=>x.clave===pref))||lista[0];
+    RUTA_OPC[id]={lista:lista.map(({clave,km,orden})=>({clave,km,orden})),elegida:usada.clave};
+    const res=usada.t.res,idx=usada.t.idx;
     const destItem=conLoc[idx],restItems=conLoc.filter((_,i)=>i!==idx);
     {
       directionsRenderer.setDirections(res);directionsRenderer.setRouteIndex(0);
@@ -4303,22 +4313,48 @@ function initMapaSim(){
 }
 function clearOpcionesSim(){const o=document.getElementById('sim-opciones');if(o)o.innerHTML='';cerrarMapaSim();if(simDirRenderer)simDirRenderer.setDirections({routes:[]});if(simDirRenderer2)simDirRenderer2.setMap(null);clearSimMarkers();}
 function cerrarMapaSim(){const fw=document.querySelector('.simular-wrap');if(fw)fw.classList.remove('map-on');const info=document.getElementById('sim-ruta-info');if(info)info.style.display='none';if(simMap)setTimeout(()=>{try{google.maps.event.trigger(simMap,'resize');}catch(e){}},60);}
+// Las opciones de recorrido de cada viaje, y cual eligio el usuario a mano.
+const RUTA_OPC={};
+function claveParada(p){return String(p&&(p.id||p.cliente||p.nombre||p.localidad)||'');}
+function rutaElegida(id){try{return (JSON.parse(localStorage.getItem('remeco_ruta_fin')||'{}'))[id]||null;}catch{return null;}}
+function elegirRuta(id,clave){
+  try{const o=JSON.parse(localStorage.getItem('remeco_ruta_fin')||'{}');
+    if(clave)o[id]=clave;else delete o[id];
+    localStorage.setItem('remeco_ruta_fin',JSON.stringify(o));}catch(e){}
+  mostrarRutaViaje(id);
+}
+function opcionesRutaHtml(id){
+  const o=RUTA_OPC[id];
+  if(!o||o.lista.length<2)return'';
+  const min=o.lista[0].km;
+  return`<div style="margin:8px 0 2px;border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:var(--bg2)">
+    <div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:4px">Opciones de recorrido</div>
+    ${o.lista.map(x=>{const el=x.clave===o.elegida;
+      return`<div onclick="event.stopPropagation();elegirRuta('${id}','${esc(x.clave).replace(/'/g,"\\'")}')" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border);cursor:pointer;${el?'':'opacity:.7'}">
+        <span style="font-size:.72rem;color:${el?'var(--green)':'var(--text2)'};min-width:0">${el?'✓ ':''}${esc(x.orden.join(' → '))}</span>
+        <span style="font-size:.72rem;font-weight:800;white-space:nowrap;color:${el?'var(--gold)':'var(--text3)'}">${x.km} km${x.km>min?' <span style="font-weight:600">(+'+(x.km-min)+')</span>':''}</span>
+      </div>`;}).join('')}
+    <div style="font-size:.62rem;color:var(--text3);margin-top:4px">Tocá una para ir por ahí. Queda guardada para este viaje.</div>
+  </div>`;
+}
 // Prueba terminar el viaje en cada parada y se queda con el recorrido mas
 // corto. Con muchas paradas prueba solo las 4 mas lejanas, para no hacerle
 // demasiadas consultas a Google.
 async function rutaMasCorta(items){
   const cand=items.map((x,i)=>({i,d:x.coords?distKm(FAB_LAT,FAB_LNG,x.coords.lat,x.coords.lng):-1}))
     .sort((a,b)=>b.d-a.d).slice(0,4).map(c=>c.i);
-  let mejor=null,falla='ZERO_RESULTS';
+  let mejor=null,falla='ZERO_RESULTS';const todas=[];
   for(const i of cand){
     try{
       const rest=items.filter((_,k)=>k!==i);
       const res=await routeDir({lat:FAB_LAT,lng:FAB_LNG},items[i].loc||items[i].coords,rest.map(x=>({location:x.loc||x.coords,stopover:true})));
       const m=res.routes[0].legs.reduce((t,l)=>t+l.distance.value,0);
+      todas.push({m,res,idx:i});
       if(!mejor||m<mejor.m)mejor={m,res,idx:i};
     }catch(e){falla=e;}
   }
   if(!mejor)throw falla;
+  mejor.todas=todas.sort((a,b)=>a.m-b.m);
   return mejor;
 }
 function routeDir(origin,destination,waypoints){
