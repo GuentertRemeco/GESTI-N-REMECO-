@@ -1061,7 +1061,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v126';
+const VERSION='v127';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -2206,6 +2206,8 @@ function anchosSinCamion(paradas){
   }));
   return [...faltan];
 }
+function vehViaje(paradas){const pl=planVehiculo(paradas);return pl?pl.veh:'camioneta';}
+function ocViaje(paradas){const pl=planVehiculo(paradas);return pl?pl.oc:calcOcupacion(paradas);}
 function hayTablaCamion(){return Object.values(CAP_GRUPOS).some(g=>g&&g.camion>0);}
 function planVehiculo(paradas){
   const kmCamioneta=cfgNum('km_camioneta',0)||PRECIO_KM,kmCam=kmCamion();
@@ -2636,7 +2638,7 @@ function renderFpDisponibles(){
   const el=document.getElementById('fpDisponibles');if(!el)return;
   if(!pub.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--text3);font-size:.8rem">No hay fletes publicados.<br>Abrí un viaje y tocá "Publicar".</div>';return;}
   el.innerHTML=pub.map(vj=>{
-    const p=parsePar(vj.paradas_snap),oc=calcOcupacion(p);
+    const p=parsePar(vj.paradas_snap),oc=ocViaje(p);
     const libre=Math.max(0,(1-oc)*100).toFixed(0);
     const color=oc>=1?'var(--red)':oc>=0.75?'var(--yellow)':'var(--green)';
     const pct=Math.min(oc*100,100);
@@ -2716,9 +2718,10 @@ function vdVerMapa(){const id=vdViajeId;if(!id)return;cerrarViajeDetalle();ir('f
 function vdPintar(vj){
   const el=document.getElementById('vdBody');if(!el)return;
   const p=parsePar(vj.paradas_snap);
-  const oc=calcOcupacion(p),camiones=Math.ceil(oc);
+  const veh=vehViaje(p),esCta=veh==='camioneta';
+  const oc=ocViaje(p),camiones=Math.ceil(oc-1e-9);
   const libre=Math.max(0,(1-oc)*100);
-  const colOc=oc>=1?'var(--red)':oc>=.75?'var(--yellow)':'var(--green)';
+  const colOc=oc>1.001?'var(--red)':oc>=.75?'var(--yellow)':'var(--green)';
   const fi=vdFechaInfo(vj.fecha);
   const flete=calcularFlete(vj);
   const esMio=viajesData.some(v=>String(v.id)===String(vj.id));
@@ -2739,11 +2742,11 @@ function vdPintar(vj){
     <div class="vd-kpi${esMio?' ed':''}"${esMio?` onclick="editarViaje('${vj.id}')" title="Cambiar la fecha de salida"`:''}>${esMio?`<span class="ed-lap">${ico('lapiz',12)}</span>`:''}<div class="vd-kpi-lbl">${ico('fecha',11)} Sale</div><div class="vd-kpi-val">${vdFechaCorta(vj.fecha)}</div><div class="vd-kpi-sub" style="color:${fi.color}">${fi.sub}</div></div>
     <div class="vd-kpi"><div class="vd-kpi-lbl">${ico('pin',11)} Recorrido</div><div class="vd-kpi-val">${vj.km_real?Math.round(vj.km_real).toLocaleString('es-AR'):'—'}</div><div class="vd-kpi-sub">km</div></div>
     <div class="vd-kpi"><div class="vd-kpi-lbl">${ico('parada',11)} Paradas</div><div class="vd-kpi-val">${p.length}</div><div class="vd-kpi-sub">${mios.length?mios.length+' tuya'+(mios.length>1?'s':''):'ninguna tuya'}</div></div>
-    <div class="vd-kpi"><div class="vd-kpi-lbl">${ico('caja',11)} Camión</div><div class="vd-kpi-val" style="color:${colOc}">${Math.round(oc*100)}%</div><div class="vd-kpi-sub" style="color:${colOc}">${oc>=1?(camiones>1?camiones+' camiones':'1 camión'):Math.round(libre)+'% libre'}</div></div>
+    <div class="vd-kpi"><div class="vd-kpi-lbl">${ico('caja',11)} ${esCta?'Camioneta':'Camión'}</div><div class="vd-kpi-val" style="color:${colOc}">${Math.round(oc*100)}%</div><div class="vd-kpi-sub" style="color:${colOc}">${oc>1.001?camiones+(esCta?' camionetas':' camiones'):oc>=.995?'lleno':Math.round(libre)+'% libre'}</div></div>
   </div>
 
   <div class="vd-card" style="padding:12px 14px">
-    <div class="cap-bar-label" style="margin-bottom:6px"><span>Ocupación del camión</span><span style="color:${colOc};font-weight:800">${oc>=1?ico('objetivo',12)+' no entra en uno solo':Math.round(libre)+'% de lugar libre'}</span></div>
+    <div class="cap-bar-label" style="margin-bottom:6px"><span>Ocupación ${esCta?'de la camioneta':'del camión'}</span><span style="color:${colOc};font-weight:800">${oc>1.001?ico('objetivo',12)+' no entra en '+(esCta?'una sola':'uno solo'):Math.round(libre)+'% de lugar libre'}</span></div>
     <div class="cap-bar-track"><div class="cap-bar-fill" style="width:${Math.min(oc*100,100)}%;background:${colOc}"></div></div>
   </div>
 
@@ -2763,7 +2766,7 @@ function vdPintar(vj){
       const mio=ventas.some(v=>String(v.id)===String(x.id));
       const uid=_ownerCache[x.id];
       const vend=vdNombreVend(uid);
-      const esp=Math.round(ocupacionItem(x)*100);
+      const esp=Math.round(ocupacionItem(x,veh)*100);
       const c=flete.items[i]||{};
       const verPrecio=flete.listo&&(esMio||mio)&&c.cobro;
       const prods=productosDe(x);
@@ -2919,7 +2922,7 @@ function asContexto(){
     viajes:[...viajesData].slice(0,60).map(vj=>{const p=parsePar(vj.paradas_snap);return{
       nombre:vj.nombre||'',sale:vj.fecha||null,km:vj.km_real||null,
       entregado:viajeEntregado(vj),publicado:!!vj.publico,
-      ocupacion_camion:Math.round(calcOcupacion(p)*100)+'%',
+      va_en:vehViaje(p),ocupacion:Math.round(ocViaje(p)*100)+'%',
       paradas:p.map(x=>x.cliente||x.nombre||'').filter(Boolean)};}),
     ultimos_pasos:ACTIVIDAD.slice(0,40).map(f=>({
       cuando:f.fecha,quien:actQuien(f),que:f.titulo,detalle:f.detalle||''})),
@@ -3142,11 +3145,11 @@ function asCliente(nombre){
 // ── Todo sobre un viaje ──────────────────────────────────────
 function asViaje(vj){
   const p=parsePar(vj.paradas_snap);
-  const oc=calcOcupacion(p);
+  const oc=ocViaje(p);
   const flete=calcularFlete(vj);
   const d=diasHasta(vj.fecha);
   const venc=viajeVencido(vj);
-  const colOc=oc>=1?'var(--red)':oc>=.75?'var(--yellow)':'var(--green)';
+  const colOc=oc>1.001?'var(--red)':oc>=.75?'var(--yellow)':'var(--green)';
   return`<div class="as-tit">${esc(vj.nombre)}</div>
     <div class="as-dato"><span class="k">Sale</span><span class="v" style="color:${venc?'var(--red)':'var(--gold)'}">${fFecha(vj.fecha)}${venc?' · hace '+venc+' día'+(venc!==1?'s':''):d!=null&&d>=0?' · en '+d+' días':''}</span></div>
     <div class="as-dato"><span class="k">Paradas</span><span class="v">${p.length}</span></div>
@@ -3466,7 +3469,7 @@ function renderViajes(){
     const pubColor=vj.publico?'#2a8c50':'var(--border2)',pubBg=vj.publico?'#0d2e18':'var(--bg3)',pubTxt=vj.publico?'var(--green)':'var(--text3)';
     const fi=vdFechaInfo(vj.fecha);
     const clientesPrev=p.map(x=>esc(x.cliente||x.nombre||'')).filter(Boolean);
-    const ocPct=Math.round(calcOcupacion(p)*100);
+    const ocPct=Math.round(ocViaje(p)*100);
     const colOc=ocPct>=100?'var(--red)':ocPct>=75?'var(--yellow)':'var(--green)';
     return`<div class="viaje-card${estaAbierto?' activo':''}" id="vjcard-${vj.id}" style="border-color:${estaAbierto?'var(--gold)':vj.publico?'#2a8c50':'var(--border)'}">
       <div class="viaje-header" onclick="toggleViaje('${vj.id}')" style="cursor:pointer">
@@ -3592,7 +3595,7 @@ async function quitarDelViaje(vjId,idx,paradaId){
 }
 function exportarViaje(id){
   const vj=viajesData.find(v=>v.id===id);if(!vj)return;
-  const p=parsePar(vj.paradas_snap),oc=calcOcupacion(p);
+  const p=parsePar(vj.paradas_snap),oc=ocViaje(p);
   const flete=calcularFlete(vj);
   let t=`*🚛 ${vj.nombre}*\n📅 ${fFecha(vj.fecha)}\n🏭 Salida: Remeco, La Pampa\n\n`;
   p.forEach((x,i)=>{const c=flete.items[i];const cobro=flete.listo&&c?` — *${fPesos(c.cobro)}* (${Math.round(c.pct*100)}%)`:'';t+=`${i+1}. *${x.cliente||x.nombre||'—'}*\n   ${paradaTexto(x)} · ${x.localidad||''}${cobro}\n\n`;});
