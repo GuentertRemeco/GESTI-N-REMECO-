@@ -1061,7 +1061,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v129';
+const VERSION='v131';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -3083,8 +3083,11 @@ function asFiltrarSinViaje(){
   ir('ventas');renderVentas();
 }
 // ── Que fabrico primero ──────────────────────────────────────
+// Falta fabricarlo solo si todavia esta Confirmado o En produccion: Listo para
+// entregar ya esta terminado, esperando camion.
+function porFabricar(v){return !['Listo para entregar','En camino','Entregado'].includes(v.estado);}
 function asFabricar(){
-  const l=ventas.filter(v=>v.estado!=='Entregado'&&v.estado!=='En camino')
+  const l=ventas.filter(porFabricar)
     .sort((a,b)=>{const x=diasHasta(a.fecha_entrega),y=diasHasta(b.fecha_entrega);
       if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return x-y;});
   if(!l.length)return'<div>No tenés nada en cola para fabricar.</div>';
@@ -5039,10 +5042,10 @@ function textoDias(n){
 }
 function renderProduccion(){
   const el=document.getElementById('ventas-prod-wrap');if(!el)return;
-  // Lo que ya salio del galpon no se fabrica mas: En camino y Entregado afuera
-  const pend=ventas.filter(v=>v.estado!=='Entregado'&&v.estado!=='En camino');
+  // Lo que ya esta terminado no se fabrica mas: Listo para entregar, En camino y Entregado afuera
+  const pend=ventas.filter(porFabricar);
   if(!pend.length){
-    el.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--text3);font-size:.84rem">No hay nada para fabricar.<br>Todo lo cargado ya salió del galpón.</div>';
+    el.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--text3);font-size:.84rem">No hay nada para fabricar.<br>Todo lo cargado ya está terminado.</div>';
     return;
   }
   const conDias=pend.map(v=>({v,d:diasHasta(v.fecha_entrega)}));
