@@ -1061,7 +1061,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v129';
+const VERSION='v130';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -5206,11 +5206,17 @@ function calcFleteDetalle(){
   if(!silos.length)return null;
   const prods=silos.map(s=>({producto:calcProdNombre(s),modelo:calcModeloStr(s),cantidad:1}));
   const porSilo=tarifaItem({productos:prods},provDe(calc.loc))*calc.km;
-  const oc=ocupacionItem({productos:prods});
-  const vehiculos=Math.max(1,Math.ceil(oc-1e-9));
-  const tope=vehiculos*PRECIO_KM*calc.km;
+  // El techo de lo que se cobra es el vehiculo mas barato para llevar toda la
+  // carga: antes solo se miraban camionetas y el camion nunca competia.
+  const item={productos:prods};
+  const ocCta=ocupacionItem(item,'camioneta'),ocCam=ocupacionItem(item,'camion');
+  const nCta=Math.max(1,Math.ceil(ocCta-1e-9)),nCam=Math.max(1,Math.ceil(ocCam-1e-9));
+  const topeCta=nCta*PRECIO_KM*calc.km,topeCam=nCam*kmCamion()*calc.km;
+  const usaCam=topeCam<topeCta;
+  const tope=usaCam?topeCam:topeCta;
   const llena=porSilo>=tope;
-  return{total:aMiles(llena?tope:porSilo),llena,vehiculos,oc};
+  return{total:aMiles(llena?tope:porSilo),llena,
+         vehiculos:usaCam?nCam:nCta,oc:usaCam?ocCam:ocCta,veh:usaCam?'camion':'camioneta'};
 }
 function calcFleteTotal(){
   const d=calcFleteDetalle();
@@ -5225,7 +5231,7 @@ function calcPintarResumen(){
     +(calc.flete?(()=>{
       const d=calc.km?calcFleteDetalle():null;
       return`<div class="calc-rrow"><span>Flete${calc.km?' ('+calc.km+' km)':''}</span><span>${calc.km?fPesos(fl):'<span style="color:var(--text3)">falta la distancia</span>'}</span></div>`
-        +((d&&d.llena)?`<div style="font-size:.66rem;color:var(--text3);text-align:right;margin-top:-2px">${d.vehiculos>1?d.vehiculos+' cargas completas':'carga completa'} · se cobra el vehículo</div>`:'');
+        +((d&&d.llena)?`<div style="font-size:.66rem;color:var(--text3);text-align:right;margin-top:-2px">${d.veh==='camion'?(d.vehiculos>1?d.vehiculos+' camiones':'1 camión'):(d.vehiculos>1?d.vehiculos+' camionetas':'1 camioneta')} completo${d.vehiculos>1?'s':''} · se cobra el vehículo</div>`:'');
     })():'')
     +`<div class="calc-rrow" style="border-top:1px solid var(--border);margin-top:5px;padding-top:7px;font-weight:800"><span>Total</span><span style="color:var(--gold)">${fPesos(sub+fl)}</span></div>
       <div style="font-size:.68rem;color:var(--text3);text-align:right;margin-top:3px">${calc.iva?'IVA '+cfgNum('iva',10.5)+'% incluido':'Sin IVA'} · dólar $${cfgNum('dolar',1485)}</div>`;
