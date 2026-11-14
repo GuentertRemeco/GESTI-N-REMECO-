@@ -61,18 +61,18 @@ insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('aereo'
 on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
 insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('aereo','80tn',6100,12,'{"35": "Silo base aérea 80 tn, diámetro 5.20 mts, cono 35° altura 7 mts, 4 filas de chapas de alto y 5 chapas de 11 pies la vuelta"}'::jsonb,'img/silos/aereo-80tn.jpg')
 on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
-insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('aereo','100tn',6572,13,'{"35": "Silo base aérea 100 tn, diámetro 5.20 mts, cono 35° altura 8 mts, 5 filas de chapas de alto y 5 chapas de 11 pies la vuelta Silo base aérea 120 tn, diámetro 5.20 mts, cono 35° altura 9 mts, 6 filas de chapas de alto y 5 chapas de 11 pies la vuelta"}'::jsonb,'img/silos/aereo-100tn.jpg')
-on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
-insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('aereo','120tn',0,14,'{}'::jsonb,'img/silos/aereo-120tn.jpg')
-on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
-insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('aereo','140tn',0,15,'{}'::jsonb,null)
-on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
-insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('aereo','150tn',0,16,'{}'::jsonb,null)
-on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
-insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('aereo','175tn',0,17,'{}'::jsonb,null)
-on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
-insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('aereo','200tn',0,18,'{}'::jsonb,null)
-on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=excluded.imagen, orden=excluded.orden;
+insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('aereo','100tn',6572,13,'{"35": "Silo base aérea 100 tn, diámetro 5.20 mts, cono 35° altura 8 mts, 5 filas de chapas de alto y 5 chapas de 11 pies la vuelta"}'::jsonb,'img/silos/aereo-100tn.jpg')
+on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=coalesce(excluded.imagen,precios.imagen), orden=excluded.orden;
+insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('aereo','120tn',7559.6,14,'{"35": "Silo base aérea 120 tn, diámetro 5.20 mts, cono 35° altura 9 mts, 6 filas de chapas de alto y 5 chapas de 11 pies la vuelta"}'::jsonb,'img/silos/aereo-120tn.jpg')
+on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=coalesce(excluded.imagen,precios.imagen), orden=excluded.orden;
+insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('aereo','140tn',10149.5,15,'{"35": "Silo base aérea 140 tn, diámetro 5.20 mts, altura 10 mts, 7 filas de chapas de alto y 5 chapas de 11 pies la vuelta"}'::jsonb,null)
+on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=coalesce(excluded.imagen,precios.imagen), orden=excluded.orden;
+insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('aereo','150tn',12800,16,'{"35": "Silo base aérea 150 tn, diámetro 6.20 mts, altura 8.6 mts, 5 filas de chapas de alto y 6 chapas de 11 pies la vuelta"}'::jsonb,null)
+on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=coalesce(excluded.imagen,precios.imagen), orden=excluded.orden;
+insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('aereo','175tn',13600,17,'{"35": "Silo base aérea 175 tn, diámetro 6.20 mts, altura 9.6 mts, 6 filas de chapas de alto y 6 chapas de 11 pies la vuelta"}'::jsonb,null)
+on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=coalesce(excluded.imagen,precios.imagen), orden=excluded.orden;
+insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('aereo','200tn',15000,18,'{"35": "Silo base aérea 200 tn, diámetro 6.20 mts, altura 10.6 mts, 7 filas de chapas de alto y 6 chapas de 11 pies la vuelta"}'::jsonb,null)
+on conflict (tipo,modelo) do update set usd=excluded.usd, descripciones=excluded.descripciones, imagen=coalesce(excluded.imagen,precios.imagen), orden=excluded.orden;
 
 -- ---------- Comederos / Autoconsumo ----------
 insert into precios (tipo,modelo,usd,orden,descripciones,imagen) values ('comedero','2tn 12 bocas',1787,1,'{"35": "Silo comedero autoconsumo 2tn, 12 bocas, cilindro 1.52mts de diámetro, base 2.16mts diámetro, techo 2.45mts diámetro, altura 2,70mts, vuelo alero 0,50mts"}'::jsonb,'img/silos/comedero-2tn-12bocas.jpg')
