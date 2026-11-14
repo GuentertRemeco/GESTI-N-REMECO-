@@ -1061,7 +1061,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v131';
+const VERSION='v132';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -2463,6 +2463,7 @@ async function cargarDatos(){
   try{if(!_vendCache){const{data:vend}=await sb.from('vendedores').select('user_id,nombre');_vendCache={};(vend||[]).forEach(x=>{_vendCache[x.user_id]=x.nombre;});}}catch(e){}
   // renderViajes() de nuevo: la sección "tus clientes en viajes de otros" necesita fletesPublicos
   renderViajes();renderFpDisponibles();renderRankingInicio();
+  if(!ve)await limpiarParadasHuerfanas();
   if(mapMapa)actMarkersMapa();
   setTimeout(()=>{completarKmFaltantes();},2500);
   if(mapClientes&&cliVistaActual==='mapa')initMapaClientes();
@@ -2617,6 +2618,34 @@ function renderAvisos(){
   el.innerHTML=bloque('Para resolver','objetivo','var(--gold)',
     todo.slice(0,MUESTRO).map(x=>fila(x.v,x.col,x.txt))
     .concat(resto>0?[`<div onclick="ir('ventas')" style="padding:7px 0 2px;border-top:1px solid var(--border);font-size:.7rem;color:var(--text3);cursor:pointer">y ${resto} ${resto===1?'cosa':'cosas'} más · ver todas →</div>`]:[]));
+}
+// Una parada de mis viajes cuya venta ya no existe: se borro desde otro lado,
+// o el viaje no se pudo actualizar en su momento. Se saca sola.
+async function limpiarParadasHuerfanas(){
+  // Sin ventas cargadas no se toca nada: una carga fallida no puede vaciar los viajes.
+  if(!Array.isArray(ventas)||!ventas.length||!viajesData.length)return;
+  const ids=new Set(ventas.map(v=>String(v.id)));
+  const nombres=[];
+  for(const vj of viajesData){
+    if(viajeEntregado(vj))continue;
+    const paradas=parsePar(vj.paradas_snap);
+    const huerf=paradas.filter(p=>p.id!=null&&!ids.has(String(p.id)));
+    if(!huerf.length)continue;
+    const nuevas=paradas.filter(p=>!(p.id!=null&&!ids.has(String(p.id))));
+    const pids=parsePar(vj.pedido_ids||[]).filter(x=>ids.has(String(x)));
+    const r=await sb.from('viajes').update({paradas_snap:nuevas,pedido_ids:pids,km_real:null,tramos_km:null}).eq('id',vj.id).select();
+    if(r.error||!r.data||!r.data.length)continue; // no se pudo: se reintenta la proxima vez
+    vj.paradas_snap=nuevas;vj.pedido_ids=pids;vj.km_real=null;vj.tramos_km=null;
+    const fp=fletesPublicos.find(x=>String(x.id)===String(vj.id));if(fp){fp.paradas_snap=nuevas;fp.pedido_ids=pids;}
+    huerf.forEach(h=>{
+      nombres.push((h.cliente||h.nombre||'una parada')+' de "'+(vj.nombre||'un viaje')+'"');
+      registrar('parada','Sacó a '+(h.cliente||h.nombre||'una parada')+' del viaje "'+(vj.nombre||'—')+'"','esa venta ya no existe',vj.id);
+    });
+  }
+  if(nombres.length){
+    renderViajes();renderProxFletes();renderFpDisponibles();vdRefrescar();
+    toast('Saqué '+nombres.join(', ')+': esa venta ya no existe.',7000);
+  }
 }
 function renderPendientes(){
   const p=ventas.filter(v=>v.estado!=='Entregado').slice(0,4);
@@ -3901,18 +3930,27 @@ async function eliminarVenta(id){
   const{error}=await sb.from('ventas').delete().eq('id',id);
   if(error){toast('Error: '+error.message);return;}
   registrar('venta','Borró la venta de '+((_v&&_v.cliente)||'—'),_v&&_v.localidad?locCorta(_v.localidad):'',id);
-  // Sacarlo también de los viajes donde estaba agregado
-  let sacado=0;
+  // Sacarlo también de los viajes donde estaba agregado. Las paradas viejas
+  // no guardan el id de la venta, y esas se reconocen por el nombre.
+  const nombre=((_v&&_v.cliente)||'').trim().toLowerCase();
+  const esDeEsta=p=>String(p.id)===String(id)||(p.id==null&&nombre&&String(p.cliente||p.nombre||'').trim().toLowerCase()===nombre);
+  let sacado=0;const fallaron=[];
   for(const vj of viajesData){
     const paradas=parsePar(vj.paradas_snap);
-    const nuevas=paradas.filter(p=>String(p.id)!==String(id));
+    const nuevas=paradas.filter(p=>!esDeEsta(p));
     if(nuevas.length!==paradas.length){
-      const pids=(vj.pedido_ids||[]).filter(x=>String(x)!==String(id));
-      await sb.from('viajes').update({paradas_snap:nuevas,pedido_ids:pids,km_real:null,tramos_km:null}).eq('id',vj.id);
+      const pids=parsePar(vj.pedido_ids||[]).filter(x=>String(x)!==String(id));
+      const r=await sb.from('viajes').update({paradas_snap:nuevas,pedido_ids:pids,km_real:null,tramos_km:null}).eq('id',vj.id).select();
+      // Antes no se miraba el resultado: si la base rechazaba el cambio el viaje
+      // se veia limpio hasta recargar, y la parada volvia.
+      if(r.error||!r.data||!r.data.length){fallaron.push(vj.nombre||'un viaje');continue;}
       vj.paradas_snap=nuevas;vj.pedido_ids=pids;vj.km_real=null;vj.tramos_km=null;sacado++;
+      const fp=fletesPublicos.find(x=>String(x.id)===String(vj.id));if(fp){fp.paradas_snap=nuevas;fp.pedido_ids=pids;}
     }
   }
-  toast(sacado?'Eliminada (también se sacó de '+sacado+' viaje'+(sacado>1?'s':'')+')':'Eliminada');
+  toast(fallaron.length
+    ?'Eliminada, pero no pude sacarla de "'+fallaron.join('", "')+'". Sacala con la ✕ de ese viaje.'
+    :sacado?'Eliminada (también se sacó de '+sacado+' viaje'+(sacado>1?'s':'')+')':'Eliminada',fallaron.length?8000:undefined);
   await cargarDatos();
 }
 async function guardarNuevoViaje(){
