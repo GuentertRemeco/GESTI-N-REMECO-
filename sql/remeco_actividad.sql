@@ -9,7 +9,7 @@
 
 create table if not exists public.actividad (
   id         bigint generated always as identity primary key,
-  empresa_id uuid,
+  empresa_id bigint,
   user_id    uuid,
   fecha      timestamptz not null default now(),
   tipo       text,
