@@ -18,6 +18,9 @@ create table if not exists public.actividad (
   ref_id     text
 );
 
+-- Si la tabla ya existia con el tipo equivocado (uuid), esto lo corrige.
+alter table public.actividad alter column empresa_id type bigint using null;
+
 create index if not exists actividad_empresa_fecha_idx
   on public.actividad (empresa_id, fecha desc);
 
