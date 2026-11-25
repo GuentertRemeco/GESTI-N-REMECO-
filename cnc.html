@@ -1131,7 +1131,7 @@ function play() {
 /* ---------- descarga ---------- */
 let downloads = null;
 (async () => { try { downloads = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { downloads = null; } setDlNote(); })();
-function baseName() { return (state.name || "corte").replace(/\.dxf$/i, "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\-. ]+/g, "_"); }
+function baseName() { return (state.name || "corte").replace(/\.dxf$/i, "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\-.]+/g, "_").toUpperCase(); }
 function setDlNote() {
   $("dlNote").textContent = downloads
     ? "Se guarda como .txt (el F2100B lee código G en .txt). Si la máquina no lo muestra, cambiale la extensión a .nc."
