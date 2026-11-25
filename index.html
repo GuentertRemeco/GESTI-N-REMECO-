@@ -1095,7 +1095,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 // al vendedor no lo dejaba entrar nunca.
 const sb=supabase.createClient(SURL,SKEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 
-const VERSION='v133';
+const VERSION='v134';
 const TEL_FABRICA='2954201051';
 const MAIL_FABRICA='metalurgicaremeco4@gmail.com';
 // ── ÍCONOS ───────────────────────────────────────────────────
@@ -4359,10 +4359,30 @@ function pintarClientesEn(map,previos){
   const fabM=new google.maps.Marker({position:{lat:FAB_LAT,lng:FAB_LNG},map,title:'Remeco – Fábrica',label:{text:'🏭',fontSize:'16px'},icon:{path:google.maps.SymbolPath.CIRCLE,scale:14,fillColor:'#1a5230',fillOpacity:1,strokeColor:'#fff',strokeWeight:2}});
   const fabIW=new google.maps.InfoWindow({content:'<div style="font-family:sans-serif"><strong>🏭 Metalúrgica Remeco</strong><br>Colonia Menonita, Campo 2, La Pampa</div>'});
   fabM.addListener('click',()=>fabIW.open(map,fabM));out.push(fabM);
+  // Varias ventas pueden estar en el mismo lugar (el mismo cliente que compra
+  // dos veces): se dibuja un solo punto por lugar. Antes cada venta era un
+  // punto aparte y se tapaban entre si: una venta pendiente quedaba escondida
+  // debajo de una entregada.
+  const lugares={};
   ventas.forEach(v=>{
     if(!v.lat||!v.lng)return;
-    const mk=new google.maps.Marker({position:{lat:parseFloat(v.lat),lng:parseFloat(v.lng)},map,title:v.cliente,icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:COL[v.estado]||'#c9a840',fillOpacity:1,strokeColor:'#fff',strokeWeight:2,scale:9}});
-    const iw=new google.maps.InfoWindow({content:`<div style="font-family:sans-serif;min-width:150px"><strong>${esc(v.cliente)}</strong><br>${paradaTexto(v)}<br>📍 ${esc(v.localidad)}<br><span style="color:${COL[v.estado]||'#333'}">${esc(v.estado)}</span><br>${v.precio?'<strong>$'+fNum(v.precio)+'</strong>':''}${v.fecha_entrega?'<br>📅 '+fFecha(v.fecha_entrega):''}</div>`});
+    const k=parseFloat(v.lat).toFixed(4)+','+parseFloat(v.lng).toFixed(4);
+    (lugares[k]=lugares[k]||[]).push(v);
+  });
+  Object.values(lugares).forEach(grupo=>{
+    // Lo que falta entregar va primero, y entre eso lo que antes se entrega
+    const pend=grupo.filter(x=>x.estado!=='Entregado')
+      .sort((a,b)=>String(a.fecha_entrega||'9999').localeCompare(String(b.fecha_entrega||'9999')));
+    const hechas=grupo.filter(x=>x.estado==='Entregado')
+      .sort((a,b)=>String(b.fecha_entrega||'').localeCompare(String(a.fecha_entrega||'')));
+    const orden=[...pend,...hechas],v=orden[0];
+    const mk=new google.maps.Marker({
+      position:{lat:parseFloat(v.lat),lng:parseFloat(v.lng)},map,title:grupo.map(x=>x.cliente).join(' · '),
+      zIndex:pend.length?1000:1, // lo pendiente siempre por encima
+      label:grupo.length>1?{text:String(grupo.length),color:'#111820',fontSize:'11px',fontWeight:'800'}:undefined,
+      icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:COL[v.estado]||'#c9a840',fillOpacity:1,strokeColor:'#fff',strokeWeight:2,scale:grupo.length>1?11:9}});
+    const ficha=x=>`<div style="padding:5px 0;${x!==orden[0]?'border-top:1px solid #ddd;margin-top:5px':''}"><strong>${esc(x.cliente)}</strong><br>${paradaTexto(x)}<br>📍 ${esc(x.localidad)}<br><span style="color:${COL[x.estado]||'#333'}">${esc(x.estado)}</span><br>${x.precio?'<strong>$'+fNum(x.precio)+'</strong>':''}${x.fecha_entrega?'<br>📅 '+fFecha(x.fecha_entrega):''}</div>`;
+    const iw=new google.maps.InfoWindow({content:`<div style="font-family:sans-serif;min-width:170px;max-height:260px;overflow-y:auto">${orden.map(ficha).join('')}</div>`});
     mk.addListener('click',()=>iw.open(map,mk));out.push(mk);
   });
   return out;
