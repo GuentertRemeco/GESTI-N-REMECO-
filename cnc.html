@@ -1,0 +1,1291 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0;padding:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head><body>
+<title>Conversor DXF a CNC</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: banda de encabezado + mesa de trabajo en dos columnas (ajustes | vista de la chapa y código) */
+:root {
+  --bg: #eceff2; --panel: #ffffff; --ink: #1a2330; --muted: #5b6674; --line: #d0d6dd;
+  --accent: #cf531b; --accent-ink: #ffffff; --pierce: #1d6cb0; --rapid: #8b96a4; --sheet: #f6f7f9;
+  --warn-bg: #fff3e6; --warn-ink: #8a3b0c;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #13171c; --panel: #1b2027; --ink: #e3e7eb; --muted: #9aa4b0; --line: #2d353f;
+  --accent: #f0793c; --accent-ink: #1a1006; --pierce: #5ba6e6; --rapid: #6d7886; --sheet: #171b21;
+  --warn-bg: #3a2414; --warn-ink: #ffc59c; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #13171c; --panel: #1b2027; --ink: #e3e7eb; --muted: #9aa4b0; --line: #2d353f;
+  --accent: #f0793c; --accent-ink: #1a1006; --pierce: #5ba6e6; --rapid: #6d7886; --sheet: #171b21;
+  --warn-bg: #3a2414; --warn-ink: #ffc59c; color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.45; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 20px;
+  border-bottom: 2px solid var(--ink); padding-bottom: 10px; margin-bottom: 18px; }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: 34px; letter-spacing: .01em; margin: 0; line-height: 1; text-transform: uppercase; }
+h1 span { color: var(--accent); }
+.sub { color: var(--muted); font-size: 14px; margin: 0; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0; }
+
+.grid { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 880px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+.drop { border: 2px dashed var(--line); border-radius: 6px; padding: 18px 12px; text-align: center; cursor: pointer; display: flex; flex-direction: column; gap: 6px; align-items: center; transition: border-color .15s, background .15s; }
+.drop:hover, .drop.over, .drop:focus-visible { border-color: var(--accent); outline: none; }
+.drop strong { font-size: 15px; }
+.drop small { color: var(--muted); }
+.file { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; }
+.file b { overflow-wrap: anywhere; }
+.badge { font-family: var(--f-mono); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; border: 1px solid var(--line); color: var(--muted); }
+
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field.full { grid-column: 1 / -1; }
+label, .lbl { font-size: 12px; color: var(--muted); font-weight: 500; }
+select { font: 500 14px var(--f-body) !important; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.seg label { display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--line); border-radius: 5px; padding: 9px 10px; cursor: pointer; color: var(--ink); font-size: 14px; font-weight: 600; background: var(--bg); }
+.seg label small { font-weight: 400; color: var(--muted); font-size: 12px; line-height: 1.35; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--panel); }
+.seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+.field[hidden] { display: none; }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+.tabs button { border: 0; border-radius: 0; background: var(--bg); color: var(--muted); padding: 8px 10px; }
+.tabs button[aria-selected="true"] { background: var(--ink); color: var(--panel); }
+.pane { display: flex; flex-direction: column; gap: 10px; }
+.fields.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.chatlog { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 10px; }
+.chatlog p { margin: 0; font-size: 13.5px; }
+.chatlog .hint { color: var(--muted); }
+.bubble { padding: 8px 10px; border-radius: 6px; font-size: 13.5px; max-width: 92%; overflow-wrap: anywhere; white-space: pre-wrap; }
+.bubble.me { align-self: flex-end; background: var(--ink); color: var(--panel); }
+.bubble.ai { align-self: flex-start; background: var(--panel); border: 1px solid var(--line); }
+.bubble.ai small { display: block; color: var(--muted); margin-top: 4px; font-size: 12px; }
+.bubble.err { border-color: var(--accent); }
+textarea { font: 14px/1.4 var(--f-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 8px; resize: vertical; width: 100%; box-sizing: border-box; }
+textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.rotbox { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); padding-top: 12px; }
+.rotbtns { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.rotbtns button { padding: 8px 4px; font-size: 13.5px; }
+.rotbtns button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.cleanbox { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); padding-top: 12px; }
+canvas.picking { cursor: crosshair; }
+input[type=number], select { font: 500 14px var(--f-mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 7px 8px; width: 100%; box-sizing: border-box; }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; color: var(--ink); }
+.check input { margin-top: 3px; accent-color: var(--accent); }
+.check small { display: block; color: var(--muted); font-size: 12px; }
+.layers { display: flex; flex-direction: column; gap: 6px; max-height: 160px; overflow: auto; }
+
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.stat { background: var(--panel); padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.stat .v { font: 600 22px var(--f-display); letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+.stat .k { font-size: 12px; color: var(--muted); }
+@media (max-width: 520px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: 600 14px var(--f-body); border-radius: 4px; padding: 9px 14px; cursor: pointer; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+button:hover { border-color: var(--ink); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-size: 15px; padding: 11px 18px; }
+button.primary:hover { filter: brightness(1.06); }
+button:disabled { opacity: .5; cursor: default; }
+.note { font-size: 12.5px; color: var(--muted); margin: 0; }
+.msg { font-size: 13px; min-height: 1.2em; margin: 0; }
+.warn { background: var(--warn-bg); color: var(--warn-ink); border-radius: 4px; padding: 8px 10px; font-size: 13px; margin: 0; }
+
+.viewhead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 14px; height: 0; border-top: 2px solid; vertical-align: middle; margin-right: 5px; }
+.legend i.dot { width: 7px; height: 7px; border: 0; border-radius: 50%; background: var(--pierce); }
+.canvasbox { position: relative; width: 100%; aspect-ratio: 4 / 3.2; max-width: 100%; background: var(--sheet); border-radius: 4px; }
+canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.sim { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sim input[type=range] { flex: 1 1 200px; accent-color: var(--accent); min-width: 0; }
+.sim span { font: 13px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+pre { margin: 0; font: 12.5px/1.5 var(--f-mono); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; max-height: 320px; overflow: auto; white-space: pre; }
+details summary { cursor: pointer; font-size: 14px; font-weight: 600; }
+details[open] summary { margin-bottom: 10px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>DXF <span>→</span> CNC</h1>
+    <p class="sub">Mesa de plasma F2100B · Metalúrgica Remeco</p>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <div class="panel">
+        <h2>1 · Plano</h2>
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" id="tabFile" aria-selected="true" aria-controls="paneFile">Archivo DXF</button>
+          <button type="button" role="tab" id="tabChat" aria-selected="false" aria-controls="paneChat">Pedirle a Claude</button>
+        </div>
+        <div id="paneFile" class="pane" role="tabpanel">
+          <div class="drop" id="drop" tabindex="0" role="button" aria-label="Elegir archivo DXF">
+            <strong>Arrastrá el DXF acá</strong>
+            <small>o tocá para elegirlo · AutoCAD: Guardar como → DXF</small>
+          </div>
+          <input type="file" id="fileInput" accept=".dxf,.DXF" hidden>
+        </div>
+        <div id="paneChat" class="pane" role="tabpanel" hidden>
+          <div class="fields three">
+            <div class="field"><label for="sheetW">Chapa X (mm)</label><input type="number" id="sheetW" value="1220" min="10" step="10"></div>
+            <div class="field"><label for="sheetH">Chapa Y (mm)</label><input type="number" id="sheetH" value="2440" min="10" step="10"></div>
+            <div class="field"><label for="gap">Separar (mm)</label><input type="number" id="gap" value="10" min="0" step="1"></div>
+          </div>
+          <div class="chatlog" id="chatLog" aria-live="polite">
+            <p class="hint">Escribí qué piezas necesitás. Por ejemplo: <em>«5 cuadrados de 30 × 20 cm con un agujero de 22 mm en cada esquina, a 30 mm de los bordes»</em>. Después podés pedirle cambios: <em>«ahora que sean 8»</em>.</p>
+          </div>
+          <label for="chatIn" class="lbl">Tu pedido</label>
+          <textarea id="chatIn" rows="3" placeholder="Ej.: 5 cuadrados de 30 × 20 cm"></textarea>
+          <div class="btns">
+            <button class="primary" id="chatSend" type="button">Dibujar</button>
+            <button id="chatStop" type="button" hidden>Parar</button>
+            <button id="chatNew" type="button">Empezar de nuevo</button>
+          </div>
+          <p class="note" id="chatNote"></p>
+        </div>
+        <div class="file"><b id="fileName">—</b><span class="badge" id="fileBadge" hidden>Ejemplo</span></div>
+        <div class="rotbox">
+          <span class="lbl">Girar el dibujo</span>
+          <div class="rotbtns">
+            <button type="button" id="rotL" title="Girar 90° antihorario">↺ 90°</button>
+            <button type="button" id="rotR" title="Girar 90° horario">↻ 90°</button>
+            <button type="button" id="rot180">180°</button>
+            <button type="button" id="mirrorBtn" aria-pressed="false">Espejo</button>
+          </div>
+          <div class="field"><label for="rotDeg">Ángulo exacto (grados, positivo = antihorario)</label><input type="number" id="rotDeg" value="0" step="1"></div>
+          <p class="note" id="rotInfo"></p>
+        </div>
+        <p class="warn" id="warnBox" hidden></p>
+        <div class="cleanbox">
+          <label class="check"><input type="checkbox" id="clean" checked><span>Limpiar el dibujo<small>Une puntas que casi se tocan y borra líneas dobles, superpuestas o repetidas</small></span></label>
+          <label class="check"><input type="checkbox" id="common" checked><span>Corte común en piezas pegadas<small>Si dos piezas se tocan, el borde que comparten se corta una sola vez</small></span></label>
+          <div class="field" id="tolField"><label for="tol">Unir puntas separadas hasta (mm)</label><input type="number" id="tol" value="0.1" min="0" step="0.1"></div>
+          <p class="note" id="cleanInfo"></p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>2 · Ajustes de corte</h2>
+        <div class="fields">
+          <div class="field"><label for="fCut">Velocidad de corte (mm/min)</label><input type="number" id="fCut" value="2540" min="1" step="10"></div>
+          <div class="field"><label for="fPlunge">Velocidad de bajada (mm/min)</label><input type="number" id="fPlunge" value="762" min="1" step="10"></div>
+          <div class="field"><label for="zSafe">Altura de subida Z (mm)</label><input type="number" id="zSafe" value="5.08" min="0" step="0.01"></div>
+          <div class="field"><label for="prog">N° de programa</label><input type="number" id="prog" value="1248" min="1" step="1"></div>
+          <div class="field full"><label for="mode">Encendido de la antorcha</label>
+            <select id="mode">
+              <option value="z">Z arriba / abajo (igual a tu archivo de ejemplo)</option>
+              <option value="m">M07 / M08 (estándar del F2100B)</option>
+            </select>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="skipBorder"><span>No cortar el borde de la chapa<small>Saltea el contorno exterior si coincide con el borde del material</small></span></label>
+      </div>
+
+      <div class="panel">
+        <h2>3 · Orden de corte</h2>
+        <div class="seg" role="radiogroup" aria-label="Estrategia">
+          <label><input type="radio" name="strategy" id="stHoles" value="holes" checked>Agujeros primero<small>Todos los agujeros de la chapa y después los cortes de las piezas</small></label>
+          <label><input type="radio" name="strategy" id="stPiece" value="piece">Pieza por pieza<small>Termina una platina (agujeros y recorte) y pasa a la siguiente</small></label>
+        </div>
+        <div class="fields">
+          <div class="field full"><label for="pattern">Recorrido</label>
+            <select id="pattern">
+              <option value="nearest">Ruta más corta</option>
+              <option value="rows">Por filas (horizontal)</option>
+              <option value="cols">Por columnas (vertical)</option>
+            </select>
+          </div>
+          <div class="field full"><label for="startAt">Empezar desde</label>
+            <select id="startAt">
+              <option value="bl">Abajo a la izquierda</option>
+              <option value="br">Abajo a la derecha</option>
+              <option value="tl">Arriba a la izquierda</option>
+              <option value="tr">Arriba a la derecha</option>
+              <option value="pick">Un punto que marco en el dibujo</option>
+            </select>
+          </div>
+          <div class="field full"><label for="prio">Prioridad de formas</label>
+            <select id="prio">
+              <option value="none">Sin prioridad</option>
+              <option value="round">Primero los redondos</option>
+              <option value="straight">Primero los cuadrados y calados</option>
+              <option value="size">De más chico a más grande</option>
+            </select>
+          </div>
+          <div class="field full" id="linesField"><label for="linesOrder">Cortes rectos entre piezas</label>
+            <select id="linesOrder">
+              <option value="h">Primero los horizontales</option>
+              <option value="v">Primero los verticales</option>
+              <option value="nearest">Ruta más corta</option>
+            </select>
+          </div>
+          <div class="field full"><label for="dir">Sentido de corte</label>
+            <select id="dir">
+              <option value="plasma">Estándar plasma (agujeros antihorario, contorno horario)</option>
+              <option value="drawn">Como está dibujado</option>
+            </select>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="zigzag" checked><span>Ida y vuelta (zigzag)<small>En filas o columnas, cada fila arranca donde terminó la anterior</small></span></label>
+        <label class="check"><input type="checkbox" id="nearPierce"><span>Perforar en el punto más cercano<small>Cada contorno arranca en la esquina más cercana a la antorcha</small></span></label>
+        <p class="warn" id="pickHint" hidden>Tocá el dibujo en el lugar donde querés empezar a cortar.</p>
+      </div>
+
+      <div class="panel" id="layersPanel" hidden>
+        <h2>Capas</h2>
+        <p class="note">Destildá las capas de cotas o textos para que no se corten.</p>
+        <div class="layers" id="layers"></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="stats" id="stats"></div>
+
+      <div class="panel">
+        <div class="viewhead">
+          <h2>Recorrido de corte</h2>
+          <div class="legend"><span><i style="border-color:var(--accent)"></i>corte</span><span><i style="border-top-style:dashed;border-color:var(--rapid)"></i>movimiento en vacío</span><span><i class="dot"></i>perforación</span></div>
+        </div>
+        <div class="canvasbox" id="canvasBox"><canvas id="cv"></canvas></div>
+        <div class="sim">
+          <button id="playBtn" type="button">▶ Simular</button>
+          <input type="range" id="step" min="0" max="0" value="0" aria-label="Paso del recorrido">
+          <span id="stepLbl">—</span>
+        </div>
+        <label class="check"><input type="checkbox" id="showNums"><span>Mostrar el número de orden en cada perforación</span></label>
+      </div>
+
+      <div class="panel">
+        <div class="btns">
+          <button class="primary" id="dlBtn" type="button" disabled>Descargar archivo para la CNC</button>
+          <button id="copyBtn" type="button" disabled>Copiar código</button>
+        </div>
+        <p class="msg" id="msg"></p>
+        <p class="note" id="dlNote"></p>
+        <details>
+          <summary>Ver código G</summary>
+          <pre id="code"></pre>
+        </details>
+      </div>
+
+      <p class="note">El cero (X0 Y0) es la esquina inferior izquierda del dibujo. No compensa la sangría del plasma: los agujeros salen un poco más grandes y las piezas un poco más chicas. Antes de cortar una pieza nueva, probá el programa en vacío.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const SAMPLE_NAME = "21_platinas_24x26_Mac.dxf";
+const SAMPLE_DXF = "  0\nSECTION\n  2\nHEADER\n  9\n$ACADVER\n  1\nAC1009\n  9\n$INSBASE\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  9\n$EXTMIN\n 10\n1726.6760283737180544\n 20\n729.485972017054678\n 30\n0.0\n  9\n$EXTMAX\n 10\n2946.6760283737180544\n 20\n3169.4859720170547916\n 30\n0.0\n  9\n$LIMMIN\n 10\n0.0\n 20\n0.0\n  9\n$LIMMAX\n 10\n420.0\n 20\n297.0\n  9\n$ORTHOMODE\n 70\n     0\n  9\n$REGENMODE\n 70\n     1\n  9\n$FILLMODE\n 70\n     1\n  9\n$QTEXTMODE\n 70\n     0\n  9\n$MIRRTEXT\n 70\n     0\n  9\n$DRAGMODE\n 70\n     2\n  9\n$LTSCALE\n 40\n1.0\n  9\n$OSMODE\n 70\n  4095\n  9\n$ATTMODE\n 70\n     1\n  9\n$TEXTSIZE\n 40\n2.5\n  9\n$TRACEWID\n 40\n1.0\n  9\n$TEXTSTYLE\n  7\nSTANDARD\n  9\n$CLAYER\n  8\n0\n  9\n$CELTYPE\n  6\nBYLAYER\n  9\n$CECOLOR\n 62\n   256\n  9\n$DIMSCALE\n 40\n1.0\n  9\n$DIMASZ\n 40\n2.5\n  9\n$DIMEXO\n 40\n0.625\n  9\n$DIMDLI\n 40\n3.75\n  9\n$DIMRND\n 40\n0.0\n  9\n$DIMDLE\n 40\n0.0\n  9\n$DIMEXE\n 40\n1.25\n  9\n$DIMTP\n 40\n0.0\n  9\n$DIMTM\n 40\n0.0\n  9\n$DIMTXT\n 40\n2.5\n  9\n$DIMCEN\n 40\n2.5\n  9\n$DIMTSZ\n 40\n0.0\n  9\n$DIMTOL\n 70\n     0\n  9\n$DIMLIM\n 70\n     0\n  9\n$DIMTIH\n 70\n     0\n  9\n$DIMTOH\n 70\n     0\n  9\n$DIMSE1\n 70\n     0\n  9\n$DIMSE2\n 70\n     0\n  9\n$DIMTAD\n 70\n     1\n  9\n$DIMZIN\n 70\n     8\n  9\n$DIMBLK\n  1\n\n  9\n$DIMASO\n 70\n     1\n  9\n$DIMSHO\n 70\n     1\n  9\n$DIMPOST\n  1\n\n  9\n$DIMAPOST\n  1\n\n  9\n$DIMALT\n 70\n     0\n  9\n$DIMALTD\n 70\n     3\n  9\n$DIMALTF\n 40\n0.03937007874016\n  9\n$DIMLFAC\n 40\n1.0\n  9\n$DIMTOFL\n 70\n     1\n  9\n$DIMTVP\n 40\n0.0\n  9\n$DIMTIX\n 70\n     0\n  9\n$DIMSOXD\n 70\n     0\n  9\n$DIMSAH\n 70\n     0\n  9\n$DIMBLK1\n  1\n\n  9\n$DIMBLK2\n  1\n\n  9\n$DIMSTYLE\n  2\nISO-25\n  9\n$DIMCLRD\n 70\n     0\n  9\n$DIMCLRE\n 70\n     0\n  9\n$DIMCLRT\n 70\n     0\n  9\n$DIMTFAC\n 40\n1.0\n  9\n$DIMGAP\n 40\n0.625\n  9\n$LUNITS\n 70\n     2\n  9\n$LUPREC\n 70\n     4\n  9\n$SKETCHINC\n 40\n1.0\n  9\n$FILLETRAD\n 40\n0.0\n  9\n$AUNITS\n 70\n     0\n  9\n$AUPREC\n 70\n     0\n  9\n$MENU\n  1\n.\n  9\n$ELEVATION\n 40\n0.0\n  9\n$PELEVATION\n 40\n0.0\n  9\n$THICKNESS\n 40\n0.0\n  9\n$LIMCHECK\n 70\n     0\n  9\n$BLIPMODE\n 70\n     0\n  9\n$CHAMFERA\n 40\n0.0\n  9\n$CHAMFERB\n 40\n0.0\n  9\n$SKPOLY\n 70\n     0\n  9\n$TDCREATE\n 40\n2461334.5567361111752689\n  9\n$TDUPDATE\n 40\n2461334.5605439809150994\n  9\n$TDINDWG\n 40\n0.0038078704\n  9\n$TDUSRTIMER\n 40\n0.0038078704\n  9\n$USRTIMER\n 70\n     1\n  9\n$ANGBASE\n 50\n0.0\n  9\n$ANGDIR\n 70\n     0\n  9\n$PDMODE\n 70\n     0\n  9\n$PDSIZE\n 40\n0.0\n  9\n$PLINEWID\n 40\n0.0\n  9\n$COORDS\n 70\n     1\n  9\n$SPLFRAME\n 70\n     0\n  9\n$SPLINETYPE\n 70\n     6\n  9\n$SPLINESEGS\n 70\n     8\n  9\n$ATTDIA\n 70\n     1\n  9\n$ATTREQ\n 70\n     1\n  9\n$HANDLING\n 70\n     1\n  9\n$HANDSEED\n  5\n4B8\n  9\n$SURFTAB1\n 70\n     6\n  9\n$SURFTAB2\n 70\n     6\n  9\n$SURFTYPE\n 70\n     6\n  9\n$SURFU\n 70\n     6\n  9\n$SURFV\n 70\n     6\n  9\n$UCSNAME\n  2\n\n  9\n$UCSORG\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  9\n$UCSXDIR\n 10\n1.0\n 20\n0.0\n 30\n0.0\n  9\n$UCSYDIR\n 10\n0.0\n 20\n1.0\n 30\n0.0\n  9\n$PUCSNAME\n  2\n\n  9\n$PUCSORG\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  9\n$PUCSXDIR\n 10\n1.0\n 20\n0.0\n 30\n0.0\n  9\n$PUCSYDIR\n 10\n0.0\n 20\n1.0\n 30\n0.0\n  9\n$USERI1\n 70\n     0\n  9\n$USERI2\n 70\n     0\n  9\n$USERI3\n 70\n     0\n  9\n$USERI4\n 70\n     0\n  9\n$USERI5\n 70\n     0\n  9\n$USERR1\n 40\n0.0\n  9\n$USERR2\n 40\n0.0\n  9\n$USERR3\n 40\n0.0\n  9\n$USERR4\n 40\n0.0\n  9\n$USERR5\n 40\n0.0\n  9\n$WORLDVIEW\n 70\n     1\n  9\n$SHADEDGE\n 70\n     3\n  9\n$SHADEDIF\n 70\n    70\n  9\n$TILEMODE\n 70\n     1\n  9\n$MAXACTVP\n 70\n    64\n  9\n$PLIMCHECK\n 70\n     0\n  9\n$PEXTMIN\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  9\n$PEXTMAX\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  9\n$PLIMMIN\n 10\n0.0\n 20\n0.0\n  9\n$PLIMMAX\n 10\n12.0\n 20\n9.0\n  9\n$UNITMODE\n 70\n     0\n  9\n$VISRETAIN\n 70\n     1\n  9\n$PLINEGEN\n 70\n     0\n  9\n$PSLTSCALE\n 70\n     1\n  0\nENDSEC\n  0\nSECTION\n  2\nTABLES\n  0\nTABLE\n  2\nVPORT\n 70\n     1\n  0\nVPORT\n  2\n*ACTIVE\n 70\n     0\n 10\n0.0\n 20\n0.0\n 11\n1.0\n 21\n1.0\n 12\n2507.7230094088449732\n 22\n1622.437595973282896\n 13\n0.0\n 23\n0.0\n 14\n10.0\n 24\n10.0\n 15\n10.0\n 25\n10.0\n 16\n0.0\n 26\n0.0\n 36\n1.0\n 17\n0.0\n 27\n0.0\n 37\n0.0\n 40\n4163.4837219118444409\n 41\n1.2112676056338021\n 42\n50.0\n 43\n0.0\n 44\n0.0\n 50\n0.0\n 51\n0.0\n 71\n     0\n 72\n  1000\n 73\n     1\n 74\n     3\n 75\n     0\n 76\n     1\n 77\n     0\n 78\n     0\n  0\nENDTAB\n  0\nTABLE\n  2\nLTYPE\n 70\n     1\n  0\nLTYPE\n  2\nCONTINUOUS\n 70\n     0\n  3\nSolid line\n 72\n    65\n 73\n     0\n 40\n0.0\n  0\nENDTAB\n  0\nTABLE\n  2\nLAYER\n 70\n     1\n  0\nLAYER\n  2\n0\n 70\n     0\n 62\n     7\n  6\nCONTINUOUS\n  0\nENDTAB\n  0\nTABLE\n  2\nSTYLE\n 70\n     2\n  0\nSTYLE\n  2\nSTANDARD\n 70\n     0\n 40\n0.0\n 41\n1.0\n 50\n0.0\n 71\n     0\n 42\n2.5\n  3\ntxt\n  4\n\n  0\nSTYLE\n  2\nANOTATIVO\n 70\n     0\n 40\n0.0\n 41\n1.0\n 50\n0.0\n 71\n     0\n 42\n2.5\n  3\ntxt\n  4\n\n  0\nENDTAB\n  0\nTABLE\n  2\nVIEW\n 70\n     0\n  0\nENDTAB\n  0\nTABLE\n  2\nUCS\n 70\n     0\n  0\nENDTAB\n  0\nTABLE\n  2\nAPPID\n 70\n     8\n  0\nAPPID\n  2\nACAD\n 70\n     0\n  0\nAPPID\n  2\nACAD_PSEXT\n 70\n     0\n  0\nAPPID\n  2\nACADANNOPO\n 70\n     0\n  0\nAPPID\n  2\nACADANNOTATIVE\n 70\n     0\n  0\nAPPID\n  2\nACAD_DSTYLE_DIMJAG\n 70\n     0\n  0\nAPPID\n  2\nACAD_DSTYLE_DIMTALN\n 70\n     0\n  0\nAPPID\n  2\nACAD_MLEADERVER\n 70\n     0\n  0\nAPPID\n  2\nACAD_NAV_VCDISPLAY\n 70\n     0\n  0\nENDTAB\n  0\nTABLE\n  2\nDIMSTYLE\n 70\n     3\n  0\nDIMSTYLE\n  2\nSTANDARD\n 70\n     0\n  3\n\n  4\n\n  5\n\n  6\n\n  7\n\n 40\n1.0\n 41\n0.18\n 42\n0.0625\n 43\n0.38\n 44\n0.18\n 45\n0.0\n 46\n0.0\n 47\n0.0\n 48\n0.0\n140\n0.18\n141\n0.09\n142\n0.0\n143\n25.3999999999999986\n144\n1.0\n145\n0.0\n146\n1.0\n147\n0.09\n 71\n     0\n 72\n     0\n 73\n     1\n 74\n     1\n 75\n     0\n 76\n     0\n 77\n     0\n 78\n     0\n170\n     0\n171\n     2\n172\n     0\n173\n     0\n174\n     0\n175\n     0\n176\n     0\n177\n     0\n178\n     0\n  0\nDIMSTYLE\n  2\nANOTATIVO\n 70\n     0\n  3\n\n  4\n\n  5\n\n  6\n\n  7\n\n 40\n0.0\n 41\n2.5\n 42\n0.625\n 43\n3.75\n 44\n1.25\n 45\n0.0\n 46\n0.0\n 47\n0.0\n 48\n0.0\n140\n2.5\n141\n2.5\n142\n0.0\n143\n0.03937007874016\n144\n1.0\n145\n0.0\n146\n1.0\n147\n0.625\n 71\n     0\n 72\n     0\n 73\n     0\n 74\n     0\n 75\n     0\n 76\n     0\n 77\n     1\n 78\n     8\n170\n     0\n171\n     3\n172\n     1\n173\n     0\n174\n     0\n175\n     0\n176\n     0\n177\n     0\n178\n     0\n  0\nDIMSTYLE\n  2\nISO-25\n 70\n     0\n  3\n\n  4\n\n  5\n\n  6\n\n  7\n\n 40\n1.0\n 41\n2.5\n 42\n0.625\n 43\n3.75\n 44\n1.25\n 45\n0.0\n 46\n0.0\n 47\n0.0\n 48\n0.0\n140\n2.5\n141\n2.5\n142\n0.0\n143\n0.03937007874016\n144\n1.0\n145\n0.0\n146\n1.0\n147\n0.625\n 71\n     0\n 72\n     0\n 73\n     0\n 74\n     0\n 75\n     0\n 76\n     0\n 77\n     1\n 78\n     8\n170\n     0\n171\n     3\n172\n     1\n173\n     0\n174\n     0\n175\n     0\n176\n     0\n177\n     0\n178\n     0\n  0\nENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nBLOCKS\n  0\nBLOCK\n  8\n0\n  2\n$MODEL_SPACE\n 70\n     0\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  3\n$MODEL_SPACE\n  1\n\n  0\nENDBLK\n  5\n21\n  8\n0\n  0\nBLOCK\n 67\n     1\n  8\n0\n  2\n$PAPER_SPACE\n 70\n     0\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  3\n$PAPER_SPACE\n  1\n\n  0\nENDBLK\n  5\nD5\n 67\n     1\n  8\n0\n  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES\n  0\nPOLYLINE\n  5\n368\n  8\n0\n 66\n     1\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  0\nVERTEX\n  5\n4AF\n  8\n0\n 10\n2133.2760283737179634\n 20\n729.4859720170549053\n 30\n0.0\n  0\nVERTEX\n  5\n4B0\n  8\n0\n 10\n2133.2760283737179634\n 20\n2024.485972017055019\n 30\n0.0\n  0\nSEQEND\n  5\n4B1\n  8\n0\n  0\nCIRCLE\n  5\n369\n  8\n0\n 10\n1772.6760283737169175\n 20\n755.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n36A\n  8\n0\n 10\n1772.6760283737169175\n 20\n888.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n36B\n  8\n0\n 10\n1929.9760283737170994\n 20\n888.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n36C\n  8\n0\n 10\n1929.9760283737170994\n 20\n755.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n36D\n  8\n0\n 10\n2087.2760283737179634\n 20\n888.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n36E\n  8\n0\n 10\n2087.2760283737179634\n 20\n755.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nPOLYLINE\n  5\n36F\n  8\n0\n 66\n     1\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  0\nVERTEX\n  5\n4B2\n  8\n0\n 10\n2539.8760283737178725\n 20\n729.4859720170549053\n 30\n0.0\n  0\nVERTEX\n  5\n4B3\n  8\n0\n 10\n2539.8760283737178725\n 20\n2024.485972017055019\n 30\n0.0\n  0\nSEQEND\n  5\n4B4\n  8\n0\n  0\nCIRCLE\n  5\n370\n  8\n0\n 10\n2179.2760283737179634\n 20\n755.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n371\n  8\n0\n 10\n2179.2760283737179634\n 20\n888.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n372\n  8\n0\n 10\n2336.5760283737181453\n 20\n888.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n373\n  8\n0\n 10\n2336.5760283737181453\n 20\n755.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n374\n  8\n0\n 10\n2493.8760283737178725\n 20\n888.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n375\n  8\n0\n 10\n2493.8760283737178725\n 20\n755.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nPOLYLINE\n  5\n376\n  8\n0\n 66\n     1\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  0\nVERTEX\n  5\n4B5\n  8\n0\n 10\n2946.4760283737177815\n 20\n729.4859720170549053\n 30\n0.0\n  0\nVERTEX\n  5\n4B6\n  8\n0\n 10\n2946.4760283737177815\n 20\n2024.485972017055019\n 30\n0.0\n  0\nSEQEND\n  5\n4B7\n  8\n0\n  0\nCIRCLE\n  5\n377\n  8\n0\n 10\n2585.8760283737178725\n 20\n755.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n378\n  8\n0\n 10\n2585.8760283737178725\n 20\n888.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n379\n  8\n0\n 10\n2743.1760283737180544\n 20\n888.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n37A\n  8\n0\n 10\n2743.1760283737180544\n 20\n755.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n37B\n  8\n0\n 10\n2900.4760283737177815\n 20\n888.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n37C\n  8\n0\n 10\n2900.4760283737177815\n 20\n755.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n37E\n  8\n0\n 10\n1772.6760283737169175\n 20\n940.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n37F\n  8\n0\n 10\n1772.6760283737169175\n 20\n1073.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n380\n  8\n0\n 10\n1929.9760283737170994\n 20\n1073.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n381\n  8\n0\n 10\n1929.9760283737170994\n 20\n940.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n382\n  8\n0\n 10\n2087.2760283737179634\n 20\n1073.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n383\n  8\n0\n 10\n2087.2760283737179634\n 20\n940.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n385\n  8\n0\n 10\n2179.2760283737179634\n 20\n940.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n386\n  8\n0\n 10\n2179.2760283737179634\n 20\n1073.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n387\n  8\n0\n 10\n2336.5760283737181453\n 20\n1073.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n388\n  8\n0\n 10\n2336.5760283737181453\n 20\n940.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n389\n  8\n0\n 10\n2493.8760283737178725\n 20\n1073.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n38A\n  8\n0\n 10\n2493.8760283737178725\n 20\n940.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n38C\n  8\n0\n 10\n2585.8760283737178725\n 20\n940.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n38D\n  8\n0\n 10\n2585.8760283737178725\n 20\n1073.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n38E\n  8\n0\n 10\n2743.1760283737180544\n 20\n1073.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n38F\n  8\n0\n 10\n2743.1760283737180544\n 20\n940.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n390\n  8\n0\n 10\n2900.4760283737177815\n 20\n1073.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n391\n  8\n0\n 10\n2900.4760283737177815\n 20\n940.4859720170549053\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n393\n  8\n0\n 10\n1772.6760283737169175\n 20\n1125.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n394\n  8\n0\n 10\n1772.6760283737169175\n 20\n1258.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n395\n  8\n0\n 10\n1929.9760283737170994\n 20\n1258.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n396\n  8\n0\n 10\n1929.9760283737170994\n 20\n1125.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n397\n  8\n0\n 10\n2087.2760283737179634\n 20\n1258.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n398\n  8\n0\n 10\n2087.2760283737179634\n 20\n1125.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n39A\n  8\n0\n 10\n2179.2760283737179634\n 20\n1125.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n39B\n  8\n0\n 10\n2179.2760283737179634\n 20\n1258.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n39C\n  8\n0\n 10\n2336.5760283737181453\n 20\n1258.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n39D\n  8\n0\n 10\n2336.5760283737181453\n 20\n1125.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n39E\n  8\n0\n 10\n2493.8760283737178725\n 20\n1258.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n39F\n  8\n0\n 10\n2493.8760283737178725\n 20\n1125.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3A1\n  8\n0\n 10\n2585.8760283737178725\n 20\n1125.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3A2\n  8\n0\n 10\n2585.8760283737178725\n 20\n1258.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3A3\n  8\n0\n 10\n2743.1760283737180544\n 20\n1258.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3A4\n  8\n0\n 10\n2743.1760283737180544\n 20\n1125.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3A5\n  8\n0\n 10\n2900.4760283737177815\n 20\n1258.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3A6\n  8\n0\n 10\n2900.4760283737177815\n 20\n1125.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3A8\n  8\n0\n 10\n1772.6760283737169175\n 20\n1310.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3A9\n  8\n0\n 10\n1772.6760283737169175\n 20\n1443.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3AA\n  8\n0\n 10\n1929.9760283737170994\n 20\n1443.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3AB\n  8\n0\n 10\n1929.9760283737170994\n 20\n1310.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3AC\n  8\n0\n 10\n2087.2760283737179634\n 20\n1443.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3AD\n  8\n0\n 10\n2087.2760283737179634\n 20\n1310.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3AF\n  8\n0\n 10\n2179.2760283737179634\n 20\n1310.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3B0\n  8\n0\n 10\n2179.2760283737179634\n 20\n1443.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3B1\n  8\n0\n 10\n2336.5760283737181453\n 20\n1443.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3B2\n  8\n0\n 10\n2336.5760283737181453\n 20\n1310.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3B3\n  8\n0\n 10\n2493.8760283737178725\n 20\n1443.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3B4\n  8\n0\n 10\n2493.8760283737178725\n 20\n1310.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3B6\n  8\n0\n 10\n2585.8760283737178725\n 20\n1310.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3B7\n  8\n0\n 10\n2585.8760283737178725\n 20\n1443.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3B8\n  8\n0\n 10\n2743.1760283737180544\n 20\n1443.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3B9\n  8\n0\n 10\n2743.1760283737180544\n 20\n1310.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3BA\n  8\n0\n 10\n2900.4760283737177815\n 20\n1443.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3BB\n  8\n0\n 10\n2900.4760283737177815\n 20\n1310.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3BD\n  8\n0\n 10\n1772.6760283737169175\n 20\n1495.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3BE\n  8\n0\n 10\n1772.6760283737169175\n 20\n1628.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3BF\n  8\n0\n 10\n1929.9760283737170994\n 20\n1628.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3C0\n  8\n0\n 10\n1929.9760283737170994\n 20\n1495.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3C1\n  8\n0\n 10\n2087.2760283737179634\n 20\n1628.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3C2\n  8\n0\n 10\n2087.2760283737179634\n 20\n1495.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3C4\n  8\n0\n 10\n2179.2760283737179634\n 20\n1495.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3C5\n  8\n0\n 10\n2179.2760283737179634\n 20\n1628.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3C6\n  8\n0\n 10\n2336.5760283737181453\n 20\n1628.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3C7\n  8\n0\n 10\n2336.5760283737181453\n 20\n1495.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3C8\n  8\n0\n 10\n2493.8760283737178725\n 20\n1628.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3C9\n  8\n0\n 10\n2493.8760283737178725\n 20\n1495.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3CB\n  8\n0\n 10\n2585.8760283737178725\n 20\n1495.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3CC\n  8\n0\n 10\n2585.8760283737178725\n 20\n1628.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3CD\n  8\n0\n 10\n2743.1760283737180544\n 20\n1628.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3CE\n  8\n0\n 10\n2743.1760283737180544\n 20\n1495.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3CF\n  8\n0\n 10\n2900.4760283737177815\n 20\n1628.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3D0\n  8\n0\n 10\n2900.4760283737177815\n 20\n1495.4859720170541095\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3D2\n  8\n0\n 10\n1772.6760283737169175\n 20\n1680.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3D3\n  8\n0\n 10\n1772.6760283737169175\n 20\n1813.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3D4\n  8\n0\n 10\n1929.9760283737170994\n 20\n1813.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3D5\n  8\n0\n 10\n1929.9760283737170994\n 20\n1680.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3D6\n  8\n0\n 10\n2087.2760283737179634\n 20\n1813.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3D7\n  8\n0\n 10\n2087.2760283737179634\n 20\n1680.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3D9\n  8\n0\n 10\n2179.2760283737179634\n 20\n1680.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3DA\n  8\n0\n 10\n2179.2760283737179634\n 20\n1813.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3DB\n  8\n0\n 10\n2336.5760283737181453\n 20\n1813.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3DC\n  8\n0\n 10\n2336.5760283737181453\n 20\n1680.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3DD\n  8\n0\n 10\n2493.8760283737178725\n 20\n1813.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3DE\n  8\n0\n 10\n2493.8760283737178725\n 20\n1680.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3E0\n  8\n0\n 10\n2585.8760283737178725\n 20\n1680.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3E1\n  8\n0\n 10\n2585.8760283737178725\n 20\n1813.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3E2\n  8\n0\n 10\n2743.1760283737180544\n 20\n1813.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3E3\n  8\n0\n 10\n2743.1760283737180544\n 20\n1680.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3E4\n  8\n0\n 10\n2900.4760283737177815\n 20\n1813.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3E5\n  8\n0\n 10\n2900.4760283737177815\n 20\n1680.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3E7\n  8\n0\n 10\n1772.6760283737169175\n 20\n1865.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3E8\n  8\n0\n 10\n1772.6760283737169175\n 20\n1998.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3E9\n  8\n0\n 10\n1929.9760283737170994\n 20\n1998.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3EA\n  8\n0\n 10\n1929.9760283737170994\n 20\n1865.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3EB\n  8\n0\n 10\n2087.2760283737179634\n 20\n1998.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3EC\n  8\n0\n 10\n2087.2760283737179634\n 20\n1865.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3EE\n  8\n0\n 10\n2179.2760283737179634\n 20\n1865.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3EF\n  8\n0\n 10\n2179.2760283737179634\n 20\n1998.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3F0\n  8\n0\n 10\n2336.5760283737181453\n 20\n1998.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3F1\n  8\n0\n 10\n2336.5760283737181453\n 20\n1865.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3F2\n  8\n0\n 10\n2493.8760283737178725\n 20\n1998.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3F3\n  8\n0\n 10\n2493.8760283737178725\n 20\n1865.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3F5\n  8\n0\n 10\n2585.8760283737178725\n 20\n1865.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3F6\n  8\n0\n 10\n2585.8760283737178725\n 20\n1998.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3F7\n  8\n0\n 10\n2743.1760283737180544\n 20\n1998.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3F8\n  8\n0\n 10\n2743.1760283737180544\n 20\n1865.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3F9\n  8\n0\n 10\n2900.4760283737177815\n 20\n1998.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nCIRCLE\n  5\n3FA\n  8\n0\n 10\n2900.4760283737177815\n 20\n1865.485972017055019\n 30\n0.0\n 40\n11.0\n  0\nLINE\n  5\n3FB\n  8\n0\n 10\n2946.4760283737177815\n 20\n2024.485972017055019\n 30\n0.0\n 11\n1726.6760283737180544\n 21\n2024.485972017055019\n 31\n0.0\n  0\nLINE\n  5\n3FC\n  8\n0\n 10\n2946.4760283737177815\n 20\n1839.485972017055019\n 30\n0.0\n 11\n1726.6760283737180544\n 21\n1839.485972017055019\n 31\n0.0\n  0\nLINE\n  5\n3FD\n  8\n0\n 10\n2946.4760283737177815\n 20\n1654.485972017055019\n 30\n0.0\n 11\n1726.6760283737180544\n 21\n1654.485972017055019\n 31\n0.0\n  0\nLINE\n  5\n3FE\n  8\n0\n 10\n2946.4760283737177815\n 20\n1469.485972017055019\n 30\n0.0\n 11\n1726.6760283737180544\n 21\n1469.485972017055019\n 31\n0.0\n  0\nLINE\n  5\n3FF\n  8\n0\n 10\n2946.4760283737177815\n 20\n1284.485972017055019\n 30\n0.0\n 11\n1726.6760283737180544\n 21\n1284.485972017055019\n 31\n0.0\n  0\nLINE\n  5\n400\n  8\n0\n 10\n2946.4760283737177815\n 20\n1099.485972017055019\n 30\n0.0\n 11\n1726.6760283737180544\n 21\n1099.485972017055019\n 31\n0.0\n  0\nLINE\n  5\n401\n  8\n0\n 10\n1726.6760283737180544\n 20\n2024.485972017055019\n 30\n0.0\n 11\n1726.6760283737180544\n 21\n729.4859720170549053\n 31\n0.0\n  0\nLINE\n  5\n402\n  8\n0\n 10\n2946.4760283737177815\n 20\n914.4859720170549053\n 30\n0.0\n 11\n1726.6760283737180544\n 21\n914.4859720170549053\n 31\n0.0\n  0\nLINE\n  5\n403\n  8\n0\n 10\n1726.6760283737180544\n 20\n729.4859720170549053\n 30\n0.0\n 11\n2946.4760283737177815\n 21\n729.4859720170549053\n 31\n0.0\n  0\nENDSEC\n  0\nEOF\n";
+const TOL = 0.01;
+const $ = id => document.getElementById(id);
+
+/* ---------- lectura DXF ---------- */
+function parseDXF(text) {
+  if (/^AutoCAD Binary DXF/.test(text)) throw new Error("Este DXF está guardado en formato binario. En AutoCAD usá Guardar como → DXF y elegí formato de texto (ASCII).");
+  const L = text.split(/\r\n|\r|\n/);
+  const pairs = [];
+  for (let i = 0; i + 1 < L.length; i += 2) pairs.push([L[i].trim(), L[i + 1].trim()]);
+  const ents = []; let inEnt = false, cur = null, found = false;
+  for (let i = 0; i < pairs.length; i++) {
+    const [c, v] = pairs[i];
+    if (c === "0" && v === "SECTION" && pairs[i + 1] && pairs[i + 1][0] === "2") { inEnt = pairs[i + 1][1] === "ENTITIES"; if (inEnt) found = true; i++; continue; }
+    if (c === "0" && v === "ENDSEC") { if (inEnt && cur) ents.push(cur); cur = null; inEnt = false; continue; }
+    if (!inEnt) continue;
+    if (c === "0") { if (cur) ents.push(cur); cur = { type: v, d: [] }; }
+    else if (cur) cur.d.push([c, v]);
+  }
+  if (!found) throw new Error("No encontré dibujo en el archivo. ¿Es un DXF? Si es DWG, en AutoCAD usá Guardar como → DXF.");
+  return ents;
+}
+const gn = (d, c, def = 0) => { for (const [k, v] of d) if (k === c) return parseFloat(v); return def; };
+const gs = (d, c, def = "") => { for (const [k, v] of d) if (k === c) return v; return def; };
+
+const segL = (a, b) => ({ t: "L", a, b });
+const segA = (a, b, c, ccw) => ({ t: "A", a, b, c, ccw });
+function bulgeSeg(p0, p1, b) {
+  if (Math.abs(b) < 1e-9) return segL(p0, p1);
+  const dx = p1[0] - p0[0], dy = p1[1] - p0[1];
+  const k = (1 - b * b) / (4 * b);
+  const mx = (p0[0] + p1[0]) / 2, my = (p0[1] + p1[1]) / 2;
+  return segA(p0, p1, [mx - dy * k, my + dx * k], b > 0);
+}
+function circleSegs(cx, cy, r) {
+  const p = [[cx, cy + r], [cx - r, cy], [cx, cy - r], [cx + r, cy], [cx, cy + r]];
+  return [0, 1, 2, 3].map(i => segA(p[i], p[i + 1], [cx, cy], true));
+}
+function polySegs(verts, closed) {
+  const s = [], n = verts.length;
+  for (let i = 0; i < n - 1 + (closed ? 1 : 0); i++) {
+    const a = verts[i], b = verts[(i + 1) % n];
+    if (Math.hypot(a[0] - b[0], a[1] - b[1]) > 1e-6) s.push(bulgeSeg([a[0], a[1]], [b[0], b[1]], a[2]));
+  }
+  return s;
+}
+function toPaths(ents) {
+  const paths = [], ignored = {};
+  for (let k = 0; k < ents.length; k++) {
+    const e = ents[k], d = e.d, layer = gs(d, "8", "0");
+    const mir = gn(d, "230", 1) < 0, X = x => mir ? -x : x;
+    let segs = null;
+    switch (e.type) {
+      case "LINE": segs = [segL([gn(d, "10"), gn(d, "20")], [gn(d, "11"), gn(d, "21")])]; break;
+      case "CIRCLE": segs = circleSegs(X(gn(d, "10")), gn(d, "20"), gn(d, "40")); break;
+      case "ARC": {
+        const cx = gn(d, "10"), cy = gn(d, "20"), r = gn(d, "40");
+        const a0 = gn(d, "50") * Math.PI / 180, a1 = gn(d, "51") * Math.PI / 180;
+        const p0 = [X(cx + r * Math.cos(a0)), cy + r * Math.sin(a0)], p1 = [X(cx + r * Math.cos(a1)), cy + r * Math.sin(a1)];
+        segs = [segA(p0, p1, [X(cx), cy], !mir)]; break;
+      }
+      case "LWPOLYLINE": {
+        const flag = gn(d, "70", 0), v = [];
+        for (const [c, val] of d) {
+          if (c === "10") v.push([X(parseFloat(val)), 0, 0]);
+          else if (c === "20" && v.length) v[v.length - 1][1] = parseFloat(val);
+          else if (c === "42" && v.length) v[v.length - 1][2] = parseFloat(val) * (mir ? -1 : 1);
+        }
+        segs = polySegs(v, flag & 1); break;
+      }
+      case "POLYLINE": {
+        const flag = gn(d, "70", 0), v = [];
+        while (k + 1 < ents.length && ents[k + 1].type === "VERTEX") {
+          k++; const vd = ents[k].d; v.push([X(gn(vd, "10")), gn(vd, "20"), gn(vd, "42") * (mir ? -1 : 1)]);
+        }
+        if (flag & (16 | 64)) { ignored["MALLA 3D"] = (ignored["MALLA 3D"] || 0) + 1; break; }
+        segs = polySegs(v, flag & 1); break;
+      }
+      case "SEQEND": case "VERTEX": break;
+      default: ignored[e.type] = (ignored[e.type] || 0) + 1;
+    }
+    if (segs && segs.length) paths.push({ segs, layer });
+  }
+  return { paths, ignored };
+}
+
+/* ---------- geometría ---------- */
+const dist = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]);
+const startOf = s => s[0].a, endOf = s => s[s.length - 1].b;
+const revSeg = s => s.t === "L" ? segL(s.b, s.a) : segA(s.b, s.a, s.c, !s.ccw);
+const reverse = s => s.slice().reverse().map(revSeg);
+const isClosed = s => dist(startOf(s), endOf(s)) < TOL;
+
+function chain(list) {
+  const out = [], open = [];
+  for (const s of list) (isClosed(s) ? out : open).push(s);
+  const used = open.map(() => false), map = new Map();
+  const cell = p => [Math.round(p[0] * 50), Math.round(p[1] * 50)];
+  const add = (p, i, w) => { const [a, b] = cell(p), k = a + "," + b; if (!map.has(k)) map.set(k, []); map.get(k).push({ i, w }); };
+  open.forEach((s, i) => { add(startOf(s), i, "s"); add(endOf(s), i, "e"); });
+  const find = pt => {
+    const [a, b] = cell(pt);
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+      const arr = map.get((a + dx) + "," + (b + dy)); if (!arr) continue;
+      for (const f of arr) if (!used[f.i] && dist(f.w === "s" ? startOf(open[f.i]) : endOf(open[f.i]), pt) < TOL) return f;
+    }
+    return null;
+  };
+  for (let i = 0; i < open.length; i++) {
+    if (used[i]) continue; used[i] = true; let p = open[i].slice();
+    while (!isClosed(p)) { const f = find(endOf(p)); if (!f) break; used[f.i] = true; p = p.concat(f.w === "s" ? open[f.i] : reverse(open[f.i])); }
+    while (!isClosed(p)) { const f = find(startOf(p)); if (!f) break; used[f.i] = true; p = (f.w === "e" ? open[f.i] : reverse(open[f.i])).concat(p); }
+    out.push(p);
+  }
+  return out;
+}
+function sweep(s) {
+  let a0 = Math.atan2(s.a[1] - s.c[1], s.a[0] - s.c[0]), a1 = Math.atan2(s.b[1] - s.c[1], s.b[0] - s.c[0]);
+  if (s.ccw) { while (a1 <= a0 + 1e-9) a1 += 2 * Math.PI; } else { while (a1 >= a0 - 1e-9) a1 -= 2 * Math.PI; }
+  return [a0, a1];
+}
+function arcPts(s) {
+  const r = dist(s.a, s.c), [a0, a1] = sweep(s), n = Math.max(4, Math.ceil(Math.abs(a1 - a0) / (Math.PI / 24)));
+  const pts = []; for (let t = 1; t <= n; t++) { const a = a0 + (a1 - a0) * t / n; pts.push([s.c[0] + r * Math.cos(a), s.c[1] + r * Math.sin(a)]); }
+  return pts;
+}
+function polyline(s) { const pts = [startOf(s)]; for (const g of s) { if (g.t === "L") pts.push(g.b); else pts.push(...arcPts(g)); } return pts; }
+function segLen(g) { if (g.t === "L") return dist(g.a, g.b); const [a0, a1] = sweep(g); return dist(g.a, g.c) * Math.abs(a1 - a0); }
+function areaOf(pts) { let a = 0; for (let i = 0; i < pts.length - 1; i++) a += pts[i][0] * pts[i + 1][1] - pts[i + 1][0] * pts[i][1]; return Math.abs(a / 2); }
+function bbox(pts) { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const [x, y] of pts) { if (x < x0) x0 = x; if (y < y0) y0 = y; if (x > x1) x1 = x; if (y > y1) y1 = y; } return [x0, y0, x1, y1]; }
+function inside(pt, poly) { let c = false; const [x, y] = pt; for (let i = 0; i < poly.length - 1; i++) { const [x1, y1] = poly[i], [x2, y2] = poly[i + 1]; if ((y1 > y) !== (y2 > y) && x < (x2 - x1) * (y - y1) / (y2 - y1) + x1) c = !c; } return c; }
+function signedArea(pts) { let a = 0; for (let i = 0; i < pts.length - 1; i++) a += pts[i][0] * pts[i + 1][1] - pts[i + 1][0] * pts[i][1]; return a / 2; }
+function center(bb) { return [(bb[0] + bb[2]) / 2, (bb[1] + bb[3]) / 2]; }
+function bbInside(inner, outer) { return outer[0] <= inner[0] + TOL && outer[1] <= inner[1] + TOL && outer[2] >= inner[2] - TOL && outer[3] >= inner[3] - TOL; }
+function isRound(segs) {
+  if (!segs.every(g => g.t === "A")) return false;
+  const c = segs[0].c, r = dist(segs[0].a, c);
+  return segs.every(g => dist(g.c, c) < 0.05 && Math.abs(dist(g.a, g.c) - r) < 0.05);
+}
+function rotateTo(segs, pos) {
+  let bi = 0, bd = Infinity;
+  segs.forEach((g, i) => { const d = dist(g.a, pos); if (d < bd) { bd = d; bi = i; } });
+  return segs.slice(bi).concat(segs.slice(0, bi));
+}
+function pointSegDist(p, a, b) {
+  const dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy;
+  let t = L2 ? ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L2 : 0; t = Math.max(0, Math.min(1, t));
+  return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
+}
+// une tramos rectos consecutivos que siguen la misma dirección
+function mergeCollinear(segs) {
+  const out = [];
+  for (const g of segs) {
+    const p = out[out.length - 1];
+    if (p && p.t === "L" && g.t === "L") {
+      const cr = (p.b[0] - p.a[0]) * (g.b[1] - g.a[1]) - (p.b[1] - p.a[1]) * (g.b[0] - g.a[0]);
+      const dot = (p.b[0] - p.a[0]) * (g.b[0] - g.a[0]) + (p.b[1] - p.a[1]) * (g.b[1] - g.a[1]);
+      if (Math.abs(cr) < 1e-6 * (dist(p.a, p.b) * dist(g.a, g.b) + 1) && dot > 0) { out[out.length - 1] = segL(p.a, g.b); continue; }
+    }
+    out.push(g);
+  }
+  return out;
+}
+
+/* --- piezas formadas por líneas (grafo plano) --- */
+function buildCells(openItems, closedOuters) {
+  const S = [];
+  const straightOpen = openItems.filter(it => it.segs.every(g => g.t === "L"));
+  straightOpen.forEach(it => it.segs.forEach(g => S.push({ a: g.a, b: g.b })));
+  if (!S.length) return { cells: [], edges: [], inGraph: new Set(), graphOpen: new Set() };
+  const ends = straightOpen.flatMap(it => [startOf(it.segs), endOf(it.segs)]);
+  const inGraph = new Set();
+  for (const o of closedOuters) {
+    if (!o.segs.every(g => g.t === "L")) continue;
+    if (ends.some(p => o.segs.some(g => pointSegDist(p, g.a, g.b) < 0.1))) { inGraph.add(o); o.segs.forEach(g => S.push({ a: g.a, b: g.b })); }
+  }
+  // cortar los tramos en los cruces
+  const T = S.map(() => [0, 1]);
+  for (let i = 0; i < S.length; i++) for (let j = i + 1; j < S.length; j++) {
+    const A = S[i], B = S[j];
+    if (Math.max(A.a[0], A.b[0]) < Math.min(B.a[0], B.b[0]) - TOL || Math.max(B.a[0], B.b[0]) < Math.min(A.a[0], A.b[0]) - TOL ||
+        Math.max(A.a[1], A.b[1]) < Math.min(B.a[1], B.b[1]) - TOL || Math.max(B.a[1], B.b[1]) < Math.min(A.a[1], A.b[1]) - TOL) continue;
+    const r = [A.b[0] - A.a[0], A.b[1] - A.a[1]], s = [B.b[0] - B.a[0], B.b[1] - B.a[1]];
+    const den = r[0] * s[1] - r[1] * s[0];
+    if (Math.abs(den) < 1e-9) continue;
+    const q = [B.a[0] - A.a[0], B.a[1] - A.a[1]];
+    const t = (q[0] * s[1] - q[1] * s[0]) / den, u = (q[0] * r[1] - q[1] * r[0]) / den;
+    const et = 0.1 / (Math.hypot(...r) || 1), eu = 0.1 / (Math.hypot(...s) || 1);
+    if (t >= -et && t <= 1 + et && u >= -eu && u <= 1 + eu) { T[i].push(Math.min(1, Math.max(0, t))); T[j].push(Math.min(1, Math.max(0, u))); }
+  }
+  const V = [], vmap = new Map();
+  const vid = p => {
+    const cx = Math.round(p[0] / 0.05), cy = Math.round(p[1] / 0.05);
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+      const arr = vmap.get((cx + dx) + "," + (cy + dy)); if (!arr) continue;
+      for (const id of arr) if (dist(V[id], p) < 0.05) return id;
+    }
+    V.push(p); const k = cx + "," + cy; if (!vmap.has(k)) vmap.set(k, []); vmap.get(k).push(V.length - 1); return V.length - 1;
+  };
+  const E = [], ekeys = new Set();
+  S.forEach((sg, i) => {
+    const ts = [...new Set(T[i].map(t => Math.round(t * 1e6) / 1e6))].sort((a, b) => a - b);
+    let prev = null;
+    for (const t of ts) {
+      const id = vid([sg.a[0] + (sg.b[0] - sg.a[0]) * t, sg.a[1] + (sg.b[1] - sg.a[1]) * t]);
+      if (prev !== null && prev !== id) { const k = Math.min(prev, id) + "-" + Math.max(prev, id); if (!ekeys.has(k)) { ekeys.add(k); E.push({ u: prev, v: id, cut: false }); } }
+      prev = id;
+    }
+  });
+  const adj = V.map(() => []);
+  E.forEach((e, k) => {
+    adj[e.u].push({ to: e.v, e: k, ang: Math.atan2(V[e.v][1] - V[e.u][1], V[e.v][0] - V[e.u][0]) });
+    adj[e.v].push({ to: e.u, e: k, ang: Math.atan2(V[e.u][1] - V[e.v][1], V[e.u][0] - V[e.v][0]) });
+  });
+  adj.forEach(l => l.sort((a, b) => a.ang - b.ang));
+  const seen = new Set(), cells = [];
+  for (let u = 0; u < V.length; u++) for (const h of adj[u]) {
+    const key0 = u + ">" + h.to + ":" + h.e; if (seen.has(key0)) continue;
+    const hs = []; let cu = u, ch = h, guard = 0;
+    while (guard++ < 100000) {
+      const k = cu + ">" + ch.to + ":" + ch.e; if (seen.has(k)) break; seen.add(k);
+      hs.push({ from: cu, to: ch.to, e: ch.e });
+      const l = adj[ch.to], idx = l.findIndex(x => x.to === cu && x.e === ch.e);
+      const nx = l[(idx - 1 + l.length) % l.length]; cu = ch.to; ch = nx;
+    }
+    const pts = hs.map(x => V[x.from]); pts.push(V[hs[0].from]);
+    const A = signedArea(pts);
+    if (A > 1 && hs.length >= 3) { const bb = bbox(pts); cells.push({ kind: "cell", hs, pts, bb, area: A, ref: center(bb) }); }
+  }
+  return { cells, edges: E, V, inGraph };
+}
+
+/* --- ordenar --- */
+function cornerOf(o, W, H) {
+  if (o.startAt === "pick" && o.pick) return { x: o.pick[0] < W / 2 ? "l" : "r", y: o.pick[1] < H / 2 ? "b" : "t", p: o.pick };
+  const c = o.startAt === "pick" ? "bl" : o.startAt;
+  return { x: c[1], y: c[0] === "b" ? "b" : "t", p: [c[1] === "l" ? 0 : W, c[0] === "b" ? 0 : H] };
+}
+// items: {ref:[x,y], h: tamaño, enter(pos)->[distancia], place(pos)->pos final}
+function orderBy(items, pos, pattern, corner, zigzag) {
+  if (!items.length) return [[], pos];
+  if (pattern === "nearest") {
+    const rest = items.slice(), out = [];
+    while (rest.length) {
+      let bi = 0, bd = Infinity;
+      rest.forEach((it, i) => { const d = it.enterDist(pos); if (d < bd) { bd = d; bi = i; } });
+      const it = rest.splice(bi, 1)[0]; pos = it.place(pos); out.push(it);
+    }
+    return [out, pos];
+  }
+  const ax = pattern === "rows" ? 1 : 0, along = 1 - ax;            // filas: bandas en Y, recorre en X
+  const bandAsc = ax === 1 ? corner.y === "b" : corner.x === "l";
+  const alongAsc0 = along === 0 ? corner.x === "l" : corner.y === "b";
+  const hs = items.map(i => i.size[ax]).sort((a, b) => a - b);
+  const tol = Math.max(2, hs[Math.floor(hs.length / 2)] * 0.5);
+  const sorted = items.slice().sort((a, b) => (a.ref[ax] - b.ref[ax]) * (bandAsc ? 1 : -1));
+  const bands = []; let cur = [], last = null;
+  for (const it of sorted) { if (last !== null && Math.abs(it.ref[ax] - last) > tol) { bands.push(cur); cur = []; } cur.push(it); last = it.ref[ax]; }
+  if (cur.length) bands.push(cur);
+  const out = [];
+  bands.forEach((b, bi) => {
+    const asc = zigzag && bi % 2 === 1 ? !alongAsc0 : alongAsc0;
+    b.sort((p, q) => (p.ref[along] - q.ref[along]) * (asc ? 1 : -1));
+    for (const it of b) { pos = it.place(pos); out.push(it); }
+  });
+  return [out, pos];
+}
+function prioGroups(list, prio) {
+  if (prio === "round") return [list.filter(x => x.round), list.filter(x => !x.round)];
+  if (prio === "straight") return [list.filter(x => !x.round), list.filter(x => x.round)];
+  if (prio === "size") {
+    const m = new Map(); for (const x of list) { const k = Math.round(x.area); if (!m.has(k)) m.set(k, []); m.get(k).push(x); }
+    return [...m.keys()].sort((a, b) => a - b).map(k => m.get(k));
+  }
+  return [list];
+}
+
+/* --- plan principal --- */
+function plan(segPaths, o) {
+  const all = segPaths.flatMap(polyline), [mx, my, Mx, My] = bbox(all);
+  const sp = p => [p[0] - mx, p[1] - my];
+  const W = Mx - mx, H = My - my;
+  const items = segPaths.map(s => s.map(g => g.t === "L" ? segL(sp(g.a), sp(g.b)) : segA(sp(g.a), sp(g.b), sp(g.c), g.ccw)))
+    .map(segs => { const pts = polyline(segs); return { segs, pts, closed: isClosed(segs), bb: bbox(pts), area: 0 }; });
+  items.forEach(it => { if (it.closed) { it.area = areaOf(it.pts); it.round = isRound(it.segs); } });
+  const closed = items.filter(i => i.closed), opened = items.filter(i => !i.closed);
+  const containedByClosed = it => { const t = it.pts[Math.floor(it.pts.length / 3)]; return closed.some(c => c !== it && c.area > it.area && bbInside(it.bb, c.bb) && inside(t, c.pts)); };
+  const outers0 = closed.filter(c => !containedByClosed(c));
+  const G = buildCells(opened, outers0);
+  const testPt = it => it.pts[Math.floor(it.pts.length / 3)];
+  const inCell = it => G.cells.some(c => bbInside(it.bb, c.bb) && inside(testPt(it), c.pts));
+  const holes = closed.filter(c => !outers0.includes(c) || (!G.inGraph.has(c) && inCell(c)));
+  const outers = outers0.filter(c => !holes.includes(c));
+  const onBorder = (a, b) => (Math.abs(a[0]) < 0.5 && Math.abs(b[0]) < 0.5) || (Math.abs(a[0] - W) < 0.5 && Math.abs(b[0] - W) < 0.5) || (Math.abs(a[1]) < 0.5 && Math.abs(b[1]) < 0.5) || (Math.abs(a[1] - H) < 0.5 && Math.abs(b[1] - H) < 0.5);
+  const isBorderItem = c => c.bb[0] < 0.5 && c.bb[1] < 0.5 && c.bb[2] > W - 0.5 && c.bb[3] > H - 0.5;
+  const corner = cornerOf(o, W, H);
+  let pos = corner.p;
+  const out = [];
+  let skipped = 0;
+
+  const orient = (it, role) => {
+    let segs = it.segs;
+    if (o.dir === "plasma" && it.closed) {
+      const ccw = signedArea(it.pts) > 0;
+      if ((role === "hole") !== ccw) segs = reverse(segs);
+    }
+    return segs;
+  };
+  const contourItem = (it, role) => {
+    const segs0 = orient(it, role);
+    return {
+      ref: center(it.bb), size: [it.bb[2] - it.bb[0], it.bb[3] - it.bb[1]], round: it.round, area: it.area,
+      enterDist: p => o.nearPierce ? Math.min(...segs0.map(g => dist(g.a, p))) : dist(startOf(segs0), p),
+      place(p) { this.segs = o.nearPierce ? rotateTo(segs0, p) : segs0; return endOf(this.segs); }
+    };
+  };
+  const lineItem = it => ({
+    ref: center(it.bb), size: [it.bb[2] - it.bb[0], it.bb[3] - it.bb[1]],
+    enterDist: p => Math.min(dist(startOf(it.segs), p), dist(endOf(it.segs), p)),
+    place(p) { this.segs = dist(endOf(it.segs), p) < dist(startOf(it.segs), p) ? reverse(it.segs) : it.segs; return endOf(this.segs); }
+  });
+  const cutHoles = (list) => {
+    for (const grp of prioGroups(list.map(h => contourItem(h, "hole")), o.prio)) {
+      const [ord, p] = orderBy(grp, pos, o.pattern, corner, o.zigzag); pos = p;
+      ord.forEach(x => out.push({ segs: x.segs, kind: "hole" }));
+    }
+  };
+
+  if (o.strategy === "holes") {
+    cutHoles(holes);
+    // cortes rectos
+    const L = opened.map(lineItem);
+    const isH = x => x.size[1] < 0.5, isV = x => x.size[0] < 0.5;
+    let groups;
+    if (o.linesOrder === "h") groups = [[L.filter(isH), "cols-h"], [L.filter(x => !isH(x) && isV(x)), "rows-v"], [L.filter(x => !isH(x) && !isV(x)), "nearest"]];
+    else if (o.linesOrder === "v") groups = [[L.filter(x => isV(x) && !isH(x)), "rows-v"], [L.filter(x => isH(x)), "cols-h"], [L.filter(x => !isH(x) && !isV(x)), "nearest"]];
+    else groups = [[L, "nearest"]];
+    for (const [g, how] of groups) {
+      // horizontales: una por banda en Y (ordenar como columnas sobre Y); verticales: una por banda en X
+      const pat = how === "cols-h" ? "rows" : how === "rows-v" ? "cols" : "nearest";
+      const [ord, p] = orderBy(g, pos, pat, corner, false); pos = p;
+      ord.forEach(x => out.push({ segs: x.segs, kind: "line" }));
+    }
+    // contornos exteriores
+    let outs = outers;
+    if (o.skipBorder) outs = outers.filter(c => { if (isBorderItem(c)) { skipped++; return false; } return true; });
+    for (const grp of prioGroups(outs.map(c => contourItem(c, "outer")), o.prio)) {
+      const [ord, p] = orderBy(grp, pos, o.pattern, corner, o.zigzag); pos = p;
+      ord.forEach(x => out.push({ segs: x.segs, kind: "outer" }));
+    }
+  } else {
+    // pieza por pieza
+    const E = G.edges, V = G.V || [];
+    if (o.skipBorder) E.forEach(e => { if (onBorder(V[e.u], V[e.v])) { e.cut = true; skipped = 1; } });
+    const parts = outers.filter(c => !G.inGraph.has(c) && !(o.skipBorder && isBorderItem(c) && ++skipped));
+    const pieces = [
+      ...G.cells.map(c => ({ kind: "cell", cell: c, ref: c.ref, size: [c.bb[2] - c.bb[0], c.bb[3] - c.bb[1]], area: c.area, round: false, holes: [] })),
+      ...parts.map(c => ({ kind: "part", item: c, ref: center(c.bb), size: [c.bb[2] - c.bb[0], c.bb[3] - c.bb[1]], area: c.area, round: c.round, holes: [] }))
+    ];
+    const loose = [];
+    for (const h of holes) {
+      const t = testPt(h); let best = null;
+      for (const pc of pieces) {
+        const poly = pc.kind === "cell" ? pc.cell.pts : pc.item.pts, bb = pc.kind === "cell" ? pc.cell.bb : pc.item.bb;
+        if (bbInside(h.bb, bb) && inside(t, poly) && (!best || pc.area < best.area)) best = pc;
+      }
+      (best ? best.holes : loose).push(h);
+    }
+    cutHoles(loose);
+    const cutCellEdges = (c) => {
+      const hs = c.hs, n = hs.length, unc = hs.map(h => !E[h.e].cut);
+      const P = id => V[id];
+      let runs = [];
+      if (unc.every(Boolean)) {
+        runs = [hs.slice()];
+      } else {
+        let s = unc.findIndex((u, i) => u && !unc[(i - 1 + n) % n]);
+        if (s >= 0) for (let k = 0, i = s; k < n; k++, i = (i + 1) % n) {
+          if (unc[i]) { if (!unc[(i - 1 + n) % n] || !runs.length) runs.push([]); runs[runs.length - 1].push(hs[i]); }
+        }
+      }
+      hs.forEach(h => E[h.e].cut = true);
+      const its = runs.map(r => {
+        const closedRun = r.length === n;
+        let segs = mergeCollinear(r.map(h => segL(P(h.from), P(h.to))));   // celdas: antihorario
+        const cwSegs = reverse(segs);
+        return {
+          ref: center(bbox(segs.flatMap(g => [g.a, g.b]))), size: [0, 0],
+          enterDist: p => closedRun ? Math.min(...segs.map(g => dist(g.a, p))) : o.dir === "plasma" ? dist(startOf(cwSegs), p) : Math.min(dist(startOf(segs), p), dist(endOf(segs), p)),
+          place(p) {
+            let s2 = o.dir === "plasma" ? cwSegs : segs;
+            if (closedRun) s2 = mergeCollinear(rotateTo(s2, p));
+            else if (o.dir !== "plasma" && dist(endOf(segs), p) < dist(startOf(segs), p)) s2 = reverse(segs);
+            this.segs = s2; return endOf(s2);
+          }
+        };
+      });
+      const [ord, p] = orderBy(its, pos, "nearest", corner, false); pos = p;
+      ord.forEach(x => out.push({ segs: x.segs, kind: "outer" }));
+    };
+    for (const grp of prioGroups(pieces, o.prio)) {
+      const rest = grp.slice(); let ordered;
+      if (o.pattern === "nearest") ordered = null;
+      else ordered = orderBy(grp.map(pc => ({ ...pc, place: () => pos })), pos, o.pattern, corner, o.zigzag)[0];
+      while (ordered ? ordered.length : rest.length) {
+        let pc;
+        if (ordered) pc = ordered.shift();
+        else { let bi = 0, bd = Infinity; rest.forEach((x, i) => { const d = dist(x.ref, pos); if (d < bd) { bd = d; bi = i; } }); pc = rest.splice(bi, 1)[0]; }
+        cutHoles(pc.holes);
+        if (pc.kind === "part") { const ci = contourItem(pc.item, "outer"); ci.place(pos); pos = endOf(ci.segs); out.push({ segs: ci.segs, kind: "outer" }); }
+        else cutCellEdges(pc.cell);
+      }
+    }
+    // lo que quedó sin cortar (líneas sueltas, tramos con arcos)
+    const leftovers = [];
+    E.forEach(e => { if (!e.cut) { e.cut = true; leftovers.push([segL(V[e.u], V[e.v])]); } });
+    opened.filter(it => !it.segs.every(g => g.t === "L")).forEach(it => leftovers.push(it.segs));
+    const lo = chain(leftovers).map(segs => lineItem({ segs: mergeCollinear(segs), bb: bbox(polyline(segs)) }));
+    const [ord] = orderBy(lo, pos, "nearest", corner, false);
+    ord.forEach(x => out.push({ segs: x.segs, kind: "line" }));
+  }
+  out.forEach(it => it.pts = polyline(it.segs));
+  const nPieces = G.cells.length + outers.filter(c => !G.inGraph.has(c)).length;
+  return { order: out, W, H, nHoles: holes.length, nPieces, skipped, start: corner.p };
+}
+
+/* ---------- líneas colineales: borrar repetidas y unir partidas ---------- */
+function mergeLines(lines, arcs, tol) {
+  let removed = 0, merged = 0;
+  const info = lines.map((s, i) => {
+    let th = Math.atan2(s.b[1] - s.a[1], s.b[0] - s.a[0]);
+    if (th < 0) th += Math.PI; if (th >= Math.PI - 1e-9) th -= Math.PI;
+    const u = [Math.cos(th), Math.sin(th)], n = [-u[1], u[0]];
+    const d = n[0] * s.a[0] + n[1] * s.a[1];
+    const t0 = u[0] * s.a[0] + u[1] * s.a[1], t1 = u[0] * s.b[0] + u[1] * s.b[1];
+    return { i, th, d, u, n, lo: Math.min(t0, t1), hi: Math.max(t0, t1), g: -1 };
+  });
+  info.sort((p, q) => (Math.abs(p.th - q.th) > 1e-3 ? p.th - q.th : p.d - q.d));
+  const groups = [];
+  for (const it of info) {
+    const g = groups[groups.length - 1], last = g && g[g.length - 1];
+    if (g && Math.abs(it.th - last.th) <= 1e-3 && Math.abs(it.d - last.d) <= tol) g.push(it); else groups.push([it]);
+  }
+  groups.forEach((g, k) => g.forEach(it => it.g = k));
+  // puntas de todas las líneas y arcos para saber si a un punto llega otra cosa
+  const cs = Math.max(tol, 0.05), grid = new Map(), key = (x, y) => Math.floor(x / cs) + "," + Math.floor(y / cs);
+  const addPt = (p, g) => { const k = key(p[0], p[1]); if (!grid.has(k)) grid.set(k, []); grid.get(k).push({ p, g }); };
+  info.forEach(it => { const s = lines[it.i]; addPt(s.a, it.g); addPt(s.b, it.g); });
+  arcs.forEach(s => { addPt(s.a, -2); addPt(s.b, -2); });
+  const othersAt = (p, g) => {
+    const cx = Math.floor(p[0] / cs), cy = Math.floor(p[1] / cs); let n = 0;
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (const q of grid.get((cx + dx) + "," + (cy + dy)) || []) if (q.g !== g && dist(q.p, p) <= tol) n++;
+    return n;
+  };
+  const out = [];
+  for (const g of groups) {
+    const { u, n } = g[0], d = g.reduce((a, it) => a + it.d, 0) / g.length;
+    const P = t => [n[0] * d + u[0] * t, n[1] * d + u[1] * t];
+    g.sort((p, q) => p.lo - q.lo);
+    let s = g[0].lo, e = g[0].hi;
+    for (let k = 1; k < g.length; k++) {
+      const it = g[k];
+      if (it.lo < e - tol) { removed++; e = Math.max(e, it.hi); continue; }
+      if (it.lo <= e + tol && othersAt(P(e), g[0].g) === 0) { merged++; e = Math.max(e, it.hi); continue; }
+      out.push(segL(P(s), P(e))); s = it.lo; e = it.hi;
+    }
+    out.push(segL(P(s), P(e)));
+  }
+  return { lines: out, removed, merged };
+}
+/* ---------- piezas pegadas: bordes compartidos se cortan una sola vez ---------- */
+function sharedEdges(paths, tol) {
+  const closedStraight = paths.map((p, i) => ({ p, i })).filter(x => isClosed(x.p) && x.p.every(g => g.t === "L"));
+  const edges = closedStraight.flatMap(x => x.p.map(g => ({ g, owner: x.i })));
+  const lineOf = g => {
+    let th = Math.atan2(g.b[1] - g.a[1], g.b[0] - g.a[0]); if (th < 0) th += Math.PI; if (th >= Math.PI - 1e-9) th -= Math.PI;
+    const u = [Math.cos(th), Math.sin(th)], d = -u[1] * g.a[0] + u[0] * g.a[1];
+    const t0 = u[0] * g.a[0] + u[1] * g.a[1], t1 = u[0] * g.b[0] + u[1] * g.b[1];
+    return { th, d, lo: Math.min(t0, t1), hi: Math.max(t0, t1) };
+  };
+  const E = edges.map(e => ({ ...e, ...lineOf(e.g) })).sort((p, q) => (Math.abs(p.th - q.th) > 1e-3 ? p.th - q.th : p.d - q.d));
+  const hit = new Set();
+  let start = 0;
+  for (let k = 1; k <= E.length; k++) {
+    if (k < E.length && Math.abs(E[k].th - E[k - 1].th) <= 1e-3 && Math.abs(E[k].d - E[k - 1].d) <= tol) continue;
+    const grp = E.slice(start, k).sort((p, q) => p.lo - q.lo);
+    for (let a = 0; a < grp.length; a++) for (let b = a + 1; b < grp.length && grp[b].lo < grp[a].hi - tol; b++)
+      if (grp[a].owner !== grp[b].owner) { hit.add(grp[a].owner); hit.add(grp[b].owner); }
+    start = k;
+  }
+  if (!hit.size) return { paths, pieces: 0 };
+  const out = [];
+  paths.forEach((p, i) => { if (hit.has(i)) p.forEach(g => out.push([segL(g.a, g.b)])); else out.push(p); });
+  return { paths: out, pieces: hit.size };
+}
+/* ---------- limpieza del dibujo ---------- */
+function cleanup(paths, tol) {
+  tol = Math.max(0.001, tol);
+  let removedClosed = 0, removedLines = 0, mergedLines = 0, joined = 0;
+  const closed = [], openSegs = [];
+  for (const p of paths) { if (isClosed(p)) closed.push(p); else p.forEach(g => openSegs.push({ ...g })); }
+  // 1) contornos cerrados repetidos (círculos o polilíneas una encima de otra)
+  const keepClosed = [];
+  for (const p of closed) {
+    const pts = polyline(p), c = { p, bb: bbox(pts), area: areaOf(pts) };
+    const dup = keepClosed.some(k => k.bb.every((v, i) => Math.abs(v - c.bb[i]) <= tol) && Math.abs(k.area - c.area) <= Math.max(1, 0.01 * c.area));
+    if (dup) removedClosed++; else keepClosed.push(c);
+  }
+  // 2) unir puntas que casi se tocan
+  const pts = [];
+  openSegs.forEach(s => { pts.push({ p: s.a, s, w: "a" }); pts.push({ p: s.b, s, w: "b" }); });
+  const fixed = keepClosed.flatMap(c => c.p.map(g => g.a));
+  const parent = pts.map((_, i) => i);
+  const find = i => parent[i] === i ? i : (parent[i] = find(parent[i]));
+  const cs = Math.max(tol, 0.01), grid = new Map();
+  const ck = (x, y) => x + "," + y;
+  pts.forEach((q, i) => { const k = ck(Math.floor(q.p[0] / cs), Math.floor(q.p[1] / cs)); if (!grid.has(k)) grid.set(k, []); grid.get(k).push(i); });
+  pts.forEach((q, i) => {
+    const cx = Math.floor(q.p[0] / cs), cy = Math.floor(q.p[1] / cs);
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (const j of grid.get(ck(cx + dx, cy + dy)) || [])
+      if (j > i && dist(q.p, pts[j].p) <= tol) parent[find(j)] = find(i);
+  });
+  const groups = new Map();
+  pts.forEach((q, i) => { const r = find(i); if (!groups.has(r)) groups.set(r, []); groups.get(r).push(q); });
+  for (const g of groups.values()) {
+    const avg = [g.reduce((a, q) => a + q.p[0], 0) / g.length, g.reduce((a, q) => a + q.p[1], 0) / g.length];
+    const arcEnd = g.find(q => q.s.t === "A");
+    const fx = fixed.find(f => dist(f, avg) <= tol);
+    if (g.length === 1 && !fx) continue;
+    const target = arcEnd ? arcEnd.p : (fx || avg);
+    if (g.some(q => q.s.t === "L" && dist(q.p, target) > 1e-6)) joined++;
+    g.forEach(q => { if (q.s.t === "L") q.s[q.w] = [target[0], target[1]]; });
+  }
+  // 3) líneas repetidas, superpuestas o tapadas por un contorno
+  const arcs = openSegs.filter(s => s.t === "A");
+  let lines = openSegs.filter(s => s.t === "L");
+  const n0 = lines.length;
+  lines = lines.filter(s => dist(s.a, s.b) > tol);
+  const closedLines = keepClosed.flatMap(c => c.p.filter(g => g.t === "L"));
+  lines = lines.filter(s => !closedLines.some(c => pointSegDist(s.a, c.a, c.b) <= tol && pointSegDist(s.b, c.a, c.b) <= tol));
+  removedLines += n0 - lines.length;
+  const endsAt = (pt, skip) => lines.filter(s => !skip.includes(s) && (dist(s.a, pt) <= tol || dist(s.b, pt) <= tol)).length
+    + arcs.filter(s => dist(s.a, pt) <= tol || dist(s.b, pt) <= tol).length;
+  { const m = mergeLines(lines, arcs, tol); lines = m.lines; removedLines += m.removed; mergedLines += m.merged; }
+  // 4) puntas que quedaron cortas o pasadas contra otra línea (en T): llevarlas justo a la línea
+  const straight = [...lines, ...closedLines];
+  for (const s of lines) for (const w of ["a", "b"]) {
+    const p = s[w];
+    if (endsAt(p, [s]) > 0 || fixed.some(f => dist(f, p) <= tol)) continue;
+    let best = null, bd = Infinity;
+    for (const o of straight) {
+      if (o === s) continue;
+      const d = pointSegDist(p, o.a, o.b);
+      if (d > 1e-6 && d <= tol && d < bd) { bd = d; best = o; }
+    }
+    if (best) {
+      const dx = best.b[0] - best.a[0], dy = best.b[1] - best.a[1], L2 = dx * dx + dy * dy;
+      const k = Math.max(0, Math.min(1, ((p[0] - best.a[0]) * dx + (p[1] - best.a[1]) * dy) / L2));
+      s[w] = [best.a[0] + k * dx, best.a[1] + k * dy]; joined++;
+    }
+  }
+  return { paths: [...keepClosed.map(c => c.p), ...lines.map(s => [s]), ...arcs.map(s => [s])], joined, removedLines, mergedLines, removedClosed };
+}
+
+/* ---------- dibujo pedido a Claude ---------- */
+function entitiesToPaths(list) {
+  const out = []; let bad = 0;
+  const N = v => (typeof v === "number" ? v : parseFloat(v));
+  const ok = (...v) => v.every(x => Number.isFinite(x));
+  for (const e of Array.isArray(list) ? list : []) {
+    const t = String(e && e.tipo || "").toLowerCase();
+    try {
+      if (t === "rect") {
+        const x = N(e.x), y = N(e.y), w = N(e.ancho), h = N(e.alto), r = Math.max(0, Math.min(N(e.radio) || 0, Math.min(Math.abs(w), Math.abs(h)) / 2));
+        if (!ok(x, y, w, h) || w <= 0 || h <= 0) { bad++; continue; }
+        if (r > 0) {
+          out.push([segL([x + r, y], [x + w - r, y]), segA([x + w - r, y], [x + w, y + r], [x + w - r, y + r], true),
+            segL([x + w, y + r], [x + w, y + h - r]), segA([x + w, y + h - r], [x + w - r, y + h], [x + w - r, y + h - r], true),
+            segL([x + w - r, y + h], [x + r, y + h]), segA([x + r, y + h], [x, y + h - r], [x + r, y + h - r], true),
+            segL([x, y + h - r], [x, y + r]), segA([x, y + r], [x + r, y], [x + r, y + r], true)]);
+        } else out.push(polySegs([[x, y, 0], [x + w, y, 0], [x + w, y + h, 0], [x, y + h, 0]], true));
+      } else if (t === "circulo") {
+        const cx = N(e.cx), cy = N(e.cy), d = N(e.diametro);
+        if (!ok(cx, cy, d) || d <= 0) { bad++; continue; }
+        out.push(circleSegs(cx, cy, d / 2));
+      } else if (t === "linea") {
+        const p = [N(e.x1), N(e.y1)], q = [N(e.x2), N(e.y2)];
+        if (!ok(...p, ...q) || dist(p, q) < 1e-6) { bad++; continue; }
+        out.push([segL(p, q)]);
+      } else if (t === "arco") {
+        const cx = N(e.cx), cy = N(e.cy), r = N(e.radio), a0 = N(e.desde) * Math.PI / 180, a1 = N(e.hasta) * Math.PI / 180;
+        if (!ok(cx, cy, r, a0, a1) || r <= 0) { bad++; continue; }
+        out.push([segA([cx + r * Math.cos(a0), cy + r * Math.sin(a0)], [cx + r * Math.cos(a1), cy + r * Math.sin(a1)], [cx, cy], true)]);
+      } else if (t === "polilinea") {
+        const v = (e.puntos || []).map(p => [N(p[0]), N(p[1]), 0]).filter(p => ok(p[0], p[1]));
+        if (v.length < 2) { bad++; continue; }
+        out.push(polySegs(v, !!e.cerrada));
+      } else bad++;
+    } catch (err) { bad++; }
+  }
+  return { paths: out.filter(p => p.length), bad };
+}
+function chatRules(W, H, gap) {
+  return `Sos el dibujante de una mesa CNC de corte por plasma de un taller metalúrgico en Argentina. El usuario te pide piezas para cortar en chapa y vos las dibujás.
+Respondé SOLO con un objeto JSON con esta forma:
+{"mensaje": "1 o 2 frases en castellano: qué dibujaste, medidas y cualquier supuesto que hiciste", "entidades": [ ... ]}
+Tipos de entidad (todas las medidas en milímetros, números sin unidades):
+- {"tipo":"rect","x":0,"y":0,"ancho":300,"alto":200}  rectángulo; x,y es su esquina inferior izquierda; "ancho" va en X y "alto" en Y. Opcional "radio" para esquinas redondeadas.
+- {"tipo":"circulo","cx":50,"cy":50,"diametro":22}
+- {"tipo":"linea","x1":0,"y1":0,"x2":100,"y2":0}
+- {"tipo":"arco","cx":0,"cy":0,"radio":50,"desde":0,"hasta":90}  ángulos en grados, sentido antihorario de "desde" a "hasta".
+- {"tipo":"polilinea","puntos":[[0,0],[100,0],[50,80]],"cerrada":true}
+Reglas:
+- El cero es la esquina inferior izquierda de la chapa. Todo con x,y >= 0 y dentro de la chapa de ${W} mm en X por ${H} mm en Y.
+- Si te dan medidas en cm o en metros, pasalas a mm (30 cm = 300 mm).
+- Dejá ${gap} mm de separación entre piezas y también ${gap} mm desde el borde de la chapa, salvo que el usuario pida otra cosa. Si pide corte común (piezas pegadas compartiendo línea), dibujá cada línea compartida una sola vez con "linea" y no repitas bordes.
+- Acomodá las piezas en filas empezando abajo a la izquierda, aprovechando la chapa.
+- Los agujeros van como "circulo" dentro de la pieza; los calados como "rect" o "polilinea" cerrada dentro de la pieza.
+- No agregues cotas, textos ni el borde de la chapa.
+- Si el pedido no entra en la chapa, dibujá lo que entre y avisalo en "mensaje". Si falta un dato, elegí un valor razonable y decilo en "mensaje".
+- Cuando el usuario pide un cambio, devolvé el dibujo COMPLETO actualizado, no solo lo que cambió.`;
+}
+
+/* ---------- girar / espejar ---------- */
+function transformPaths(paths, deg, mirror) {
+  deg = ((deg % 360) + 360) % 360;
+  if (!deg && !mirror) return paths;
+  const a = deg * Math.PI / 180;
+  let c = Math.cos(a), s = Math.sin(a);
+  if (Math.abs(c) < 1e-12) c = 0; if (Math.abs(s) < 1e-12) s = 0;
+  const T = p => { const x = mirror ? -p[0] : p[0], y = p[1]; return [x * c - y * s, x * s + y * c]; };
+  return paths.map(p => p.map(g => g.t === "L" ? segL(T(g.a), T(g.b)) : segA(T(g.a), T(g.b), T(g.c), mirror ? !g.ccw : g.ccw)));
+}
+
+/* ---------- código G ---------- */
+function writeNC(order, o) {
+  const out = ["%", ":" + o.prog]; let n = 10;
+  const emit = s => { n += 10; out.push("N" + n + s); };
+  const f3 = v => (Math.abs(v) < 5e-4 ? 0 : v).toFixed(3);
+  const zMode = o.mode === "z";
+  if (zMode) {
+    emit("G91G28X0Y0Z0"); emit("G40G17G80G49"); emit("T1M6"); emit("G90G54");
+    emit("G43Z" + (o.zSafe * 4).toFixed(3) + "H1"); emit("G0X0.000Y0.000S12000M3");
+  } else { emit("G21G90G40"); emit("G0X0.000Y0.000"); }
+  let cx = 0, cy = 0, first = true;
+  for (const it of order) {
+    const [x, y] = startOf(it.segs); let mv = "";
+    if (Math.abs(x - cx) > 1e-4 || first) mv += "X" + f3(x);
+    if (Math.abs(y - cy) > 1e-4 || first) mv += "Y" + f3(y);
+    if (mv) emit("G0" + mv + (first && zMode ? "Z" + o.zSafe.toFixed(3) : ""));
+    first = false; cx = x; cy = y;
+    emit(zMode ? "G1Z0.000F" + o.fPlunge.toFixed(1) : "M07");
+    let fset = false, mode = null;
+    for (const g of it.segs) {
+      const [x2, y2] = g.b, fs = (fset || !zMode) ? "" : "F" + o.fCut.toFixed(1);
+      if (g.t === "L") {
+        const m = (Math.abs(x2 - cx) > 1e-4 ? "X" + f3(x2) : "") + (Math.abs(y2 - cy) > 1e-4 ? "Y" + f3(y2) : "");
+        if (!m) continue;
+        emit((mode !== "G1" || !fset ? "G1" : "") + m + fs); mode = "G1";
+      } else {
+        emit((g.ccw ? "G03" : "G02") + "X" + f3(x2) + "Y" + f3(y2) + "I" + f3(g.c[0] - cx) + "J" + f3(g.c[1] - cy) + fs); mode = "arc";
+      }
+      fset = true; cx = x2; cy = y2;
+    }
+    emit(zMode ? "G0Z" + o.zSafe.toFixed(3) : "M08");
+  }
+  if (zMode) { emit("G28G91Z0"); emit("G49H0"); emit("G28X0Y0"); emit("M30"); }
+  else { emit("G0X0.000Y0.000"); emit("M02"); }
+  return out.join("\r\n") + "\r\n";
+}
+
+/* ---------- estado y pantalla ---------- */
+const state = { name: "", ents: null, layers: {}, result: null, code: "", step: 0, isSample: false };
+const settingIds = ["fCut", "fPlunge", "zSafe", "prog", "mode", "skipBorder", "pattern", "startAt", "prio", "linesOrder", "dir", "zigzag", "nearPierce", "showNums", "stHoles", "stPiece", "clean", "common", "tol", "sheetW", "sheetH", "gap"];
+function readOpts() {
+  const num = (id, d) => { const v = parseFloat($(id).value); return isFinite(v) && v > 0 ? v : d; };
+  return { fCut: num("fCut", 2540), fPlunge: num("fPlunge", 762), zSafe: num("zSafe", 5.08), prog: Math.round(num("prog", 1248)), mode: $("mode").value, skipBorder: $("skipBorder").checked,
+    strategy: $("stPiece").checked ? "piece" : "holes", pattern: $("pattern").value, startAt: $("startAt").value, prio: $("prio").value,
+    linesOrder: $("linesOrder").value, dir: $("dir").value, zigzag: $("zigzag").checked, nearPierce: $("nearPierce").checked, pick: state.pick,
+    clean: $("clean").checked, common: $("common").checked, tol: Math.max(0, parseFloat($("tol").value) || 0) };
+}
+function saveSettings() { try { const s = {}; settingIds.forEach(id => s[id] = ["checkbox", "radio"].includes($(id).type) ? $(id).checked : $(id).value); localStorage.setItem("dxf2cnc", JSON.stringify(s)); } catch (e) {} }
+function loadSettings() { try { const s = JSON.parse(localStorage.getItem("dxf2cnc") || "null"); if (!s) return; settingIds.forEach(id => { if (s[id] === undefined) return; if (["checkbox", "radio"].includes($(id).type)) $(id).checked = s[id]; else $(id).value = s[id]; }); } catch (e) {} }
+
+function loadText(text, name, isSample) {
+  $("warnBox").hidden = true;
+  try {
+    const ents = parseDXF(text);
+    const { paths, ignored } = toPaths(ents);
+    state.name = name; state.isSample = isSample; state.raw = paths; state.ignored = ignored;
+    $("rotDeg").value = 0; state.mirror = false; state.pick = null;
+    const layers = {}; paths.forEach(p => layers[p.layer] = (layers[p.layer] || 0) + 1);
+    state.layers = Object.fromEntries(Object.keys(layers).map(l => [l, { count: layers[l], on: !/cota|dim|text|rotulo|rótulo/i.test(l) }]));
+    renderLayers();
+    $("fileName").textContent = name; $("fileBadge").hidden = !isSample;
+    rebuild();
+  } catch (err) {
+    showWarn(err.message);
+  }
+}
+function showWarn(t) { $("warnBox").textContent = t; $("warnBox").hidden = !t; }
+function renderLayers() {
+  const box = $("layers"); box.textContent = "";
+  const names = Object.keys(state.layers);
+  $("layersPanel").hidden = names.length < 2;
+  names.forEach((l, i) => {
+    const lab = document.createElement("label"); lab.className = "check";
+    const cb = document.createElement("input"); cb.type = "checkbox"; cb.id = "layer_" + i; cb.checked = state.layers[l].on;
+    cb.addEventListener("change", () => { state.layers[l].on = cb.checked; rebuild(); });
+    const sp = document.createElement("span"); sp.textContent = l + " "; const sm = document.createElement("small"); sm.textContent = state.layers[l].count + " elementos"; sp.appendChild(sm);
+    lab.append(cb, sp); box.appendChild(lab);
+  });
+}
+function rebuild() {
+  if (!state.raw) return;
+  const o = readOpts(); saveSettings();
+  let segs = state.raw.filter(p => state.layers[p.layer]?.on).map(p => p.segs);
+  const rot = ((Math.round((parseFloat($("rotDeg").value) || 0) * 1000) / 1000) % 360 + 360) % 360;
+  segs = transformPaths(segs, rot, !!state.mirror);
+  $("mirrorBtn").setAttribute("aria-pressed", String(!!state.mirror));
+  $("rotInfo").textContent = rot || state.mirror ? "Dibujo " + (rot ? "girado " + fmt(rot, rot % 1 ? 1 : 0) + "°" : "") + (rot && state.mirror ? " y " : "") + (state.mirror ? "espejado" : "") + ". El cero sigue en la esquina de abajo a la izquierda." : "";
+  $("tolField").hidden = !o.clean;
+  let sharedInfo = "";
+  if (o.common && segs.length) {
+    const sh = sharedEdges(segs, Math.max(0.05, o.clean ? o.tol : 0.1));
+    if (sh.pieces) {
+      segs = sh.paths;
+      if (!o.clean) { const ls = segs.filter(p => p.length === 1 && p[0].t === "L").map(p => p[0]); const rest = segs.filter(p => !(p.length === 1 && p[0].t === "L")); const m = mergeLines(ls, [], 0.1); segs = [...rest, ...m.lines.map(s => [s])]; }
+      sharedInfo = sh.pieces + " piezas pegadas: los bordes que comparten se cortan una sola vez.";
+    }
+  }
+  $("cleanInfo").textContent = "";
+  if (o.clean && segs.length) {
+    const c = cleanup(segs, o.tol); segs = c.paths;
+    const parts = [];
+    if (c.joined) parts.push(c.joined + (c.joined === 1 ? " punta unida" : " puntas unidas"));
+    if (c.removedLines) parts.push(c.removedLines + (c.removedLines === 1 ? " línea doble o superpuesta borrada" : " líneas dobles o superpuestas borradas"));
+    if (c.mergedLines) parts.push(c.mergedLines + (c.mergedLines === 1 ? " línea partida unida" : " líneas partidas unidas"));
+    if (c.removedClosed) parts.push(c.removedClosed + (c.removedClosed === 1 ? " contorno repetido borrado" : " contornos repetidos borrados"));
+    $("cleanInfo").textContent = parts.length ? "Limpieza: " + parts.join(", ") + "." : "Limpieza: el dibujo estaba bien, no hubo que cambiar nada.";
+  }
+  if (sharedInfo) $("cleanInfo").textContent = (sharedInfo + " " + $("cleanInfo").textContent).trim();
+  const warns = [];
+  const ig = Object.entries(state.ignored || {});
+  if (ig.length) warns.push("No se cortan: " + ig.map(([t, c]) => c + " " + t).join(", ") + ". Si alguno es parte de la pieza (SPLINE, ELLIPSE, bloques INSERT), explotalo o pasalo a polilínea en AutoCAD.");
+  if (!segs.length) { state.result = null; state.code = ""; showWarn([...warns, "No hay líneas para cortar en las capas elegidas."].join(" ")); draw(); updateUI(); return; }
+  $("linesField").hidden = o.strategy !== "holes";
+  $("pickHint").hidden = o.startAt !== "pick";
+  $("pickHint").textContent = state.pick ? "Inicio marcado. Tocá otro lugar del dibujo para cambiarlo. Con Ruta más corta arranca justo ahí; con filas o columnas, desde la esquina más cercana a ese punto." : "Tocá el dibujo en el lugar donde querés empezar a cortar.";
+  $("cv").classList.toggle("picking", o.startAt === "pick");
+  const r = plan(chain(segs), o);
+  if (r.skipped) warns.push("Se salteó el borde de la chapa (" + fmt(r.W, 1) + " × " + fmt(r.H, 1) + " mm).");
+  showWarn(warns.join(" "));
+  state.result = r; state.code = writeNC(r.order, o);
+  state.step = r.order.length;
+  $("step").max = r.order.length; $("step").value = r.order.length;
+  updateUI(); draw();
+}
+const fmt = (v, d = 0) => v.toLocaleString("es-AR", { minimumFractionDigits: d, maximumFractionDigits: d });
+function updateUI() {
+  const r = state.result, o = readOpts();
+  const stats = $("stats"); stats.textContent = "";
+  let cells;
+  if (r) {
+    const cutLen = r.order.reduce((a, it) => a + it.segs.reduce((b, g) => b + segLen(g), 0), 0);
+    const mins = cutLen / o.fCut + r.order.length * 1.5 / 60;
+    const rapid = r.order.reduce((a, it) => [a[0] + dist(a[1], startOf(it.segs)), endOf(it.segs)], [0, [0, 0]])[0];
+    cells = [[fmt(r.W, 1) + " × " + fmt(r.H, 1), "medida total (mm)"], [r.nPieces, "piezas"], [r.nHoles, "agujeros y calados"], [r.order.length, "perforaciones"], [fmt(cutLen / 1000, 1) + " m", "corte · " + fmt(rapid / 1000, 1) + " m en vacío"], ["≈ " + fmt(mins, 0) + " min", "tiempo aprox."]];
+  } else cells = [["—", "medida total (mm)"], ["—", "piezas"], ["—", "agujeros y calados"], ["—", "perforaciones"], ["—", "largo de corte"], ["—", "tiempo aprox."]];
+  for (const [v, k] of cells) { const d = document.createElement("div"); d.className = "stat"; const a = document.createElement("span"); a.className = "v"; a.textContent = v; const b = document.createElement("span"); b.className = "k"; b.textContent = k; d.append(a, b); stats.appendChild(d); }
+  $("code").textContent = state.code;
+  $("dlBtn").disabled = !state.code; $("copyBtn").disabled = !state.code; $("playBtn").disabled = !r;
+  stepLabel();
+}
+function stepLabel() { const r = state.result; $("stepLbl").textContent = r ? state.step + " / " + r.order.length + " cortes" : "—"; }
+
+/* ---------- vista ---------- */
+function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function draw() {
+  const cv = $("cv"), box = $("canvasBox"), dpr = window.devicePixelRatio || 1;
+  const w = box.clientWidth, h = box.clientHeight; cv.width = w * dpr; cv.height = h * dpr;
+  const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+  const r = state.result; if (!r) return;
+  const pad = 28, sc = Math.min((w - 2 * pad) / Math.max(r.W, 1), (h - 2 * pad) / Math.max(r.H, 1));
+  const ox = (w - r.W * sc) / 2, oy = (h + r.H * sc) / 2;
+  const P = p => [ox + p[0] * sc, oy - p[1] * sc];
+  const cAcc = css("--accent"), cRap = css("--rapid"), cLine = css("--line"), cPierce = css("--pierce"), cMuted = css("--muted");
+  // cero
+  ctx.strokeStyle = cMuted; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + 18, oy); ctx.moveTo(ox, oy); ctx.lineTo(ox, oy - 18); ctx.stroke();
+  ctx.fillStyle = cMuted; ctx.font = "11px " + css("--f-mono"); ctx.fillText("0,0", ox - 4, oy + 14);
+  const k = state.step;
+  // pendientes
+  ctx.strokeStyle = cLine; ctx.lineWidth = 1.2;
+  r.order.forEach((it, i) => { if (i < k) return; ctx.beginPath(); it.pts.forEach((p, j) => { const [x, y] = P(p); j ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); });
+  // vacíos
+  ctx.setLineDash([3, 4]); ctx.strokeStyle = cRap; ctx.lineWidth = 0.8; ctx.beginPath();
+  let pos = [0, 0];
+  r.order.forEach((it, i) => { if (i >= k) return; const a = P(pos), b = P(startOf(it.segs)); ctx.moveTo(...a); ctx.lineTo(...b); pos = endOf(it.segs); });
+  ctx.stroke(); ctx.setLineDash([]);
+  // cortados
+  ctx.strokeStyle = cAcc; ctx.lineWidth = 1.6;
+  r.order.forEach((it, i) => { if (i >= k) return; ctx.beginPath(); it.pts.forEach((p, j) => { const [x, y] = P(p); j ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); });
+  // perforaciones
+  ctx.fillStyle = cPierce;
+  r.order.forEach((it, i) => { if (i >= k) return; const [x, y] = P(startOf(it.segs)); ctx.beginPath(); ctx.arc(x, y, i === k - 1 ? 4.5 : 2.2, 0, 2 * Math.PI); ctx.fill(); });
+  // números de orden
+  if ($("showNums").checked) {
+    ctx.font = "600 10px " + css("--f-mono"); ctx.lineWidth = 3; ctx.strokeStyle = css("--sheet"); ctx.fillStyle = css("--ink");
+    r.order.forEach((it, i) => { if (i >= k) return; const [x, y] = P(startOf(it.segs)); ctx.strokeText(String(i + 1), x + 4, y - 4); ctx.fillText(String(i + 1), x + 4, y - 4); });
+  }
+  // punto de inicio
+  const [sx, sy] = P(r.start);
+  ctx.strokeStyle = css("--ink"); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(sx, sy, 7, 0, 2 * Math.PI); ctx.moveTo(sx - 11, sy); ctx.lineTo(sx + 11, sy); ctx.moveTo(sx, sy - 11); ctx.lineTo(sx, sy + 11); ctx.stroke();
+  ctx.fillStyle = css("--ink"); ctx.font = "600 11px " + css("--f-body");
+  const lbl = "inicio", tw = ctx.measureText(lbl).width;
+  ctx.fillText(lbl, Math.min(Math.max(sx + 10, 4), w - tw - 4), Math.min(Math.max(sy - 10, 12), h - 4));
+  state.view = { ox, oy, sc };
+}
+function pickStart(ev) {
+  if ($("startAt").value !== "pick" || !state.result || !state.view) return;
+  const rc = $("cv").getBoundingClientRect(), v = state.view, r = state.result;
+  const x = (ev.clientX - rc.left - v.ox) / v.sc, y = (v.oy - (ev.clientY - rc.top)) / v.sc;
+  state.pick = [Math.max(0, Math.min(r.W, x)), Math.max(0, Math.min(r.H, y))];
+  rebuild();
+}
+let playing = null;
+function play() {
+  const r = state.result; if (!r) return;
+  if (playing) { cancelAnimationFrame(playing); playing = null; $("playBtn").textContent = "▶ Simular"; return; }
+  const N = r.order.length, dur = Math.min(12000, Math.max(3000, N * 40)), t0 = performance.now();
+  $("playBtn").textContent = "■ Parar";
+  const tick = t => { const f = Math.min(1, (t - t0) / dur); state.step = Math.round(f * N); $("step").value = state.step; stepLabel(); draw();
+    if (f < 1) playing = requestAnimationFrame(tick); else { playing = null; $("playBtn").textContent = "▶ Simular"; } };
+  playing = requestAnimationFrame(tick);
+}
+
+/* ---------- descarga ---------- */
+let downloads = null;
+(async () => { try { downloads = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { downloads = null; } setDlNote(); })();
+function baseName() { return (state.name || "corte").replace(/\.dxf$/i, "").replace(/[^\w\-. ]+/g, "_"); }
+function setDlNote() {
+  $("dlNote").textContent = downloads
+    ? "Se guarda como .txt (el F2100B lee código G en .txt). Si la máquina no lo muestra, cambiale la extensión a .nc."
+    : "Se guarda como .nc, listo para copiar al pendrive.";
+}
+function msg(t) { $("msg").textContent = t; }
+async function doDownload() {
+  if (!state.code) return;
+  if (downloads) {
+    try { await downloads.save({ filename: baseName() + ".txt", data: state.code }); msg("Archivo guardado: " + baseName() + ".txt"); }
+    catch (e) {
+      if (e && e.code === "declined") msg("Descarga cancelada.");
+      else if (e && e.code === "rate_limited") msg("Ya hay una descarga esperando confirmación.");
+      else { msg("No se pudo descargar desde acá. Usá «Copiar código» y pegalo en un archivo de texto."); }
+    }
+    return;
+  }
+  const blob = new Blob([state.code], { type: "text/plain" }), a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = baseName() + ".nc"; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  msg("Archivo descargado: " + baseName() + ".nc");
+}
+async function doCopy() {
+  try { await navigator.clipboard.writeText(state.code); msg("Código copiado (" + state.code.split("\r\n").length + " líneas)."); }
+  catch (e) {
+    const d = document.querySelector("details"); d.open = true;
+    const range = document.createRange(); range.selectNodeContents($("code")); const s = getSelection(); s.removeAllRanges(); s.addRange(range);
+    msg("Código seleccionado: copialo con Ctrl+C.");
+  }
+}
+
+/* ---------- pestañas ---------- */
+function showTab(which) {
+  const chat = which === "chat";
+  $("tabFile").setAttribute("aria-selected", String(!chat)); $("tabChat").setAttribute("aria-selected", String(chat));
+  $("paneFile").hidden = chat; $("paneChat").hidden = !chat;
+  try { localStorage.setItem("dxf2cnc_tab", which); } catch (e) {}
+}
+
+/* ---------- chat con Claude ---------- */
+let sampler = null, chatCtl = null;
+const chat = { turns: [] };
+(async () => {
+  try { sampler = window.claude && window.claude.use ? await window.claude.use("sample") : null; } catch (e) { sampler = null; }
+  if (!sampler) {
+    $("chatSend").disabled = true;
+    $("chatNote").textContent = "El chat funciona cuando abrís esta página desde Claude (claude.ai o la app).";
+  }
+})();
+function bubble(cls, text, small) {
+  const d = document.createElement("div"); d.className = "bubble " + cls; d.textContent = text;
+  if (small) { const s = document.createElement("small"); s.textContent = small; d.appendChild(s); }
+  const log = $("chatLog"); log.appendChild(d); log.scrollTop = log.scrollHeight; return d;
+}
+const chatErrors = {
+  not_granted: "No se dio permiso para usar Claude desde esta página.",
+  sampling_disabled: "Claude no está disponible para esta cuenta.",
+  rate_limited: "Se hicieron muchos pedidos seguidos o se llegó al límite de uso. Esperá un rato y probá de nuevo.",
+  session_expired: "Se cerró la sesión de Claude. Volvé a iniciar sesión y probá de nuevo.",
+  invalid_json: "La respuesta no vino en el formato esperado. Probá de nuevo o escribí el pedido más simple.",
+  refused: "Claude no quiso hacer ese pedido. Probá escribiéndolo de otra forma.",
+  prompt_too_large: "La conversación quedó muy larga. Tocá «Empezar de nuevo».",
+};
+async function sendChat() {
+  const text = $("chatIn").value.trim();
+  if (!text || !sampler || chatCtl) return;
+  const W = parseFloat($("sheetW").value) || 1220, H = parseFloat($("sheetH").value) || 2440, gap = Math.max(0, parseFloat($("gap").value) || 0);
+  bubble("me", text); $("chatIn").value = "";
+  chat.turns.push({ role: "user", content: text });
+  const wait = bubble("ai", "Dibujando…");
+  chatCtl = new AbortController();
+  $("chatSend").disabled = true; $("chatStop").hidden = false;
+  try {
+    const turns = chat.turns.slice(-12);
+    if (turns[0].role !== "user") turns.shift();
+    const res = await sampler.json([{ role: "user", content: chatRules(W, H, gap) }, ...turns], { cache: false, signal: chatCtl.signal });
+    const ents = res && Array.isArray(res.entidades) ? res.entidades : [];
+    const { paths, bad } = entitiesToPaths(ents);
+    const message = res && typeof res.mensaje === "string" ? res.mensaje : "";
+    chat.turns.push({ role: "assistant", content: JSON.stringify(res) });
+    wait.remove();
+    if (!paths.length) { bubble("ai err", message || "No llegó ningún dibujo. Probá describirlo de otra forma."); return; }
+    bubble("ai", message || "Listo.", paths.length + " elementos dibujados" + (bad ? " · " + bad + " no se pudieron leer" : ""));
+    loadPaths(paths, "dibujo_claude", "Claude");
+  } catch (e) {
+    wait.remove();
+    if (chat.turns.length && chat.turns[chat.turns.length - 1].role === "user") chat.turns.pop();
+    if (e && e.code === "cancelled") bubble("ai", "Pedido cancelado.");
+    else bubble("ai err", chatErrors[e && e.code] || "Hubo un problema de conexión. Probá de nuevo.");
+    if (e && ["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"].includes(e.code)) { sampler = null; $("chatNote").textContent = chatErrors[e.code] || "El chat no está disponible en esta vista."; }
+  } finally {
+    chatCtl = null; $("chatSend").disabled = !sampler; $("chatStop").hidden = true;
+  }
+}
+function newChat() {
+  if (chatCtl) chatCtl.abort();
+  chat.turns = [];
+  const log = $("chatLog"); [...log.querySelectorAll(".bubble")].forEach(b => b.remove());
+  $("chatIn").focus();
+}
+function loadPaths(paths, name, layer) {
+  $("warnBox").hidden = true;
+  state.name = name; state.isSample = false; state.ignored = {};
+  $("rotDeg").value = 0; state.mirror = false;
+  state.raw = paths.map(segs => ({ segs, layer }));
+  state.layers = { [layer]: { count: paths.length, on: true } };
+  state.pick = null;
+  renderLayers();
+  $("fileName").textContent = name === "dibujo_claude" ? "Dibujo de Claude" : name; $("fileBadge").hidden = true;
+  rebuild();
+}
+
+/* ---------- eventos ---------- */
+function readFile(f) {
+  if (!f) return;
+  if (!/\.dxf$/i.test(f.name)) { showWarn("«" + f.name + "» no es un DXF. En AutoCAD usá Guardar como → DXF."); return; }
+  showTab("file");
+  const rd = new FileReader(); rd.onload = () => loadText(String(rd.result), f.name, false); rd.readAsText(f);
+}
+const drop = $("drop");
+drop.addEventListener("click", () => $("fileInput").click());
+drop.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("fileInput").click(); } });
+$("fileInput").addEventListener("change", e => { readFile(e.target.files[0]); e.target.value = ""; });
+["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+window.addEventListener("dragover", e => e.preventDefault()); window.addEventListener("drop", e => { e.preventDefault(); if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]); });
+settingIds.forEach(id => $(id).addEventListener("change", rebuild));
+$("cv").addEventListener("click", pickStart);
+$("tabFile").addEventListener("click", () => showTab("file"));
+$("tabChat").addEventListener("click", () => showTab("chat"));
+$("chatSend").addEventListener("click", sendChat);
+$("chatStop").addEventListener("click", () => chatCtl && chatCtl.abort());
+$("chatNew").addEventListener("click", newChat);
+$("chatIn").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); } });
+$("tol").addEventListener("input", rebuild);
+const turn = d => { const v = (((parseFloat($("rotDeg").value) || 0) + d) % 360 + 360) % 360; $("rotDeg").value = Math.round(v * 1000) / 1000; state.pick = null; rebuild(); };
+$("rotL").addEventListener("click", () => turn(90));
+$("rotR").addEventListener("click", () => turn(-90));
+$("rot180").addEventListener("click", () => turn(180));
+$("mirrorBtn").addEventListener("click", () => { state.mirror = !state.mirror; state.pick = null; rebuild(); });
+$("rotDeg").addEventListener("change", () => { state.pick = null; rebuild(); });
+$("startAt").addEventListener("change", () => { if ($("startAt").value !== "pick") state.pick = null; });
+$("step").addEventListener("input", e => { state.step = +e.target.value; stepLabel(); draw(); });
+$("playBtn").addEventListener("click", play);
+$("dlBtn").addEventListener("click", doDownload);
+$("copyBtn").addEventListener("click", doCopy);
+new ResizeObserver(() => draw()).observe($("canvasBox"));
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+loadSettings();
+try { if (localStorage.getItem("dxf2cnc_tab") === "chat") showTab("chat"); } catch (e) {}
+updateUI();
+loadText(SAMPLE_DXF, SAMPLE_NAME, true);
+</script>
+
+</body></html>
