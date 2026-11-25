@@ -945,10 +945,19 @@ function writeNC(order, o) {
     first = false; cx = x; cy = y;
     emit(zMode ? "G1Z0.000F" + o.fPlunge.toFixed(1) : "M07");
     let fset = false, mode = null;
-    for (const g of it.segs) {
+    // arcos de radio > 1 m: la F2100B no los acepta bien; se cortan como tramos rectos cortos (error < 0,02 mm)
+    const segsOut = it.segs.flatMap(g => {
+      if (g.t !== "A" || dist(g.a, g.c) <= 1000) return [g];
+      const r = dist(g.a, g.c), [a0, a1] = sweep(g);
+      const n = Math.max(1, Math.ceil(Math.abs(a1 - a0) / (2 * Math.acos(1 - 0.02 / r))));
+      const pts = [g.a];
+      for (let k = 1; k < n; k++) { const a = a0 + (a1 - a0) * k / n; pts.push([g.c[0] + r * Math.cos(a), g.c[1] + r * Math.sin(a)]); }
+      pts.push(g.b);
+      return pts.slice(1).map((q, k) => segL(pts[k], q));
+    });
+    for (const g of segsOut) {
       const [x2, y2] = g.b, fs = (fset || !zMode) ? "" : "F" + o.fCut.toFixed(1);
-      // arcos casi rectos (radio > 1 m, salen de splines): la F2100B no los acepta bien; como recta el error es < 0,02 mm
-      if (g.t === "L" || dist(g.a, g.c) > 1000) {
+      if (g.t === "L") {
         const m = (Math.abs(x2 - cx) > 1e-4 ? "X" + f3(x2) : "") + (Math.abs(y2 - cy) > 1e-4 ? "Y" + f3(y2) : "");
         if (!m) continue;
         emit((mode !== "G1" || !fset ? "G1" : "") + m + fs); mode = "G1";
