@@ -12,10 +12,10 @@
 alter table public.viajes
   add column if not exists entregado boolean not null default false;
 
--- Los viajes viejos (mas de 2 dias pasados) quedan marcados como entregados,
--- que es donde ya estaban antes de este cambio.
+-- Los viajes de hace mas de 30 dias quedan marcados como entregados;
+-- los mas recientes los marcas vos, para no dar por entregado uno que se atraso.
 update public.viajes
    set entregado = true
  where entregado = false
    and fecha is not null
-   and fecha < current_date - interval '2 days';
+   and fecha < current_date - interval '30 days';

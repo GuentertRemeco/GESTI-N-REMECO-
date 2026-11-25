@@ -9,7 +9,7 @@ alter table invitaciones add column if not exists telefono text;
 
 -- El de la fabrica, para el dueno (cambialo si queres otro)
 update vendedores set telefono = '2954201051'
-  where rol = 'admin' and telefono is null;
+  where rol = 'admin' and empresa_id = 1 and telefono is null;
 
 select v.nombre, v.rol, coalesce(v.telefono,'SIN TELEFONO') as telefono, v.empresa_id
 from vendedores v order by v.empresa_id, v.rol, v.nombre;
