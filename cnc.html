@@ -947,7 +947,8 @@ function writeNC(order, o) {
     let fset = false, mode = null;
     for (const g of it.segs) {
       const [x2, y2] = g.b, fs = (fset || !zMode) ? "" : "F" + o.fCut.toFixed(1);
-      if (g.t === "L") {
+      // arcos casi rectos (radio > 1 m, salen de splines): la F2100B no los acepta bien; como recta el error es < 0,02 mm
+      if (g.t === "L" || dist(g.a, g.c) > 1000) {
         const m = (Math.abs(x2 - cx) > 1e-4 ? "X" + f3(x2) : "") + (Math.abs(y2 - cy) > 1e-4 ? "Y" + f3(y2) : "");
         if (!m) continue;
         emit((mode !== "G1" || !fset ? "G1" : "") + m + fs); mode = "G1";
