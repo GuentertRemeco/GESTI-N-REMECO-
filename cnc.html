@@ -1144,14 +1144,14 @@ let downloads = null;
 function baseName() { return (state.name || "corte").replace(/\.dxf$/i, "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\-.]+/g, "_").toUpperCase(); }
 function setDlNote() {
   $("dlNote").textContent = downloads
-    ? "Se guarda como .txt (el F2100B lee código G en .txt). Si la máquina no lo muestra, cambiale la extensión a .nc."
-    : "Se guarda como .nc, listo para copiar al pendrive.";
+    ? "Se guarda como .TXT, que es lo que lee la F2100B. Copialo tal cual al pendrive."
+    : "Se guarda como .TXT, que es lo que lee la F2100B. Copialo tal cual al pendrive.";
 }
 function msg(t) { $("msg").textContent = t; }
 async function doDownload() {
   if (!state.code) return;
   if (downloads) {
-    try { await downloads.save({ filename: baseName() + ".txt", data: state.code }); msg("Archivo guardado: " + baseName() + ".txt"); }
+    try { await downloads.save({ filename: baseName() + ".TXT", data: state.code }); msg("Archivo guardado: " + baseName() + ".TXT"); }
     catch (e) {
       if (e && e.code === "declined") msg("Descarga cancelada.");
       else if (e && e.code === "rate_limited") msg("Ya hay una descarga esperando confirmación.");
@@ -1160,9 +1160,9 @@ async function doDownload() {
     return;
   }
   const blob = new Blob([state.code], { type: "text/plain" }), a = document.createElement("a");
-  a.href = URL.createObjectURL(blob); a.download = baseName() + ".nc"; document.body.appendChild(a); a.click(); a.remove();
+  a.href = URL.createObjectURL(blob); a.download = baseName() + ".TXT"; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  msg("Archivo descargado: " + baseName() + ".nc");
+  msg("Archivo descargado: " + baseName() + ".TXT");
 }
 async function doCopy() {
   try { await navigator.clipboard.writeText(state.code); msg("Código copiado (" + state.code.split("\r\n").length + " líneas)."); }
