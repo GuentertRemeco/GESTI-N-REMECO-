@@ -1257,6 +1257,7 @@ function loadPaths(paths, name, layer) {
 /* ---------- eventos ---------- */
 function readFile(f) {
   if (!f) return;
+  if (/\.(txt|nc)$/i.test(f.name)) { showWarn("«" + f.name + "» ya es el programa para la máquina: no hace falta cargarlo acá. Copialo directo al pendrive y abrilo en la plasma."); return; }
   if (!/\.dxf$/i.test(f.name)) { showWarn("«" + f.name + "» no es un DXF. En AutoCAD usá Guardar como → DXF."); return; }
   showTab("file");
   const rd = new FileReader(); rd.onload = () => loadText(String(rd.result), f.name, false); rd.readAsText(f);
